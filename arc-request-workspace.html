@@ -1,0 +1,199 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../paper-tabs/paper-tab.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../arc-icons/arc-icons.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../request-panel/request-panel.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+
+<dom-module id="arc-request-workspace">
+  <template>
+    <style>
+    :host {
+      display: block;
+      @apply --arc-request-workspace;
+    }
+
+    .tabs-row {
+      background-color: var(--request-workspace-tabs-backgroud-color, rgba(0, 0, 0, 0.05));
+      border-bottom: 1px var(--request-workspace-tabs-border-color, #e5e5e5) solid;
+    }
+
+    .tabs-row paper-tabs {
+      --paper-tabs-content: {
+        @apply --arc-font-common-base;
+        height: 100%;
+        border-bottom: 0 solid transparent;
+        font-style: normal;
+        color: var(--request-workspace-tabs-color, rgba(0,0,0,0.87));
+      };
+    }
+
+    .tab-name {
+      font-size: 13px;
+      margin-right: 8px;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .close-icon {
+      color: rgba(0, 0, 0, 0.78);
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+    }
+
+    .close-icon:hover {
+      color: rgba(255, 255, 255, 0.54);
+      background-color: #FF8A65;
+    }
+
+    .add-request-button {
+      color: #616161;
+      height: 40px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    paper-tab.iron-selected {
+      background-color: var(--request-workspace-tabs-selected-background-color, #fff);
+    }
+
+    paper-tab {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      height: calc(100% - 2px);
+    }
+    </style>
+    <div class="tabs-row">
+      <paper-tabs selected="{{selected}}" scrollable>
+        <template is="dom-repeat" items="[[activeRequests]]">
+          <paper-tab>
+            <span class="tab-name">[[_computeTabName(item, item.url)]]</span>
+            <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
+          </paper-tab>
+        </template>
+        <paper-icon-button class="add-request-button" icon="arc:add" on-click="_addRequestHandler" title="Add new request editor"></paper-icon-button>
+      </paper-tabs>
+    </div>
+    <iron-pages selected="[[selected]]">
+      <template is="dom-repeat" items="{{activeRequests}}" on-dom-change="_panelRendered">
+        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]"></request-panel>
+      </template>
+    </iron-pages>
+  </template>
+  <script>
+  /**
+   * `arc-request-workspace`
+   *
+   * A request workspace component for Advanced REST Client that creates a list of requests
+   *
+   * ## Styling
+   *
+   * `<arc-request-workspace>` provides the following custom properties and mixins for styling:
+   *
+   * Custom property | Description | Default
+   * ----------------|-------------|----------
+   * `--arc-request-workspace` | Mixin applied to this elment | `{}`
+   *
+   * @customElement
+   * @polymer
+   * @demo demo/index.html
+   * @memberof ApiElements
+   */
+  class ArcRequestWorkspace extends Polymer.Element {
+    static get is() { return 'arc-request-workspace'; }
+    static get properties() {
+      return {
+        /**
+         * The OAuth2 redirect URI to pass to the authorization panel.
+         */
+        redirectUri: String,
+        /**
+         * Index of selected request panel
+         */
+        selected: {
+          type: Number,
+          // observer: '_computeVisibleRequest'
+        },
+        /**
+         * List of currently loaded requests
+         * @type {Array<Object>}
+         */
+        activeRequests: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+        /**
+         * A request that is currently being rendered in the workspace
+         */
+        visibleRequest: Object,
+
+        _requestEventsTarget: Object
+      };
+    }
+
+    _computeTabName(item, url) {
+      if (!item) {
+        return 'unnamed';
+      }
+      if (item.name) {
+        return item.name;
+      }
+      if (url) {
+        return url;
+      }
+      return 'New request';
+    }
+
+    appendRequest(request) {
+      const index = this.push('activeRequests', request);
+      this.selected = (index - 1);
+    }
+
+    _panelRendered() {
+      const panels = this.shadowRoot.querySelectorAll('request-panel');
+      for (let i = 0, len = panels.length; i < len; i++) {
+        if (!panels[i].eventsTarget) {
+          panels[i].eventsTarget = panels[i];
+        }
+      }
+    }
+
+    _addRequestHandler() {
+      this.appendRequest({
+        url: 'http://',
+        method: 'GET'
+      });
+    }
+
+    _closeRequest(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let index = Number(e.currentTarget.dataset.index);
+      if (isNaN(index)) {
+        return;
+      }
+      this.splice('activeRequests', index, 1);
+      if (index === this.selected) {
+        index--;
+      }
+      if (index < 0) {
+        index = 0;
+      }
+      this.selected = index;
+      if (!this.activeRequests.length) {
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          this._addRequestHandler();
+        });
+      }
+    }
+  }
+  window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
+  </script>
+</dom-module>
