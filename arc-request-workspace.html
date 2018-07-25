@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../polymer/lib/utils/render-status.html">
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 <link rel="import" href="../paper-tabs/paper-tab.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
@@ -7,7 +8,7 @@
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../request-panel/request-panel.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
-
+<link rel="import" href="../paper-progress/paper-progress.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
@@ -19,6 +20,7 @@
     .tabs-row {
       background-color: var(--request-workspace-tabs-backgroud-color, rgba(0, 0, 0, 0.05));
       border-bottom: 1px var(--request-workspace-tabs-border-color, #e5e5e5) solid;
+      position: relative;
     }
 
     .tabs-row paper-tabs {
@@ -67,6 +69,19 @@
       border-top-right-radius: 8px;
       height: calc(100% - 2px);
     }
+
+    paper-progress {
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: none;
+    }
+
+    :host([restoring]) paper-progress {
+      display: block;
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable>
@@ -76,12 +91,13 @@
             <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
           </paper-tab>
         </template>
-        <paper-icon-button class="add-request-button" icon="arc:add" on-click="_addRequestHandler" title="Add new request editor"></paper-icon-button>
+        <paper-icon-button class="add-request-button" icon="arc:add" on-click="addEmptyRequest" title="Add new request editor"></paper-icon-button>
       </paper-tabs>
+      <paper-progress indeterminate disabled="[[!restoring]]"></paper-progress>
     </div>
     <iron-pages selected="[[selected]]">
       <template is="dom-repeat" items="{{activeRequests}}" on-dom-change="_panelRendered">
-        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]"></request-panel>
+        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]" xhr-extension="[[xhrExtension]]"></request-panel>
       </template>
     </iron-pages>
   </template>
@@ -117,7 +133,8 @@
          */
         selected: {
           type: Number,
-          // observer: '_computeVisibleRequest'
+          observer: '_selectedChanged',
+          notify: true
         },
         /**
          * List of currently loaded requests
@@ -130,12 +147,125 @@
           }
         },
         /**
-         * A request that is currently being rendered in the workspace
+         * Currently selected workspace.
+         * When this value change it triggers workspace state change.
          */
-        visibleRequest: Object,
-
-        _requestEventsTarget: Object
+        environment: {
+          type: String,
+          observer: '_envChanged'
+        },
+        /**
+         * If set then workspace restoration process is in progress.
+         */
+        restoring: {
+          type: Boolean,
+          readOnly: true,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        },
+        /**
+         * If set then it renders an option in request context menu to
+         * toggle to XHR request via the extension. This information is passed
+         * to the request editor element.
+         *
+         * It's only relevant to ARC Chrome request editor.
+         */
+        xhrExtension: Boolean
       };
+    }
+
+    static get observers() {
+      return [
+        '_requestsListChanged(activeRequests.*)'
+      ];
+    }
+
+    constructor() {
+      super();
+      this._envChangedHandler = this._envChangedHandler.bind(this);
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      window.addEventListener('selected-environment-changed', this._envChangedHandler);
+      if (!this.activeRequests.length) {
+        Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
+      }
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      window.removeEventListener('selected-environment-changed', this._envChangedHandler);
+    }
+    /**
+     * Restores workspace state.
+     * It dispatches `preferences-read` custom event to query for workspace data
+     * and restores requests if they were previously stored.
+     *
+     * @return {Promise}
+     */
+    restoreWorkspace() {
+      if (this.activeRequests.length) {
+        this.activeRequests = [];
+      }
+      this._setRestoring(true);
+      const e = new CustomEvent('preferences-read', {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        detail: {
+          type: 'workspace-state'
+        }
+      });
+      this.dispatchEvent(e);
+      if (!e.defaultPrevented) {
+        const m = '"preferences-read" event for workspace state not handled';
+        console.warn(m);
+        this.addEmptyRequest();
+        this._setRestoring(false);
+        return Promise.reject(new Error(m));
+      }
+      return e.detail.result
+      .then((data) => this._restore(data))
+      .then(() => {
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          this._setRestoring(false);
+        });
+      })
+      .catch((cause) => {
+        console.warn(cause.message);
+        this.addEmptyRequest();
+        this._setRestoring(false);
+      });
+    }
+    /**
+     * Restores workspace state from previously stored data.
+     * @param {Object} state Workspace state object
+     */
+    _restore(state) {
+      if (!state) {
+        this.addEmptyRequest();
+        return;
+      }
+      if (state.requests && state.requests.length) {
+        this.activeRequests = state.requests;
+      } else {
+        this.addEmptyRequest();
+      }
+      if (!isNaN(state.selected)) {
+        this.selected = state.selected;
+      }
+      if (state.environment) {
+        this.environment = state.environment;
+        this.dispatchEvent(new CustomEvent('selected-environment-changed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: state.environment
+          }
+        }));
+      }
     }
 
     _computeTabName(item, url) {
@@ -150,7 +280,11 @@
       }
       return 'New request';
     }
-
+    /**
+     * Appends request to the list of `activeRequests` and selects it.
+     *
+     * @param {Object} request ArcRequest object.
+     */
     appendRequest(request) {
       const index = this.push('activeRequests', request);
       this.selected = (index - 1);
@@ -164,8 +298,10 @@
         }
       }
     }
-
-    _addRequestHandler() {
+    /**
+     * Adds an empty request to the workspace.
+     */
+    addEmptyRequest() {
       this.appendRequest({
         url: 'http://',
         method: 'GET'
@@ -189,9 +325,109 @@
       this.selected = index;
       if (!this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, function() {
-          this._addRequestHandler();
+          this.addEmptyRequest();
         });
       }
+    }
+    /**
+     * Serializes workspace state to a JavaScript object.
+     * @return {Object} An ArcWorkspace object
+     */
+    serializeWorkspace() {
+      const result = {
+        environment: this.environment || 'default',
+        selected: this.selected || 0,
+        requests: this.activeRequests || []
+      };
+      return result;
+    }
+    /**
+     * Dispatches `preferences-store` custom event to store workspace data.
+     * The type of the request is `workspace-state`.
+     *
+     * If there's an error it is not rerported back to the user.
+     */
+    _notifyStoreWorkspace() {
+      const value = this.serializeWorkspace();
+      const e = new CustomEvent('preferences-store', {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        detail: {
+          type: 'workspace-state',
+          value
+        }
+      });
+      this.dispatchEvent(e);
+      if (!e.defaultPrevented) {
+        const m = '"preferences-store" event for workspace state not handled';
+        console.warn(m);
+      }
+    }
+    /**
+     * Update tabs selection.
+     */
+    refreshTabs() {
+      this.shadowRoot.querySelector('paper-tabs').notifyResize();
+    }
+    /**
+     * Notifies workspace state change when selected request changes.
+     */
+    _selectedChanged() {
+      if (this.restoring) {
+        return;
+      }
+      this._notifyStoreWorkspace();
+    }
+    /**
+     * Notifies workspace state change when request data changes.
+     */
+    _requestsListChanged(record) {
+      if (this.restoring) {
+        return;
+      }
+      switch (record.path) {
+        case 'activeRequests':
+        case 'activeRequests.length':
+          return;
+        case 'activeRequests.splices':
+          if (!record.value.keySplices || !record.value.keySplices[0].removed.length) {
+            return;
+          }
+      }
+      this._notifyStoreWorkspace();
+    }
+    /**
+     * Updates environment value in the state file when it's value change.
+     */
+    _envChangedHandler(e) {
+      if (e.composedPath()[0] === this || this.restoring) {
+        return;
+      }
+      const value = e.detail.value;
+      this.environment = value;
+    }
+    /**
+     * Notifies workspace change when environment changes.
+     */
+    _envChanged() {
+      if (this.restoring) {
+        return;
+      }
+      this._notifyStoreWorkspace();
+    }
+
+    /**
+     * Finds requests index in the list of active requests.
+     *
+     * @param {String} requestId Saved request ID
+     * @return {Number} Request index or -1 if not found.
+     */
+    findRequestIndex(requestId) {
+      if (!requestId) {
+        return -1;
+      }
+      return this.activeRequests.findIndex((item) => item._id === requestId);
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);

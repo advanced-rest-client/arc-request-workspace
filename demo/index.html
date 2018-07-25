@@ -37,11 +37,22 @@
     <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+    <link rel="import" href="../../variables-editor/variables-editor.html">
+    <link rel="import" href="../../paper-styles/shadow.html">
     <link rel="import" href="../arc-request-workspace.html">
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
       .vertical-section-container {
         max-width: 1100px;
+      }
+
+      .card {
+        @apply --shadow-elevation-4dp;
+        padding: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
       }
       </style>
     </custom-style>
@@ -56,13 +67,22 @@
     <request-hooks-logic></request-hooks-logic>
     <dom-bind id="demo">
       <template is="dom-bind">
-        <div class="vertical-section-container centered" role="main">
-          <arc-request-workspace></arc-request-workspace>
+        <div class="vertical-section-container centered card" role="main">
+          <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]"></arc-request-workspace>
+        </div>
+
+        <div class="vertical-section-container centered card">
+          <h4>Demo: Variables editor</h4>
+          <variables-editor></variables-editor>
         </div>
       </template>
     </dom-bind>
     <script>
+    /* global DataGenerator */
     (function(app) {
+      const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
+        'oauth-authorization/oauth-popup.html');
+      app.oauth2RedirectUri = redirectUrl;
       app.createHeaders = function(data) {
         const headers = new Headers();
         if (data) {
@@ -126,7 +146,35 @@
           }));
         });
       };
+      /**
+       * Mimics workspace restoration process
+       */
+      app._restoreHandler = function(e) {
+        e.preventDefault();
+        e.detail.result = new Promise((resolve) => {
+          const saved = DataGenerator.generateSavedRequestData({
+            requestsSize: 3
+          });
+          const history = DataGenerator.generateHistoryRequestsData({
+            requestsSize: 3
+          });
+          const requests = history.concat(saved.requests);
+          const result = {
+            selected: 1,
+            environment: 'default',
+            requests
+          };
+          resolve(result);
+        });
+      };
+
+      app._storeHandler = function(e) {
+        e.preventDefault();
+        console.info('Storing workspace data', e.detail.value);
+      };
       window.addEventListener('transport-request', app.send);
+      window.addEventListener('preferences-read', app._restoreHandler);
+      window.addEventListener('preferences-store', app._storeHandler);
     })(document.getElementById('demo'));
   </script>
   </body>
