@@ -7,6 +7,7 @@
   <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
   <link rel="import" href="../arc-request-workspace.html">
+  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
 </head>
 <body>
   <test-fixture id="Basic">
@@ -18,14 +19,279 @@
   <script>
   suite('arc-request-workspace', () => {
     let element;
-    setup(() => {
-      element = fixture('Basic');
+    /* global DataGenerator */
+    function restoreHandler(e) {
+      e.preventDefault();
+      e.detail.result = new Promise((resolve) => {
+        const saved = DataGenerator.generateSavedRequestData({
+          requestsSize: 3
+        });
+        const history = DataGenerator.generateHistoryRequestsData({
+          requestsSize: 3
+        });
+        const requests = history.concat(saved.requests);
+        const result = {
+          selected: 1,
+          environment: 'test-env',
+          requests
+        };
+        resolve(result);
+      });
+    };
+
+    suite('Basics', () => {
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('selected is eventually set', (done) => {
+        element.addEventListener('selected-changed', () => {
+          done();
+        });
+      });
+
+      test('activeRequests has default value', () => {
+        assert.typeOf(element.activeRequests, 'array');
+        assert.lengthOf(element.activeRequests, 0);
+      });
+
+      test('restoring is false when initializing', () => {
+        assert.isFalse(element.restoring);
+      });
     });
 
-    test('Initializes the element', () => {
-      assert.ok(element);
+    suite('Restoring workspace', () => {
+      suite('Basics', () => {
+        setup(() => {
+          element = fixture('Basic');
+        });
+
+        test('Eventually sets restoring to "true"', (done) => {
+          element.addEventListener('restoring-changed', function clb() {
+            element.removeEventListener('restoring-changed', clb);
+            done();
+          });
+        });
+
+        test('Dispatches preferences-read custom event', (done) => {
+          element.addEventListener('preferences-read', function clb(e) {
+            element.removeEventListener('preferences-read', clb);
+            assert.isTrue(e.cancelable, 'Event can be canceled');
+            assert.isTrue(e.bubbles, 'Event bubbles');
+            assert.isTrue(e.composed, 'Event is composed');
+            assert.equal(e.detail.type, 'workspace-state', 'Type is set');
+            done();
+          });
+        });
+
+        test('Adds empty panel when the request is not handled', (done) => {
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.typeOf(element.activeRequests, 'array');
+            assert.lengthOf(element.activeRequests, 1);
+            done();
+          });
+        });
+      });
+
+      suite('With restore event handler', () => {
+        setup(() => {
+          window.addEventListener('preferences-read', restoreHandler);
+          element = fixture('Basic');
+        });
+
+        teardown(() => {
+          window.removeEventListener('preferences-read', restoreHandler);
+        });
+
+        test('Adds restored requests', (done) => {
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.typeOf(element.activeRequests, 'array');
+            assert.lengthOf(element.activeRequests, 6);
+            done();
+          });
+        });
+
+        test('Selects a request', (done) => {
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.equal(element.selected, 1);
+            done();
+          });
+        });
+
+        test('Selects environment', (done) => {
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.equal(element.environment, 'test-env');
+            done();
+          });
+        });
+
+        test('Dispatches selected-environment-changed event', (done) => {
+          let called;
+          element.addEventListener('selected-environment-changed', function sec(e) {
+            element.removeEventListener('selected-environment-changed', sec);
+            assert.isTrue(e.bubbles, 'Event bubbles');
+            assert.isTrue(e.composed, 'Event is composed');
+            assert.equal(e.detail.value, 'test-env', 'Type is set');
+            called = true;
+          });
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.isTrue(called, 'Restoring is called');
+            done();
+          });
+        });
+
+        test('Does not dispatches preferences-store when restoring', (done) => {
+          let called;
+          element.addEventListener('preferences-store', function clbp(e) {
+            element.removeEventListener('preferences-store', clbp);
+            called = true;
+          });
+          element.addEventListener('restoring-changed', function clb(e) {
+            if (e.detail.value) {
+              return;
+            }
+            element.removeEventListener('restoring-changed', clb);
+            assert.isUndefined(called);
+            done();
+          });
+        });
+      });
+    });
+
+    suite('Storing workspace', () => {
+      suiteSetup(() => {
+        window.addEventListener('preferences-read', restoreHandler);
+      });
+
+      suiteTeardown(() => {
+        window.removeEventListener('preferences-read', restoreHandler);
+      });
+
+      setup((done) => {
+        element = fixture('Basic');
+        element.addEventListener('restoring-changed', function clb(e) {
+          if (e.detail.value) {
+            return;
+          }
+          element.removeEventListener('restoring-changed', clb);
+          done();
+        });
+      });
+
+      test('Dispatches storing request when selection changes', (done) => {
+        element.addEventListener('preferences-store', function clb(e) {
+          element.removeEventListener('preferences-store', clb);
+          assert.equal(e.detail.value.selected, 0);
+          done();
+        });
+        element.selected = 0;
+      });
+
+      test('Dispatches storing request when environment changes', (done) => {
+        element.addEventListener('preferences-store', function clb(e) {
+          element.removeEventListener('preferences-store', clb);
+          assert.equal(e.detail.value.environment, 'default');
+          done();
+        });
+        element.environment = 'default';
+      });
+
+      test('Dispatches storing request when request changes', (done) => {
+        element.addEventListener('preferences-store', function clb(e) {
+          element.removeEventListener('preferences-store', clb);
+          assert.equal(e.detail.value.requests[0].name, 'test-name');
+          done();
+        });
+        element.set('activeRequests.0.name', 'test-name');
+      });
+    });
+
+    suite('_computeTabName()', () => {
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Returns "unnamed" for undefined item', () => {
+        const result = element._computeTabName();
+        assert.equal(result, 'unnamed');
+      });
+
+      test('Returns item name if exists', () => {
+        const result = element._computeTabName({
+          name: 'test-name'
+        });
+        assert.equal(result, 'test-name');
+      });
+
+      test('Returns URL if item name does not exists', () => {
+        const result = element._computeTabName({}, 'test-url');
+        assert.equal(result, 'test-url');
+      });
+
+      test('Returns "New request" otherwise', () => {
+        const result = element._computeTabName({
+          url: ''
+        });
+        assert.equal(result, 'New request');
+      });
+    });
+
+    suite('appendRequest()', () => {
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Adds request to the list of active requests', () => {
+        element.appendRequest({});
+        assert.lengthOf(element.activeRequests, 1);
+      });
+
+      test('Selects newly added request', () => {
+        element.appendRequest({});
+        assert.equal(element.selected, 0);
+      });
+    });
+
+    suite('addEmptyRequest()', () => {
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Adds request to the list of active requests', () => {
+        element.addEmptyRequest();
+        assert.lengthOf(element.activeRequests, 1);
+        const r = element.activeRequests[0];
+        assert.equal(r.method, 'GET');
+        assert.equal(r.url, 'http://');
+      });
+
+      test('Selects newly added request', () => {
+        element.addEmptyRequest();
+        assert.equal(element.selected, 0);
+      });
     });
   });
+
   </script>
 </body>
 </html>
