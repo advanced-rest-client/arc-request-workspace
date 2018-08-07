@@ -16,11 +16,13 @@
     "paper-tabs": "PolymerElements/paper-tabs#^2.1.1",
     "paper-icon-button": "PolymerElements/paper-icon-button#^2.2.0",
     "iron-icon": "PolymerElements/iron-icon#^2.1.0",
-    "paper-toast": "PolymerElements/paper-toast#^2.1.2",
     "arc-icons": "advanced-rest-client/arc-icons#^2.0.3",
     "request-panel": "advanced-rest-client/request-panel#2.0.0-preview",
+    "uuid-generator": "advanced-rest-client/uuid-generator#^2.0.0",
     "iron-pages": "PolymerElements/iron-pages#^2.1.1",
-    "paper-progress": "PolymerElements/paper-progress#^2.1.1"
+    "paper-progress": "PolymerElements/paper-progress#^2.1.1",
+    "paper-item": "PolymerElements/paper-item#^2.0.0",
+    "http-code-snippets": "advanced-rest-client/http-code-snippets#^2.0.3"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
@@ -37,7 +39,14 @@
     "oauth-authorization": "advanced-rest-client/oauth-authorization#^2.0.0",
     "arc-request-logic": "advanced-rest-client/arc-request-logic#2.0.0-preview",
     "arc-data-generator": "advanced-rest-client/arc-data-generator#^1.0.0",
-    "variables-editor": "advanced-rest-client/variables-editor#2.0.0-preview"
+    "variables-editor": "advanced-rest-client/variables-editor#2.0.0-preview",
+    "paper-toast": "PolymerElements/paper-toast#^2.1.2",
+    "saved-menu": "advanced-rest-client/saved-menu#2.0.0-preview",
+    "arc-models": "advanced-rest-client/arc-models#2.0.0-preview",
+    "saved-request-editor": "advanced-rest-client/saved-request-editor#2.0.0-preview",
+    "saved-request-detail": "advanced-rest-client/saved-request-detail#2.0.0-preview",
+    "bottom-sheet": "advanced-rest-client/bottom-sheet#^2.0.0",
+    "arc-electron-default-theme": "advanced-rest-client/arc-electron-default-theme#2.0.0-preview"
   },
   "repository": {
     "type": "git",

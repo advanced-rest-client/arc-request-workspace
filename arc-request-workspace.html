@@ -5,10 +5,12 @@
 <link rel="import" href="../paper-tabs/paper-tab.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../arc-icons/arc-icons.html">
+<link rel="import" href="../paper-item/paper-icon-item.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../request-panel/request-panel.html">
 <link rel="import" href="../iron-pages/iron-pages.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
+<link rel="import" href="../uuid-generator/uuid-generator.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
@@ -82,12 +84,17 @@
     :host([restoring]) paper-progress {
       display: block;
     }
+
+    .context-menu-icon {
+      color: var(--request-editor-context-menu-icon-color, var(--primary-color));
+      @apply --request-editor-context-menu-icon;
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable>
         <template is="dom-repeat" items="[[activeRequests]]">
           <paper-tab>
-            <span class="tab-name">[[_computeTabName(item, item.url)]]</span>
+            <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
             <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
           </paper-tab>
         </template>
@@ -96,10 +103,25 @@
       <paper-progress indeterminate disabled="[[!restoring]]"></paper-progress>
     </div>
     <iron-pages selected="[[selected]]">
-      <template is="dom-repeat" items="{{activeRequests}}" on-dom-change="_panelRendered">
-        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]" xhr-extension="[[xhrExtension]]"></request-panel>
+      <template is="dom-repeat" items="{{activeRequests}}" on-dom-change="_panelRendered" observe="name">
+        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]">
+          <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
+            <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
+            Save
+          </paper-icon-item>
+          <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
+            <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
+            Details
+          </paper-icon-item>
+          <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
+            <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
+            Code examples
+          </paper-icon-item>
+          <slot name="request-context-menu" slot="request-context-menu"></slot>
+        </request-panel>
       </template>
     </iron-pages>
+    <uuid-generator id="uuid"></uuid-generator>
   </template>
   <script>
   /**
@@ -130,7 +152,7 @@
    * @memberof UiElements
    */
   class ArcRequestWorkspace extends Polymer.Element {
-    static get is() { return 'arc-request-workspace'; }
+    static get is() {return 'arc-request-workspace';}
     static get properties() {
       return {
         /**
@@ -172,15 +194,7 @@
           value: false,
           notify: true,
           reflectToAttribute: true
-        },
-        /**
-         * If set then it renders an option in request context menu to
-         * toggle to XHR request via the extension. This information is passed
-         * to the request editor element.
-         *
-         * It's only relevant to ARC Chrome request editor.
-         */
-        xhrExtension: Boolean
+        }
       };
     }
 
@@ -193,11 +207,15 @@
     constructor() {
       super();
       this._envChangedHandler = this._envChangedHandler.bind(this);
+      this._requestChangeHandler = this._requestChangeHandler.bind(this);
+      this._requestDeleteHandler = this._requestDeleteHandler.bind(this);
     }
 
     connectedCallback() {
       super.connectedCallback();
       window.addEventListener('selected-environment-changed', this._envChangedHandler);
+      window.addEventListener('request-object-changed', this._requestChangeHandler);
+      window.addEventListener('request-object-deleted', this._requestDeleteHandler);
       if (!this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
       }
@@ -206,6 +224,8 @@
     disconnectedCallback() {
       super.disconnectedCallback();
       window.removeEventListener('selected-environment-changed', this._envChangedHandler);
+      window.removeEventListener('request-object-changed', this._requestChangeHandler);
+      window.removeEventListener('request-object-deleted', this._requestDeleteHandler);
     }
     /**
      * Restores workspace state.
@@ -238,7 +258,7 @@
       return e.detail.result
       .then((data) => this._restore(data))
       .then(() => {
-        Polymer.RenderStatus.afterNextRender(this, function() {
+        Polymer.RenderStatus.afterNextRender(this, () => {
           this._setRestoring(false);
         });
       })
@@ -277,12 +297,9 @@
       }
     }
 
-    _computeTabName(item, url) {
-      if (!item) {
-        return 'unnamed';
-      }
-      if (item.name) {
-        return item.name;
+    _computeTabName(name, url) {
+      if (name) {
+        return name;
       }
       if (url) {
         return url;
@@ -333,7 +350,7 @@
       }
       this.selected = index;
       if (!this.activeRequests.length) {
-        Polymer.RenderStatus.afterNextRender(this, function() {
+        Polymer.RenderStatus.afterNextRender(this, () => {
           this.addEmptyRequest();
         });
       }
@@ -390,6 +407,8 @@
     }
     /**
      * Notifies workspace state change when request data changes.
+     *
+     * @param {Object} record Requests record change
      */
     _requestsListChanged(record) {
       if (this.restoring) {
@@ -405,9 +424,12 @@
           }
       }
       this._notifyStoreWorkspace();
+      this.refreshTabs();
     }
     /**
      * Updates environment value in the state file when it's value change.
+     *
+     * @param {CustomEvent} e
      */
     _envChangedHandler(e) {
       if (e.composedPath()[0] === this || this.restoring) {
@@ -437,6 +459,108 @@
         return -1;
       }
       return this.activeRequests.findIndex((item) => item._id === requestId);
+    }
+    /**
+     * It ensures `_id` property exists and dispatches `request-save-state`
+     * event with `request` object on the detail.
+     *
+     * @param {CustomEvent} e
+     */
+    _requestStoreHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = e.model.get('item');
+      if (!item._id) {
+        item._id = this.$.uuid.generate();
+      }
+      this.dispatchEvent(new CustomEvent('request-save-state', {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          request: item
+        }
+      }));
+    }
+    /**
+     * Dispatches `request-details` event with `request` object on the
+     * detail.
+     *
+     * @param {CustomEvent} e
+     */
+    _renderRequestDetail(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = e.model.get('item');
+      this.dispatchEvent(new CustomEvent('request-details', {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          request: item
+        }
+      }));
+    }
+    /**
+     * Dispatches `request-code-snippets` event with `request` object on the
+     * detail.
+     *
+     * @param {CustomEvent} e
+     */
+    _renderCodeSnippets(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = e.model.get('item');
+      this.dispatchEvent(new CustomEvent('request-code-snippets', {
+        composed: true,
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          request: item
+        }
+      }));
+    }
+    /**
+     * Handler for non cancelable `request-object-changed` custom event.
+     * Updates request object if it's one of currently opened objects.
+     * @param {CustomEvent} e
+     */
+    _requestChangeHandler(e) {
+      if (e.cancelable) {
+        return;
+      }
+      const index = this.findRequestIndex(e.detail.request._id);
+      if (index === -1) {
+        return;
+      }
+      this.set(`activeRequests.${index}`, e.detail.request);
+    }
+    /**
+     * A handler for `request-object-deleted` custom event.
+     * Checks if deleted request is one of curerently rendered. If found it
+     * removes information related to "saved" request.
+     *
+     * @param {CustomEvent} e
+     */
+    _requestDeleteHandler(e) {
+      if (e.cancelable) {
+        return;
+      }
+      const index = this.findRequestIndex(e.detail.id);
+      if (index === -1) {
+        return;
+      }
+      const request = this.activeRequests[index];
+      delete request.name;
+      delete request.type;
+      delete request.driveId;
+      delete request.projects;
+      delete request._id;
+      delete request._rev;
+      delete request.created;
+      delete request.updated;
+      this.set(`activeRequests.${index}`, request);
+      this.set(`activeRequests.${index}.name`, '');
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
