@@ -35,6 +35,11 @@
         font-style: normal;
         color: var(--arc-request-workspace-tabs-color, rgba(0,0,0,0.87));
       };
+      --paper-tabs-selection-bar: {
+        z-index: 10;
+        border-width: var(--tabs-selection-width);
+        border-color: var(--primary-color);
+      };
     }
 
     .tab-name {
@@ -71,7 +76,7 @@
     paper-tab {
       border-top-left-radius: 8px;
       border-top-right-radius: 8px;
-      height: calc(100% - 2px);
+      /* height: calc(100% - 2px); */
     }
 
     paper-progress {
@@ -134,7 +139,7 @@
     <iron-pages selected="[[selected]]">
       <template is="dom-repeat" items="{{activeRequests}}" id="requestRepeater" observe="url">
         <section>
-          <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]" bound-events>
+          <request-panel class="panel" editor-request="{{item}}" editor-state="{{item._state}}" data-request-index$="[[index]]" bound-events>
             <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
               <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
               Save
@@ -348,13 +353,20 @@
     /**
      * Appends request to the list of `activeRequests` and selects it.
      *
+     * Note, the request data are passed after rext render frame so returned
+     * index referes to empty object at the time when it's returned.
+     *
      * @param {Object} request ArcRequest object.
      * @return {Number} Index of newly created request.
      */
     appendRequest(request) {
-      const length = this.push('activeRequests', request);
+      const length = this.push('activeRequests', {});
       const index = (length - 1);
       this.selected = index;
+      Polymer.RenderStatus.afterNextRender(this, () => {
+        this.set(`activeRequests.${index}`, request);
+        this.refreshTabs();
+      });
       return index;
     }
     /**
@@ -374,19 +386,24 @@
       if (isNaN(index)) {
         return;
       }
-      this.splice('activeRequests', index, 1);
-      if (index === this.selected) {
-        index--;
-      }
-      if (index < 0) {
-        index = 0;
-      }
-      this.selected = index;
-      if (!this.activeRequests.length) {
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          this.addEmptyRequest();
-        });
-      }
+      this._blockEditors();
+      this.set(`activeRequests.${index}`, {});
+      Polymer.RenderStatus.afterNextRender(this, () => {
+        this.splice('activeRequests', index, 1);
+        if (index === this.selected) {
+          index--;
+        }
+        if (index < 0) {
+          index = 0;
+        }
+        this.selected = index;
+        this._unblockEditors();
+        if (!this.activeRequests.length) {
+          Polymer.RenderStatus.afterNextRender(this, () => {
+            this.addEmptyRequest();
+          });
+        }
+      });
     }
     /**
      * Serializes workspace state to a JavaScript object.
@@ -687,6 +704,7 @@
         this.selected = toIdx;
       }
       this._unblockEditors();
+      this.refreshTabs();
     }
     /**
      * Sets `readonly` state on all editors
