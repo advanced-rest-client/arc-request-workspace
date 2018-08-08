@@ -502,13 +502,16 @@
      * Finds requests index in the list of active requests.
      *
      * @param {String} requestId Saved request ID
+     * @param {?String} tmpId An ID created by this component to identify
+     * not saved request.
      * @return {Number} Request index or -1 if not found.
      */
-    findRequestIndex(requestId) {
-      if (!requestId) {
+    findRequestIndex(requestId, tmpId) {
+      if (!requestId && !tmpId) {
         return -1;
       }
-      return this.activeRequests.findIndex((item) => item._id === requestId);
+      return this.activeRequests.findIndex((item) =>
+        item._id === requestId || item._tempId === tmpId);
     }
     /**
      * It ensures `_id` property exists and dispatches `request-save-state`
@@ -521,7 +524,7 @@
       e.stopPropagation();
       const item = e.model.get('item');
       if (!item._id) {
-        item._id = this.$.uuid.generate();
+        item._tempId = this.$.uuid.generate();
       }
       this.dispatchEvent(new CustomEvent('request-save-state', {
         composed: true,
@@ -579,7 +582,8 @@
       if (e.cancelable) {
         return;
       }
-      const index = this.findRequestIndex(e.detail.request._id);
+      const index = this.findRequestIndex(e.detail.request._id,
+        e.detail.request._tempId);
       if (index === -1) {
         return;
       }
