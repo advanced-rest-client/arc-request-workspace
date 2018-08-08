@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../polymer/lib/utils/render-status.html">
+<link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
 <link rel="import" href="../paper-tabs/paper-tabs.html">
 <link rel="import" href="../paper-tabs/paper-tab.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
@@ -11,6 +12,7 @@
 <link rel="import" href="../iron-pages/iron-pages.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../uuid-generator/uuid-generator.html">
+<link rel="import" href="../paper-styles/shadow.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
@@ -46,8 +48,8 @@
     .close-icon {
       color: rgba(0, 0, 0, 0.78);
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
     }
 
     .close-icon:hover {
@@ -89,11 +91,38 @@
       color: var(--request-editor-context-menu-icon-color, var(--primary-color));
       @apply --request-editor-context-menu-icon;
     }
+
+    .tabs {
+      position: relative;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    paper-tab {
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      user-select: none;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
+
+    .dragging {
+      background-color: #fff !important;
+      z-index: 1;
+      @apply --shadow-elevation-2dp;
+      --paper-tab-ink: transparent !important;
+    }
+
+    .moving {
+      position: relative;
+      -webkit-transition: -webkit-transform 0.1s ease-in-out;
+      transition: transform 0.1s ease-in-out;
+    }
     </style>
     <div class="tabs-row">
-      <paper-tabs selected="{{selected}}" scrollable>
-        <template is="dom-repeat" items="[[activeRequests]]">
-          <paper-tab>
+      <paper-tabs selected="{{selected}}" scrollable class="tabs" id="tabs">
+        <template is="dom-repeat" items="[[activeRequests]]" id="tabsRepeater">
+          <paper-tab on-track="_handleTrack">
             <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
             <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
           </paper-tab>
@@ -103,22 +132,24 @@
       <paper-progress indeterminate disabled="[[!restoring]]"></paper-progress>
     </div>
     <iron-pages selected="[[selected]]">
-      <template is="dom-repeat" items="{{activeRequests}}" on-dom-change="_panelRendered" observe="name">
-        <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]">
-          <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
-            <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
-            Save
-          </paper-icon-item>
-          <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
-            <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
-            Details
-          </paper-icon-item>
-          <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
-            <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
-            Code examples
-          </paper-icon-item>
-          <slot name="request-context-menu" slot="request-context-menu"></slot>
-        </request-panel>
+      <template is="dom-repeat" items="{{activeRequests}}" id="requestRepeater" observe="url">
+        <section>
+          <request-panel class="panel" editor-request="{{item}}" data-request-index$="[[index]]" bound-events>
+            <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
+              <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
+              Save
+            </paper-icon-item>
+            <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
+              <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
+              Details
+            </paper-icon-item>
+            <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
+              <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
+              Code examples
+            </paper-icon-item>
+            <slot name="request-context-menu" slot="request-context-menu"></slot>
+          </request-panel>
+        </section>
       </template>
     </iron-pages>
     <uuid-generator id="uuid"></uuid-generator>
@@ -203,6 +234,13 @@
         '_requestsListChanged(activeRequests.*)'
       ];
     }
+    /**
+     * @return {Boolean} True if tabs drag and drop is possible.
+     */
+    get _dragPossible() {
+      const r = this.activeRequests;
+      return !!(r && r.length > 1);
+    }
 
     constructor() {
       super();
@@ -278,7 +316,8 @@
         return;
       }
       if (state.requests && state.requests.length) {
-        this.activeRequests = state.requests;
+        state.requests.forEach((item) => this.appendRequest(item));
+        // this.activeRequests = state.requests;
       } else {
         this.addEmptyRequest();
       }
@@ -310,19 +349,13 @@
      * Appends request to the list of `activeRequests` and selects it.
      *
      * @param {Object} request ArcRequest object.
+     * @return {Number} Index of newly created request.
      */
     appendRequest(request) {
-      const index = this.push('activeRequests', request);
-      this.selected = (index - 1);
-    }
-
-    _panelRendered() {
-      const panels = this.shadowRoot.querySelectorAll('request-panel');
-      for (let i = 0, len = panels.length; i < len; i++) {
-        if (!panels[i].eventsTarget) {
-          panels[i].eventsTarget = panels[i];
-        }
-      }
+      const length = this.push('activeRequests', request);
+      const index = (length - 1);
+      this.selected = index;
+      return index;
     }
     /**
      * Adds an empty request to the workspace.
@@ -561,6 +594,156 @@
       delete request.updated;
       this.set(`activeRequests.${index}`, request);
       this.set(`activeRequests.${index}.name`, '');
+    }
+    /**
+     * Handles track event dispatched by `Polymer.Gestures` library.
+     * This method calls corresponding method to current dragging state.
+     * @param {CustomEvent} e
+     */
+    _handleTrack(e) {
+      if (!this._dragPossible) {
+        return;
+      }
+      switch (e.detail.state) {
+        case 'start':
+          this._onTrackStart(e);
+          break;
+        case 'track':
+          this._onTrack(e);
+          break;
+        case 'end':
+          this._onTrackEnd(e);
+          break;
+      }
+    }
+
+    _onTrackStart(e) {
+      this._startScrollLeft = this.scrollLeft;
+      const dragElement = this._getReorderedItem(e);
+      dragElement.style.pointerEvents = 'none';
+      dragElement.classList.add('dragging');
+      this._dragElement = dragElement;
+      this._dragModel = e.model;
+      this._blockEditors();
+    }
+
+    _onTrack(e) {
+      this._updateDragPosition(e.detail.dx);
+      const overEl = e.detail.hover();
+      const overModel = overEl && this.$.tabsRepeater.modelForElement(overEl);
+      if (!overModel) {
+        return;
+      }
+      this._dirOffset = e.detail.ddx < 0 ? -1 : 0;
+      this._overModel = overModel;
+      const lastOverIndex = this._overIndex || 0;
+      const overIndex = overModel.index + this._dirOffset;
+      const start = Math.max(overIndex < lastOverIndex ? overIndex : lastOverIndex, 0);
+      const end = overModel.index < lastOverIndex ? lastOverIndex : overModel.index;
+      const draggedIndex = this._dragModel.get('index');
+      const children = this.$.tabs.querySelectorAll('paper-tab');
+      for (let i = start; i <= end; i++) {
+        const el = children[i];
+        if (i !== draggedIndex) {
+          let dir = 0;
+          if (i > draggedIndex && i <= overIndex) {
+            dir = -1;
+          } else if (i > overIndex && i < draggedIndex) {
+            dir = 1;
+          }
+          el.classList.add('moving');
+          el.style.transform =
+            `translate3d(${dir * this._dragElement.offsetWidth}px,0,0)`;
+        }
+      }
+      this._overIndex = overModel.index;
+    }
+    /**
+     * Performs operation when the tab drop occurs.
+     */
+    _onTrackEnd() {
+      if (!this._dragElement) {
+        return;
+      }
+      this._dragElement.style.pointerEvents = '';
+      // this._dragElement.style.transform = '';
+      this._dragElement.classList.remove('dragging');
+      this._dragElement = undefined;
+      const movedItem = this._dragModel.get('item');
+      const fromIdx = this.activeRequests.indexOf(movedItem);
+      let toIdx;
+      if (fromIdx >= 0 && this._overModel) {
+        toIdx = this.activeRequests.indexOf(this._overModel.item) +
+          (this._overModel.index > this._dragModel.get('index') ? this._dirOffset : 0);
+        const item = this.splice('activeRequests', fromIdx, 1)[0];
+        this.splice('activeRequests', toIdx, 0, item);
+      }
+      const children = this.$.tabs.querySelectorAll('paper-tab');
+      for (let i = 0, len = children.length; i < len; i++) {
+        children[i].style.transform = '';
+        children[i].classList.remove('moving');
+      }
+      if (toIdx || toIdx === 0) {
+        this.selected = toIdx;
+      }
+      this._unblockEditors();
+    }
+    /**
+     * Sets `readonly` state on all editors
+     */
+    _blockEditors() {
+      const nodes = this.shadowRoot.querySelectorAll('request-panel');
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].readonly = true;
+      }
+    }
+    /**
+     * Removes `readonly` state from all editors
+     */
+    _unblockEditors() {
+      Polymer.RenderStatus.flush();
+      Polymer.RenderStatus.afterNextRender(this, () => {
+        const nodes = this.shadowRoot.querySelectorAll('request-panel');
+        for (let i = 0; i < nodes.length; i++) {
+          nodes[i].readonly = false;
+        }
+      });
+    }
+    /**
+     * Gets the top level item from the DOM repeater that has been marked as a
+     * draggable item.
+     * The event can originate from child elements which shouldn't be dragged.
+     *
+     * @param {Event} e The track event
+     * @return {HTMLElement} An element that is container for draggable items. Undefined if couldn't
+     * find.
+     */
+    _getReorderedItem(e) {
+      const elmName = 'PAPER-TAB';
+      if (e.target.nodeName === elmName) {
+        return e.target;
+      }
+      const path = e.composedPath();
+      if (!path || !path.length) {
+        return;
+      }
+      for (let i = 0, len = path.length; i < len; i++) {
+        const node = path[i];
+        if (node.nodeName === elmName) {
+          return path[i];
+        }
+      }
+    }
+    /**
+     * Re-positions dragged element to the place where it belongs.
+     * It accounts for scroll position if it changed since dragging started.
+     * @param {Number} dx Delta X from starting position.
+     */
+    _updateDragPosition(dx) {
+      this._trackDelta = dx || this._trackDelta || 0;
+      const scrollDelta = this.scrollLeft - this._startScrollLeft;
+      const pos = this._trackDelta + scrollDelta;
+      this._dragElement.style.transform = `translate3d(${pos}px,0,0)`;
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
