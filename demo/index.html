@@ -9,10 +9,11 @@
     if (location.search.indexOf('response_type') !== -1 &&
       location.search.indexOf('redirect_uri') !== -1) {
       // OAUTH DEMO
-      var p = new URLSearchParams(location.search);
-      var state = p.get('state');
-      var type = p.get('response_type');
-      var red = p.get('redirect_uri');
+      /* global URLSearchParams */
+      const p = new URLSearchParams(location.search);
+      const state = p.get('state');
+      const type = p.get('response_type');
+      let red = p.get('redirect_uri');
       red += '?state=' + state;
       if (type === 'token') {
         red += '&access_token=ya.12345.asdfghh';
@@ -50,6 +51,9 @@
     <link rel="import" href="../saved-request-detail/saved-request-detail.html">
     <link rel="import" href="../bottom-sheet/bottom-sheet.html">
     <link rel="import" href="../http-code-snippets/http-code-snippets.html">
+    <link rel="import" href="../paper-input/paper-input.html">
+    <link rel="import" href="../paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../arc-icons/arc-icons.html">
     <link rel="import" href="arc-request-workspace.html">
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
@@ -85,7 +89,7 @@
       saved-menu {
         overflow: auto;
         width: 256px;
-        height: 100vh;
+        height: calc(100vh - 58px);
       }
 
       .main {
@@ -108,6 +112,11 @@
         width: 60%;
         max-width: 700px;
       }
+
+      .search {
+        margin-left: 12px;
+        margin-right: 12px;
+      }
       </style>
     </custom-style>
   </head>
@@ -125,6 +134,11 @@
       <template is="dom-bind">
         <div class="app">
           <nav>
+            <div class="search">
+              <paper-input label="Search" class="search" no-label-float value="{{q}}">
+                <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
+              </paper-input>
+            </div>
             <saved-menu on-navigate="_selectRequest"></saved-menu>
           </nav>
           <section class="main">
@@ -227,31 +241,74 @@
       };
       app._restoreHandler = function(e) {
         e.preventDefault();
-        e.detail.result = Promise.resolve({
-          selected: 0,
-          environment: 'default',
-          requests: []
-        });
-        // e.detail.result = new Promise((resolve) => {
-        //   const saved = DataGenerator.generateSavedRequestData({
-        //     requestsSize: 3
-        //   });
-        //   const history = DataGenerator.generateHistoryRequestsData({
-        //     requestsSize: 3
-        //   });
-        //   const requests = history.concat(saved.requests);
-        //   const result = {
-        //     selected: 1,
-        //     environment: 'default',
-        //     requests
-        //   };
-        //   resolve(result);
+        // e.detail.result = Promise.resolve({
+        //   selected: 0,
+        //   environment: 'default',
+        //   requests: []
         // });
+        e.detail.result = new Promise((resolve) => {
+          // const saved = DataGenerator.generateSavedRequestData({
+          //   requestsSize: 2
+          // });
+          // const history = DataGenerator.generateHistoryRequestsData({
+          //   requestsSize: 2
+          // });
+          // const requests = history.concat(saved.requests);
+          // const requests = [{
+          //   method: 'GET',
+          //   url: 'http://a',
+          //   headers: 'a: a',
+          //   name: 'a',
+          //   requestActions: {variables: [{enabled: true, variable: 'a', value: 'a'}]}
+          // }, {
+          //   method: 'PUT',
+          //   url: 'http://b',
+          //   headers: 'b: b',
+          //   name: 'b',
+          //   requestActions: {variables: [{enabled: true, variable: 'b', value: 'b'}]}
+          // }, {
+          //   method: 'POST',
+          //   url: 'http://c',
+          //   headers: 'c: c',
+          //   name: 'c',
+          //   requestActions: {variables: [{enabled: true, variable: 'c', value: 'c'}]}
+          // }];
+          const reqStr = localStorage.getItem('workspace.requests');
+          let requests;
+          if (reqStr) {
+            try {
+              requests = JSON.parse(reqStr);
+            } catch (_) {
+              requests = [];
+            }
+          }
+          let environment = localStorage.getItem('workspace.environment');
+          let selected;
+          let selStr = localStorage.getItem('workspace.selected');
+          if (selStr && !isNaN(selStr)) {
+            selected = Number(selStr);
+          }
+          const result = {
+            selected,
+            environment,
+            requests
+          };
+          resolve(result);
+        });
       };
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        console.info('Storing workspace data', e.detail.value);
+        const workspace = e.detail.value;
+        console.info('Storing workspace data', workspace);
+        if (workspace.requests) {
+          const requestsStr = JSON.stringify(workspace.requests);
+          localStorage.setItem('workspace.requests', requestsStr);
+        }
+        if (workspace.environment) {
+          localStorage.setItem('workspace.environment', workspace.environment);
+        }
+        localStorage.setItem('workspace.selected', workspace.selected);
       };
 
       app.generateData = function() {
@@ -310,7 +367,7 @@
       app._resizeSheetContent = function(e) {
         const panel = e.target.querySelector(
           'saved-request-editor,saved-request-detail,http-code-snippets');
-        if (panel.notifyResize) {
+        if (panel && panel.notifyResize) {
           panel.notifyResize();
         }
       };
@@ -371,6 +428,28 @@
         e.preventDefault();
         e.detail.result = Promise.resolve({
           id: chance.guid({version: 5})
+        });
+      };
+      //
+      // Search saved
+      //
+      app._search = function() {
+        if (!app.q) {
+          document.querySelector('saved-menu').refresh();
+          return;
+        }
+        const e = new CustomEvent('request-query', {
+          cancelable: true,
+          bubbles: true,
+          detail: {
+            type: 'saved',
+            q: app.q
+          }
+        });
+        document.body.dispatchEvent(e);
+        e.detail.result
+        .then((items) => {
+          document.querySelector('saved-menu').items = items;
         });
       };
       window.addEventListener('transport-request', app.send);
