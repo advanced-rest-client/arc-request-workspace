@@ -124,7 +124,7 @@
             if (e.detail.value) {
               return;
             }
-            element.removeEventListener('restoring-changed', clb);
+            element.removeEventListener('restoring-changed',         clb);
             assert.equal(element.selected, 1);
             done();
           });
@@ -231,27 +231,23 @@
         element = fixture('Basic');
       });
 
-      test('Returns "unnamed" for undefined item', () => {
+      test('Returns "New request" for undefined item', () => {
         const result = element._computeTabName();
-        assert.equal(result, 'unnamed');
+        assert.equal(result, 'New request');
       });
 
       test('Returns item name if exists', () => {
-        const result = element._computeTabName({
-          name: 'test-name'
-        });
+        const result = element._computeTabName('test-name');
         assert.equal(result, 'test-name');
       });
 
       test('Returns URL if item name does not exists', () => {
-        const result = element._computeTabName({}, 'test-url');
+        const result = element._computeTabName(undefined, 'test-url');
         assert.equal(result, 'test-url');
       });
 
       test('Returns "New request" otherwise', () => {
-        const result = element._computeTabName({
-          url: ''
-        });
+        const result = element._computeTabName('', '');
         assert.equal(result, 'New request');
       });
     });
@@ -261,14 +257,28 @@
         element = fixture('Basic');
       });
 
-      test('Adds request to the list of active requests', () => {
-        element.appendRequest({});
+      test('Adds empty request to the list of active requests', () => {
+        element.appendRequest({method: 'x-test'});
         assert.lengthOf(element.activeRequests, 1);
+        assert.deepEqual(element.activeRequests[0], {});
+      });
+
+      test('Eventually sets request data', (done) => {
+        element.appendRequest({method: 'x-test'});
+        setTimeout(() => {
+          assert.equal(element.activeRequests[0].method, 'x-test');
+          done();
+        });
       });
 
       test('Selects newly added request', () => {
         element.appendRequest({});
         assert.equal(element.selected, 0);
+      });
+
+      test('Returns index of created request', () => {
+        const result = element.appendRequest({});
+        assert.equal(result, 0);
       });
     });
 
@@ -277,12 +287,15 @@
         element = fixture('Basic');
       });
 
-      test('Adds request to the list of active requests', () => {
+      test('Adds request to the list of active requests', (done) => {
         element.addEmptyRequest();
-        assert.lengthOf(element.activeRequests, 1);
-        const r = element.activeRequests[0];
-        assert.equal(r.method, 'GET');
-        assert.equal(r.url, 'http://');
+        setTimeout(() => {
+          assert.lengthOf(element.activeRequests, 1);
+          const r = element.activeRequests[0];
+          assert.equal(r.method, 'GET');
+          assert.equal(r.url, 'http://');
+          done();
+        }, 250);
       });
 
       test('Selects newly added request', () => {
