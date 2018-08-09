@@ -511,7 +511,7 @@
         return -1;
       }
       return this.activeRequests.findIndex((item) =>
-        item._id === requestId || item._tempId === tmpId);
+        item._id === requestId || tmpId && item._tempId === tmpId);
     }
     /**
      * It ensures `_id` property exists and dispatches `request-save-state`
