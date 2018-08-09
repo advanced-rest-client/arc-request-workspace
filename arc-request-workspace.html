@@ -321,8 +321,8 @@
         return;
       }
       if (state.requests && state.requests.length) {
-        state.requests.forEach((item) => this.appendRequest(item));
-        // this.activeRequests = state.requests;
+        this.activeRequests = state.requests;
+        this.refreshTabs();
       } else {
         this.addEmptyRequest();
       }
