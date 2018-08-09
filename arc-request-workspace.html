@@ -340,6 +340,25 @@
         }));
       }
     }
+    /**
+     * Finds first position where the request is empty.
+     * @return {Number} Index of empty request or `-1`.
+     */
+    _getEmptyPosition() {
+      const ar = this.activeRequests;
+      let result = -1;
+      if (!ar || !ar.length) {
+        return result;
+      }
+      for (let i = 0, len = ar.length; i < len; i++) {
+        const item = ar[i];
+        if ((!item.url || item.url === 'http://') && !item.headers && !item.payload) {
+          result = i;
+          break;
+        }
+      }
+      return result;
+    }
 
     _computeTabName(name, url) {
       if (name) {
@@ -360,8 +379,11 @@
      * @return {Number} Index of newly created request.
      */
     appendRequest(request) {
-      const length = this.push('activeRequests', {});
-      const index = (length - 1);
+      let index = this._getEmptyPosition();
+      if (index === -1) {
+        const length = this.push('activeRequests', {});
+        index = (length - 1);
+      }
       this.selected = index;
       Polymer.RenderStatus.afterNextRender(this, () => {
         this.set(`activeRequests.${index}`, request);
