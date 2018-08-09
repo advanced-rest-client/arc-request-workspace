@@ -239,7 +239,12 @@
           value: false,
           notify: true,
           reflectToAttribute: true
-        }
+        },
+        /**
+         * The component automatically ask to restore workspace when connected
+         * to the DOM. This ensures to prohibit auto restore request.
+         */
+        noAutoRestore: Boolean
       };
     }
 
@@ -268,7 +273,7 @@
       window.addEventListener('selected-environment-changed', this._envChangedHandler);
       window.addEventListener('request-object-changed', this._requestChangeHandler);
       window.addEventListener('request-object-deleted', this._requestDeleteHandler);
-      if (!this.activeRequests.length) {
+      if (!this.noAutoRestore && !this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
       }
     }
