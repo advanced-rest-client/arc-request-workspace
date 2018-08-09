@@ -139,7 +139,16 @@
     <iron-pages selected="[[selected]]">
       <template is="dom-repeat" items="{{activeRequests}}" id="requestRepeater" observe="url">
         <section>
-          <request-panel class="panel" editor-request="{{item}}" editor-state="{{item._state}}" data-request-index$="[[index]]" bound-events>
+          <request-panel
+            class="panel"
+            editor-request="{{item}}"
+            editor-state="{{item._state}}"
+            data-request-index$="[[index]]"
+            response-meta="{{item._responseMeta}}"
+            response="{{item._response}}"
+            response-error="{{item._responseError}}"
+            is-error-response="{{item._isErrorResponse}}"
+            bound-events>
             <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
               <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
               Save
