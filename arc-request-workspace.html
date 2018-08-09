@@ -378,6 +378,19 @@
         method: 'GET'
       });
     }
+    /**
+     * Updatwes request on a specific position.
+     * @param {Object} request ArcRequest object
+     * @param {Number} index Request index
+     */
+    updateRequestObject(request, index) {
+      const ar = this.activeRequests;
+      if (!ar || !ar[index]) {
+        console.warn('Trying to update non existing request');
+        return;
+      }
+      this.set(`activeRequests.${index}`, request);
+    }
 
     _closeRequest(e) {
       e.preventDefault();

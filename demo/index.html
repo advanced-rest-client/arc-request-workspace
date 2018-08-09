@@ -351,6 +351,7 @@
           if (index === -1) {
             workspace.appendRequest(result);
           } else {
+            workspace.updateRequestObject(result, index);
             workspace.selected = index;
           }
         });
