@@ -454,8 +454,8 @@
         });
       };
       window.addEventListener('transport-request', app.send);
-      window.addEventListener('preferences-read', app._restoreHandler);
-      window.addEventListener('preferences-store', app._storeHandler);
+      window.addEventListener('workspace-state-read', app._restoreHandler);
+      window.addEventListener('workspace-state-store', app._storeHandler);
       window.addEventListener('request-save-state', app._saveRequestHandler);
       window.addEventListener('request-details', app._requestDetailsHandler);
       window.addEventListener('request-code-snippets', app._renderCodeSnippets);

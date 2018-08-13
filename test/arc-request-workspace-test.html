@@ -37,7 +37,7 @@
         };
         resolve(result);
       });
-    };
+    }
 
     suite('Basics', () => {
       setup(() => {
@@ -73,9 +73,9 @@
           });
         });
 
-        test('Dispatches preferences-read custom event', (done) => {
-          element.addEventListener('preferences-read', function clb(e) {
-            element.removeEventListener('preferences-read', clb);
+        test('Dispatches workspace-state-read custom event', (done) => {
+          element.addEventListener('workspace-state-read', function clb(e) {
+            element.removeEventListener('workspace-state-read', clb);
             assert.isTrue(e.cancelable, 'Event can be canceled');
             assert.isTrue(e.bubbles, 'Event bubbles');
             assert.isTrue(e.composed, 'Event is composed');
@@ -99,12 +99,12 @@
 
       suite('With restore event handler', () => {
         setup(() => {
-          window.addEventListener('preferences-read', restoreHandler);
+          window.addEventListener('workspace-state-read', restoreHandler);
           element = fixture('Basic');
         });
 
         teardown(() => {
-          window.removeEventListener('preferences-read', restoreHandler);
+          window.removeEventListener('workspace-state-read', restoreHandler);
         });
 
         test('Adds restored requests', (done) => {
@@ -124,7 +124,7 @@
             if (e.detail.value) {
               return;
             }
-            element.removeEventListener('restoring-changed',         clb);
+            element.removeEventListener('restoring-changed', clb);
             assert.equal(element.selected, 1);
             done();
           });
@@ -160,10 +160,10 @@
           });
         });
 
-        test('Does not dispatches preferences-store when restoring', (done) => {
+        test('Does not dispatches workspace-state-store when restoring', (done) => {
           let called;
-          element.addEventListener('preferences-store', function clbp(e) {
-            element.removeEventListener('preferences-store', clbp);
+          element.addEventListener('workspace-state-store', function clbp() {
+            element.removeEventListener('workspace-state-store', clbp);
             called = true;
           });
           element.addEventListener('restoring-changed', function clb(e) {
@@ -180,11 +180,11 @@
 
     suite('Storing workspace', () => {
       suiteSetup(() => {
-        window.addEventListener('preferences-read', restoreHandler);
+        window.addEventListener('workspace-state-read', restoreHandler);
       });
 
       suiteTeardown(() => {
-        window.removeEventListener('preferences-read', restoreHandler);
+        window.removeEventListener('workspace-state-read', restoreHandler);
       });
 
       setup((done) => {
@@ -199,8 +199,8 @@
       });
 
       test('Dispatches storing request when selection changes', (done) => {
-        element.addEventListener('preferences-store', function clb(e) {
-          element.removeEventListener('preferences-store', clb);
+        element.addEventListener('workspace-state-store', function clb(e) {
+          element.removeEventListener('workspace-state-store', clb);
           assert.equal(e.detail.value.selected, 0);
           done();
         });
@@ -208,8 +208,8 @@
       });
 
       test('Dispatches storing request when environment changes', (done) => {
-        element.addEventListener('preferences-store', function clb(e) {
-          element.removeEventListener('preferences-store', clb);
+        element.addEventListener('workspace-state-store', function clb(e) {
+          element.removeEventListener('workspace-state-store', clb);
           assert.equal(e.detail.value.environment, 'default');
           done();
         });
@@ -217,8 +217,8 @@
       });
 
       test('Dispatches storing request when request changes', (done) => {
-        element.addEventListener('preferences-store', function clb(e) {
-          element.removeEventListener('preferences-store', clb);
+        element.addEventListener('workspace-state-store', function clb(e) {
+          element.removeEventListener('workspace-state-store', clb);
           assert.equal(e.detail.value.requests[0].name, 'test-name');
           done();
         });
@@ -268,7 +268,7 @@
         setTimeout(() => {
           assert.equal(element.activeRequests[0].method, 'x-test');
           done();
-        });
+        }, 250);
       });
 
       test('Selects newly added request', () => {

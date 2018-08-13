@@ -176,7 +176,7 @@
    * list of requests.
    *
    * The element does not contain any logic responsible for storing and restoring
-   * data. To use this component handle `preferences-store` and `preferences-read`
+   * data. To use this component handle `workspace-state-store` and `workspace-state-read`
    * custom events. See source for implementation detaild.
    *
    * ## Styling
@@ -286,7 +286,7 @@
     }
     /**
      * Restores workspace state.
-     * It dispatches `preferences-read` custom event to query for workspace data
+     * It dispatches `workspace-state-read` custom event to query for workspace data
      * and restores requests if they were previously stored.
      *
      * @return {Promise}
@@ -296,7 +296,7 @@
         this.activeRequests = [];
       }
       this._setRestoring(true);
-      const e = new CustomEvent('preferences-read', {
+      const e = new CustomEvent('workspace-state-read', {
         bubbles: true,
         composed: true,
         cancelable: true,
@@ -306,7 +306,7 @@
       });
       this.dispatchEvent(e);
       if (!e.defaultPrevented) {
-        const m = '"preferences-read" event for workspace state not handled';
+        const m = '"workspace-state-read" event for workspace state not handled';
         console.warn(m);
         this.addEmptyRequest();
         this._setRestoring(false);
@@ -467,25 +467,24 @@
       return result;
     }
     /**
-     * Dispatches `preferences-store` custom event to store workspace data.
+     * Dispatches `workspace-state-store` custom event to store workspace data.
      * The type of the request is `workspace-state`.
      *
      * If there's an error it is not rerported back to the user.
      */
     _notifyStoreWorkspace() {
       const value = this.serializeWorkspace();
-      const e = new CustomEvent('preferences-store', {
+      const e = new CustomEvent('workspace-state-store', {
         bubbles: true,
         composed: true,
         cancelable: true,
         detail: {
-          type: 'workspace-state',
           value
         }
       });
       this.dispatchEvent(e);
       if (!e.defaultPrevented) {
-        const m = '"preferences-store" event for workspace state not handled';
+        const m = '"workspace-state-store" event for workspace state not handled';
         console.warn(m);
       }
     }
