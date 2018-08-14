@@ -815,6 +815,132 @@
       const pos = this._trackDelta + scrollDelta;
       this._dragElement.style.transform = `translate3d(${pos}px,0,0)`;
     }
+    /**
+     * Adds request(s) by id.
+     * @param {String} type A request type. `history` or `saved`
+     * @param {String|Array<String>} id Request id or list of ids
+     * @return {Promise}
+     */
+    addRequestById(type, id) {
+      const ev = new CustomEvent('request-object-read', {
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          id,
+          type,
+          opts: {
+            restorePayload: true
+          }
+        }
+      });
+      this.dispatchEvent(ev);
+      if (!ev.defaultPrevented) {
+        return Promise.reject(new Error('Request model not found'));
+      }
+      return ev.detail.result
+      .then((result) => {
+        if (!result) {
+          throw new Error('Request not found');
+        }
+        if (!(result instanceof Array)) {
+          result = [result];
+        }
+        result.forEach((item) => {
+          const index = this.findRequestIndex(item._id);
+          if (index === -1) {
+            this.appendRequest(item);
+          } else {
+            this.updateRequestObject(item, index);
+          }
+        });
+        this.selected = this.activeRequests.length - 1;
+      });
+    }
+    /**
+     * Replaces current workspace with a request(s) passed in the argument.
+     * @param {String} type A request type. `history` or `saved`
+     * @param {String|Array<String>} id Request id or list of ids
+     * @return {Promise}
+     */
+    replaceByRequestId(type, id) {
+      this.clearWorkspace();
+      return this.addRequestById(type, id);
+    }
+    /**
+     * Clears the workspace. Adds new empty request when ready.
+     */
+    clearWorkspace() {
+      this._blockEditors();
+      this.set('activeRequests', []);
+      Polymer.RenderStatus.afterNextRender(this, () => {
+        this.addEmptyRequest();
+      });
+    }
+    /**
+     * Adds requests by a project.
+     * @param {String|Object} project Project id or project object
+     * @return {Promise}
+     */
+    appendByProject(project) {
+      if (!project) {
+        throw new Error('Expecting argument.');
+      }
+      this.clearWorkspace();
+      let e;
+      const options = {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        detail: {
+          opts: {
+            restorePayload: true
+          }
+        }
+      };
+      if (typeof project === 'string') {
+        options.detail.id = project;
+        e = new CustomEvent('request-project-list', options);
+      } else if (project.requests) {
+        options.detail.id = project.requests;
+        options.detail.type = 'saved';
+        e = new CustomEvent('request-object-read', options);
+      } else if (project._id) {
+        options.detail.id = project._id;
+        e = new CustomEvent('request-project-list', options);
+      }
+      if (!e) {
+        throw new Error('Unknown configuration');
+      }
+      this.dispatchEvent(e);
+      if (!e.defaultPrevented) {
+        throw new Error('Request model not found');
+      }
+      return e.detail.result
+      .then((data) => {
+        this.activeRequests = data;
+        this.refreshTabs();
+      });
+    }
+    /**
+     * Replace current workspace data by a project.
+     * @param {String|Object} project Project id or project object
+     * @return {Promise}
+     */
+    replaceByProject(project) {
+      this.clearWorkspace();
+      return this.appendByProject(project);
+    }
+    /**
+     * Replaces current workspace with the request data passed as an argument.
+     * @param {Array<Object>} requests List of ArcRequest objects to use.
+     */
+    replaceByRequestsData(requests) {
+      this.clearWorkspace();
+      Polymer.RenderStatus.afterNextRender(this, () => {
+        this.activeRequests = requests;
+        this.refreshTabs();
+      });
+    }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>

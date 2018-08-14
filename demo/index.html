@@ -54,15 +54,28 @@
     <link rel="import" href="../paper-input/paper-input.html">
     <link rel="import" href="../paper-icon-button/paper-icon-button.html">
     <link rel="import" href="../arc-icons/arc-icons.html">
+    <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../paper-item/paper-item.html">
+    <link rel="import" href="../paper-listbox/paper-listbox.html">
+    <link rel="import" href="../paper-checkbox/paper-checkbox.html">
     <link rel="import" href="arc-request-workspace.html">
+    <style>
+    body,
+    html {
+      background-color: #e5e5e5;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    </style>
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
-      body,
-      html {
-        background-color: #e5e5e5;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
+      h1 {
+        @apply --paper-font-headline;
+      }
+
+      h2 {
+        @apply --paper-font-title;
       }
 
       .card {
@@ -151,6 +164,19 @@
               <paper-button on-click="clearData">Clear datastore</paper-button>
             </div>
 
+            <div class="centered card">
+              <h2>Select project to restore</h2>
+              <paper-dropdown-menu label="Project name">
+                <paper-listbox slot="dropdown-content" selected="{{project}}">
+                  <template is="dom-repeat" items="[[projects]]">
+                    <paper-item>[[item.name]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-checkbox checked="{{projectReplace}}">Replace requests in workspace</paper-checkbox>
+              <paper-button on-click="getProjectRequestsData">Open requests</paper-button>
+            </div>
+
             <div class="vertical-section-container centered card">
               <h4>Demo: Variables editor</h4>
               <variables-editor></variables-editor>
@@ -176,6 +202,9 @@
       const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
         'oauth-authorization/oauth-popup.html');
       app.oauth2RedirectUri = redirectUrl;
+      app.init = function() {
+        app.refreshProjects();
+      };
       app.createHeaders = function(data) {
         const headers = new Headers();
         if (data) {
@@ -299,16 +328,25 @@
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        const workspace = e.detail.value;
-        console.info('Storing workspace data', workspace);
-        if (workspace.requests) {
-          const requestsStr = JSON.stringify(workspace.requests);
-          localStorage.setItem('workspace.requests', requestsStr);
+        this.__pendingWorkspace = e.detail.value;
+        if (this.__workspaceWriteDebounce) {
+          return;
         }
-        if (workspace.environment) {
-          localStorage.setItem('workspace.environment', workspace.environment);
-        }
-        localStorage.setItem('workspace.selected', workspace.selected);
+        this.__workspaceWriteDebounce = true;
+        setTimeout(() => {
+          this.__workspaceWriteDebounce = false;
+          const workspace = this.__pendingWorkspace;
+          delete this.__pendingWorkspace;
+          console.info('Storing workspace data', workspace);
+          if (workspace.requests) {
+            const requestsStr = JSON.stringify(workspace.requests);
+            localStorage.setItem('workspace.requests', requestsStr);
+          }
+          if (workspace.environment) {
+            localStorage.setItem('workspace.environment', workspace.environment);
+          }
+          localStorage.setItem('workspace.selected', workspace.selected);
+        }, 500);
       };
 
       app.generateData = function() {
@@ -335,26 +373,8 @@
         });
       };
       app._selectRequest = function(e) {
-        const ev = new CustomEvent('request-object-read', {
-          bubbles: true,
-          cancelable: true,
-          detail: {
-            id: e.detail.id,
-            type: 'saved'
-          }
-        });
-        document.body.dispatchEvent(ev);
-        ev.detail.result
-        .then((result) => {
-          const workspace = document.querySelector('arc-request-workspace');
-          const index = workspace.findRequestIndex(result._id);
-          if (index === -1) {
-            workspace.appendRequest(result);
-          } else {
-            workspace.updateRequestObject(result, index);
-            workspace.selected = index;
-          }
-        });
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.addRequestById('saved', e.detail.id);
       };
       //
       // Save request flow
@@ -453,6 +473,31 @@
           document.querySelector('saved-menu').items = items;
         });
       };
+      app.refreshProjects = function() {
+        const e = new CustomEvent('project-model-query', {
+          cancelable: true,
+          bubbles: true,
+          detail: {}
+        });
+        document.body.dispatchEvent(e);
+        e.detail.result
+        .then((data) => {
+          console.log('Projects query result', data);
+          app.projects = data;
+        });
+      };
+      app.getProjectRequestsData = function() {
+        const project = app.projects[app.project];
+        if (!project) {
+          return;
+        }
+        const workspace = document.querySelector('arc-request-workspace');
+        if (app.projectReplace) {
+          workspace.replaceByProject(project);
+        } else {
+          workspace.appendByProject(project);
+        }
+      };
       window.addEventListener('transport-request', app.send);
       window.addEventListener('workspace-state-read', app._restoreHandler);
       window.addEventListener('workspace-state-store', app._storeHandler);
@@ -460,6 +505,7 @@
       window.addEventListener('request-details', app._requestDetailsHandler);
       window.addEventListener('request-code-snippets', app._renderCodeSnippets);
       window.addEventListener('export-google-drive', app._exportDriveHandler);
+      window.addEventListener('WebComponentsReady', app.init);
     })(document.getElementById('demo'));
   </script>
   </body>
