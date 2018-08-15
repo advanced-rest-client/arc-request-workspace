@@ -144,15 +144,15 @@
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
-      <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
+      <paper-icon-item class="save-icon" slot="request-context-menu">
         <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
         Save
       </paper-icon-item>
-      <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
+      <paper-icon-item class="details-icon" slot="request-context-menu">
         <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
         Details
       </paper-icon-item>
-      <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
+      <paper-icon-item class="code-icon" slot="request-context-menu">
         <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
         Code examples
       </paper-icon-item>
@@ -616,16 +616,21 @@
     _requestStoreHandler(e) {
       e.preventDefault();
       e.stopPropagation();
-      const item = e.model.get('item');
-      if (!item._id) {
-        item._tempId = this.$.uuid.generate();
+      const panelId = e.target.parentElement.dataset.id;
+      const index = this.findRequestIndex(panelId);
+      const request = this.activeRequests[index];
+      if (!request) {
+        return;
+      }
+      if (!request._id) {
+        request._tempId = this.$.uuid.generate();
       }
       this.dispatchEvent(new CustomEvent('request-save-state', {
         composed: true,
         bubbles: true,
         cancelable: true,
         detail: {
-          request: item
+          request
         }
       }));
     }
@@ -638,13 +643,18 @@
     _renderRequestDetail(e) {
       e.preventDefault();
       e.stopPropagation();
-      const item = e.model.get('item');
+      const panelId = e.target.parentElement.dataset.id;
+      const index = this.findRequestIndex(panelId);
+      const request = this.activeRequests[index];
+      if (!request) {
+        return;
+      }
       this.dispatchEvent(new CustomEvent('request-details', {
         composed: true,
         bubbles: true,
         cancelable: true,
         detail: {
-          request: item
+          request
         }
       }));
     }
@@ -657,13 +667,18 @@
     _renderCodeSnippets(e) {
       e.preventDefault();
       e.stopPropagation();
-      const item = e.model.get('item');
+      const panelId = e.target.parentElement.dataset.id;
+      const index = this.findRequestIndex(panelId);
+      const request = this.activeRequests[index];
+      if (!request) {
+        return;
+      }
       this.dispatchEvent(new CustomEvent('request-code-snippets', {
         composed: true,
         bubbles: true,
         cancelable: true,
         detail: {
-          request: item
+          request
         }
       }));
     }

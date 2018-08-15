@@ -34,6 +34,9 @@
         super();
         this.__editorRequestHandler = this.__editorRequestHandler.bind(this);
         this.__editorMetaHandler = this.__editorMetaHandler.bind(this);
+        this._requestStoreHandler = this._requestStoreHandler.bind(this);
+        this._renderRequestDetail = this._renderRequestDetail.bind(this);
+        this._renderCodeSnippets = this._renderCodeSnippets.bind(this);
       }
 
       __createPanelInstance() {
@@ -62,6 +65,9 @@
         panel.addEventListener('response-changed', this.__editorMetaHandler);
         panel.addEventListener('response-error-changed', this.__editorMetaHandler);
         panel.addEventListener('is-error-response-changed', this.__editorMetaHandler);
+        panel.querySelector('.save-icon').addEventListener('click', this._requestStoreHandler);
+        panel.querySelector('.details-icon').addEventListener('click', this._renderRequestDetail);
+        panel.querySelector('.code-icon').addEventListener('click', this._renderCodeSnippets);
       }
 
       __removePanelListeners(panel) {
@@ -71,6 +77,10 @@
         panel.removeEventListener('response-changed', this.__editorMetaHandler);
         panel.removeEventListener('response-error-changed', this.__editorMetaHandler);
         panel.removeEventListener('is-error-response-changed', this.__editorMetaHandler);
+        panel.querySelector('.save-icon').removeEventListener('click', this._requestStoreHandler);
+        panel.querySelector('.details-icon')
+        .removeEventListener('click', this._renderRequestDetail);
+        panel.querySelector('.code-icon').removeEventListener('click', this._renderCodeSnippets);
       }
 
       __getPanelById(id) {
