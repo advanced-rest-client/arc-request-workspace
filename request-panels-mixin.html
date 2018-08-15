@@ -1,0 +1,218 @@
+<script>
+(function() {
+  'use strict';
+  if (!window.ArcElements) {
+    window.ArcElements = {};
+  }
+  /**
+   * This misin is mostly created to reduce amount of code in
+   * `arc-request-workspace` element.
+   *
+   * The mixin specializes in placing `request-panel`s in the shadow DOM
+   * wiyhout using Polymer's repeater.
+   *
+   * Problem with repeater is that when re-arranging items or closing an
+   * item in the workspace it updates every instance of the request panel
+   * to the right of the changed element and this costs a lot giving that each
+   * panel has to perform a lot of computation to render the view.
+   *
+   * This element uses repeater to rendert he tabs, however it handles the content
+   * by it's own. This mixin contains implementation for DOM manipulation for
+   * request panels.
+   *
+   * @mixinFunction
+   * @polymer
+   * @memberof ArcElements
+   */
+  window.ArcElements.ArcWorkspaceMixin = Polymer.dedupingMixin((base) => {
+    /**
+     * @polymer
+     * @mixinClass
+     */
+    class ArcWorkspaceMixin extends base {
+      constructor() {
+        super();
+        this.__editorRequestHandler = this.__editorRequestHandler.bind(this);
+        this.__editorMetaHandler = this.__editorMetaHandler.bind(this);
+      }
+
+      __createPanelInstance() {
+        const panelTemplate = Polymer.DomModule.import(this.constructor.is, '#requestTemplate');
+        const panelSource = panelTemplate.content.querySelector('request-panel');
+        const panel = panelSource.cloneNode(true);
+        panel.setAttribute('hidden', 'true');
+        return panel;
+      }
+
+      __setPanelRequestProperties(panel, request) {
+        request = request || {};
+        panel.dataset.id = request._id;
+        panel.editorRequest = request;
+        panel.editorState = request._state;
+        panel.responseMeta = request._responseMeta;
+        panel.response = request._response;
+        panel.responseError = request._responseError;
+        panel.isErrorResponse = request._isErrorResponse;
+      }
+
+      __addPanelListeners(panel) {
+        panel.addEventListener('editor-request-changed', this.__editorRequestHandler);
+        panel.addEventListener('editor-state-changed', this.__editorMetaHandler);
+        panel.addEventListener('response-meta-changed', this.__editorMetaHandler);
+        panel.addEventListener('response-changed', this.__editorMetaHandler);
+        panel.addEventListener('response-error-changed', this.__editorMetaHandler);
+        panel.addEventListener('is-error-response-changed', this.__editorMetaHandler);
+      }
+
+      __removePanelListeners(panel) {
+        panel.removeEventListener('editor-request-changed', this.__editorRequestHandler);
+        panel.removeEventListener('editor-state-changed', this.__editorMetaHandler);
+        panel.removeEventListener('response-meta-changed', this.__editorMetaHandler);
+        panel.removeEventListener('response-changed', this.__editorMetaHandler);
+        panel.removeEventListener('response-error-changed', this.__editorMetaHandler);
+        panel.removeEventListener('is-error-response-changed', this.__editorMetaHandler);
+      }
+
+      __getPanelById(id) {
+        return this.$.content.querySelector(`[data-id="${id}"]`);
+      }
+
+      __addPanel(request) {
+        if (!request) {
+          request = {};
+        }
+        const panel = this.__createPanelInstance(request);
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          this.__addPanelListeners(panel);
+        });
+        this.$.content.appendChild(panel);
+        this.__setPanelRequestProperties(panel, request);
+      }
+
+      __removePanel(id) {
+        const panel = this.__getPanelById(id);
+        if (!panel) {
+          console.warn(`Requested to remove panel ${id} but panel is not set`);
+          return;
+        }
+        this.__removePanelListeners(panel);
+        this.$.content.removeChild(panel);
+      }
+
+      __editorRequestHandler(e) {
+        const id = e.target.dataset.id;
+        const index = this.findRequestIndex(id);
+        if (index === -1) {
+          console.warn(`Couldn't update request ${id}`);
+          return;
+        }
+        let path = e.detail.path;
+        if (!path) {
+          path = 'editorRequest';
+        }
+        path = path.replace('editorRequest', `activeRequests.${index}`);
+        const value = e.detail.value;
+        const splicesIndex = path.indexOf('.splices');
+        if (splicesIndex !== -1) {
+          path = path.substr(0, splicesIndex);
+          if (!this.get(path)) {
+            this.set(path, []);
+          }
+          this.notifySplices(path, value);
+          return;
+        } else if (path.indexOf('.length') !== -1) {
+          return;
+        }
+        this.set(path, value);
+        this.notifyPath(path, value);
+      }
+
+      __editorMetaHandler(e) {
+        const id = e.target.dataset.id;
+        const index = this.findRequestIndex(id);
+        if (index === -1) {
+          console.warn(`Couldn't update request meta ${id}`);
+          return;
+        }
+        let notifyPath = `activeRequests.${index}.`;
+        let value = e.detail.value;
+        switch (e.type) {
+          case 'editor-state-changed':
+            if (e.path) {
+              value = e.target.editorState;
+            }
+            notifyPath += '_state';
+            break;
+          case 'response-meta-changed':
+            if (e.path) {
+              value = e.target.responseMeta;
+            }
+            notifyPath += '_responseMeta';
+            break;
+          case 'response-changed':
+            if (e.path) {
+              value = e.target.response;
+            }
+            notifyPath += '_response';
+            break;
+          case 'response-error-changed':
+            notifyPath += '_responseError';
+            break;
+          case 'is-error-response-changed':
+            notifyPath += '_isErrorResponse';
+            break;
+        }
+        if (notifyPath) {
+          this.set(notifyPath, value);
+          this.notifyPath(notifyPath, value);
+        }
+      }
+
+      __deselectActivePanel() {
+        const nodes = this.$.content.querySelectorAll('request-panel:not([hidden])');
+        for (let i = 0, len = nodes.length; i < len; i++) {
+          nodes[i].setAttribute('hidden', true);
+        }
+      }
+
+      __selectPanel(id) {
+        const panel = this.__getPanelById(id);
+        if (!panel) {
+          console.warn('Aksed to select panel that is not in the DOM', id);
+          return;
+        }
+        if (panel.hasAttribute('hidden')) {
+          panel.removeAttribute('hidden');
+        }
+      }
+
+      __updatePanelRequest(id, request) {
+        const panel = this.__getPanelById(id);
+        if (!panel) {
+          console.warn('Aksed to update request but panel not in the DOM', id);
+          return;
+        }
+        this.__setPanelRequestProperties(panel, request);
+      }
+
+      __clearAllPanels() {
+        const nodes = this.$.content.querySelectorAll('request-panel');
+        for (let i = 0, len = nodes.length; i < len; i++) {
+          this.__removePanelListeners(nodes[i]);
+          this.$.content.removeChild(nodes[i]);
+        }
+      }
+
+      __updatePanelId(oldId, newId) {
+        const panel = this.__getPanelById(oldId);
+        if (!panel) {
+          console.warn(`Unable to update panel id. Panel do not exists.`);
+          return;
+        }
+        panel.dataset.id = newId;
+      }
+    }
+    return ArcWorkspaceMixin;
+  });
+})();
+</script>

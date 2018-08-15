@@ -13,12 +13,17 @@
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../uuid-generator/uuid-generator.html">
 <link rel="import" href="../paper-styles/shadow.html">
+<link rel="import" href="request-panels-mixin.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
     :host {
       display: block;
       @apply --arc-request-workspace;
+    }
+
+    [hidden] {
+      display: none !important;
     }
 
     .tabs-row {
@@ -125,7 +130,7 @@
     }
     </style>
     <div class="tabs-row">
-      <paper-tabs selected="{{selected}}" scrollable class="tabs" id="tabs">
+      <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
         <template is="dom-repeat" items="[[activeRequests]]" id="tabsRepeater">
           <paper-tab on-track="_handleTrack">
             <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
@@ -136,7 +141,8 @@
       </paper-tabs>
       <paper-progress indeterminate disabled="[[!restoring]]"></paper-progress>
     </div>
-    <iron-pages selected="[[selected]]">
+    <section class="requests-list" id="content"></section>
+    <!-- <iron-pages selected="[[selected]]">
       <template is="dom-repeat" items="{{activeRequests}}" id="requestRepeater" observe="url">
         <section>
           <request-panel
@@ -165,8 +171,25 @@
           </request-panel>
         </section>
       </template>
-    </iron-pages>
+    </iron-pages> -->
     <uuid-generator id="uuid"></uuid-generator>
+  </template>
+  <template id="requestTemplate">
+    <request-panel class="panel" bound-events>
+      <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
+        <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
+        Save
+      </paper-icon-item>
+      <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
+        <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
+        Details
+      </paper-icon-item>
+      <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
+        <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
+        Code examples
+      </paper-icon-item>
+      <slot name="request-context-menu" slot="request-context-menu"></slot>
+    </request-panel>
   </template>
   <script>
   /**
@@ -195,8 +218,10 @@
    * @polymer
    * @demo demo/index.html
    * @memberof UiElements
+   * @appliesMixin ArcElements.ArcWorkspaceMixin
    */
-  class ArcRequestWorkspace extends Polymer.Element {
+  class ArcRequestWorkspace extends ArcElements.ArcWorkspaceMixin(Polymer.Element) {
+    /* global ArcElements */
     static get is() {return 'arc-request-workspace';}
     static get properties() {
       return {
@@ -276,6 +301,7 @@
       if (!this.noAutoRestore && !this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
       }
+      this.$.tabs._scroll = function() {};
     }
 
     disconnectedCallback() {
@@ -293,7 +319,7 @@
      */
     restoreWorkspace() {
       if (this.activeRequests.length) {
-        this.activeRequests = [];
+        this.clearWorkspace();
       }
       this._setRestoring(true);
       const e = new CustomEvent('workspace-state-read', {
@@ -316,7 +342,10 @@
       .then((data) => this._restore(data))
       .then(() => {
         Polymer.RenderStatus.afterNextRender(this, () => {
+          const selected = this.selected;
+          this.selected = undefined;
           this._setRestoring(false);
+          this.selected = selected;
         });
       })
       .catch((cause) => {
@@ -339,14 +368,16 @@
           if (!item._id) {
             item._id = this.$.uuid.generate();
           }
+          this.appendRequest(item);
         });
-        this.activeRequests = state.requests;
         this.refreshTabs();
       } else {
         this.addEmptyRequest();
       }
       if (!isNaN(state.selected)) {
         this.selected = state.selected;
+      } else {
+        this.selected = this.activeRequests.length - 1;
       }
       if (state.environment) {
         this.environment = state.environment;
@@ -395,22 +426,44 @@
      * index referes to empty object at the time when it's returned.
      *
      * @param {Object} request ArcRequest object.
+     * @param {?Object} opts Add request options:
+     * - skipPositionCheck {Boolean} - Won't check for empty panel before
+     * appending it to the list
+     * - noAutoSelect {Boolean} - Won't attempt to select added request
      * @return {Number} Index of newly created request.
      */
-    appendRequest(request) {
-      if (!request._id) {
-        request._id = this.$.uuid.generate();
-      }
-      let index = this._getEmptyPosition();
-      if (index === -1) {
-        const length = this.push('activeRequests', {});
-        index = (length - 1);
-      }
-      this.selected = index;
-      Polymer.RenderStatus.afterNextRender(this, () => {
+    appendRequest(request, opts) {
+      opts = opts || {};
+      let index = opts.skipPositionCheck ? -1 : this._getEmptyPosition();
+      let lastAddedId;
+      if (index !== -1) {
+        if (!request._id) {
+          request._id = this.activeRequests[index]._id;
+        }
+        const panelId = this.activeRequests[index]._id;
         this.set(`activeRequests.${index}`, request);
-        this.refreshTabs();
-      });
+        this.refreshTabs(request);
+        if (panelId !== request._id) {
+          this.__updatePanelId(panelId, request._id);
+        }
+        this.__updatePanelRequest(request._id, request);
+        lastAddedId = request._id;
+      } else {
+        if (!request._id) {
+          request._id = this.$.uuid.generate();
+        }
+        const length = this.push('activeRequests', request);
+        this.__addPanel(request);
+        index = length - 1;
+        lastAddedId = request._id;
+      }
+      if (!opts.noAutoSelect) {
+        if (index !== this.selected) {
+          this.selected = index;
+        } else {
+          this.__selectPanel(lastAddedId);
+        }
+      }
       return index;
     }
     /**
@@ -423,7 +476,7 @@
       });
     }
     /**
-     * Updatwes request on a specific position.
+     * Updates request on a specific position.
      * @param {Object} request ArcRequest object
      * @param {Number} index Request index
      */
@@ -433,7 +486,11 @@
         console.warn('Trying to update non existing request');
         return;
       }
+      if (!request._id) {
+        request._id = this.$.uuid.generate();
+      }
       this.set(`activeRequests.${index}`, request);
+      this.__updatePanelRequest(request._id, request);
     }
 
     _closeRequest(e) {
@@ -443,24 +500,29 @@
       if (isNaN(index)) {
         return;
       }
-      this._blockEditors();
-      // this.set(`activeRequests.${index}`, {});
-      // Polymer.RenderStatus.afterNextRender(this, () => {
-      this.splice('activeRequests', index, 1);
+      // this._blockEditors();
+      const removed = this.splice('activeRequests', index, 1);
+      this.__removePanel(removed[0]._id);
       if (index === this.selected) {
         index--;
+        if (index < 0) {
+          index = 0;
+        }
+        if (index === 0) {
+          this.selected = undefined;
+        }
+        this.selected = index;
+      } else {
+        if (this.selected > index) {
+          this.selected--;
+        }
       }
-      if (index < 0) {
-        index = 0;
-      }
-      this.selected = index;
-      this._unblockEditors();
+      // this._unblockEditors();
       if (!this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => {
           this.addEmptyRequest();
         });
       }
-      // });
     }
     /**
      * Serializes workspace state to a JavaScript object.
@@ -504,11 +566,18 @@
     }
     /**
      * Notifies workspace state change when selected request changes.
+     * @param {Number} selected item
      */
-    _selectedChanged() {
+    _selectedChanged(selected) {
       if (this.restoring) {
         return;
       }
+      const request = this.activeRequests[selected];
+      if (!request) {
+        return;
+      }
+      this.__deselectActivePanel();
+      this.__selectPanel(request._id);
       this._notifyStoreWorkspace();
     }
     /**
@@ -520,6 +589,7 @@
       if (this.restoring) {
         return;
       }
+      // console.log('_requestsListChanged', record.path);
       switch (record.path) {
         case 'activeRequests':
         case 'activeRequests.length':
@@ -845,23 +915,30 @@
       if (!ev.defaultPrevented) {
         return Promise.reject(new Error('Request model not found'));
       }
+      this._setRestoring(true);
       return ev.detail.result
       .then((result) => {
         if (!result) {
+          this._setRestoring(false);
           throw new Error('Request not found');
         }
         if (!(result instanceof Array)) {
           result = [result];
         }
+        let lastAddedPosition;
         result.forEach((item) => {
           const index = this.findRequestIndex(item._id);
           if (index === -1) {
-            this.appendRequest(item);
+            lastAddedPosition = this.appendRequest(item, {
+              noAutoSelect: true
+            });
           } else {
+            lastAddedPosition = index;
             this.updateRequestObject(item, index);
           }
         });
-        this.selected = this.activeRequests.length - 1;
+        this._setRestoring(false);
+        this.selected = lastAddedPosition;
       });
     }
     /**
@@ -871,15 +948,21 @@
      * @return {Promise}
      */
     replaceByRequestId(type, id) {
-      this.clearWorkspace();
+      this.clearWorkspace(true);
       return this.addRequestById(type, id);
     }
     /**
      * Clears the workspace. Adds new empty request when ready.
+     *
+     * @param {Boolean} ignoreAdd If set it won't add empty panel.
      */
-    clearWorkspace() {
-      this._blockEditors();
+    clearWorkspace(ignoreAdd) {
+      this.__clearAllPanels();
       this.set('activeRequests', []);
+      this.selected = undefined;
+      if (ignoreAdd) {
+        return;
+      }
       Polymer.RenderStatus.afterNextRender(this, () => {
         this.addEmptyRequest();
       });
@@ -922,12 +1005,18 @@
       if (!e.defaultPrevented) {
         throw new Error('Request model not found');
       }
+      this._setRestoring(true);
       return e.detail.result
       .then((data) => {
-        let current = this.activeRequests || [];
-        current = current.concat(data);
-        this.activeRequests = current;
-        this.selected = this.activeRequests.length - 1;
+        let lastIndex;
+        for (let i = 0, len = data.length; i < len; i++) {
+          lastIndex = this.appendRequest(data[i], {
+            skipPositionCheck: true,
+            noAutoSelect: true
+          });
+        }
+        this._setRestoring(false);
+        this.selected = lastIndex;
         this.refreshTabs();
       });
     }
@@ -937,7 +1026,7 @@
      * @return {Promise}
      */
     replaceByProject(project) {
-      this.clearWorkspace();
+      this.clearWorkspace(true);
       return this.appendByProject(project);
     }
     /**
@@ -945,18 +1034,26 @@
      * @param {Array<Object>} requests List of ArcRequest objects to use.
      */
     replaceByRequestsData(requests) {
-      this.clearWorkspace();
-      Polymer.RenderStatus.afterNextRender(this, () => {
-        if (requests.length) {
-          requests.forEach((item) => {
-            if (!item._id) {
-              item._id = this.$.uuid.generate();
-            }
+      this.clearWorkspace(true);
+      this._setRestoring(true);
+      if (requests && requests.length) {
+        let pos;
+        for (let i = 0, len = requests.length; i < len; i++) {
+          if (!requests[i]._id) {
+            requests[i]._id = this.$.uuid.generate();
+          }
+          pos = this.appendRequest(requests[i], {
+            skipPositionCheck: true,
+            noAutoSelect: true
           });
         }
-        this.activeRequests = requests;
-        this.refreshTabs();
-      });
+        this._setRestoring(false);
+        this.selected = pos;
+      } else {
+        this._setRestoring(false);
+        this.addEmptyRequest();
+      }
+      this.refreshTabs();
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
