@@ -335,6 +335,11 @@
         return;
       }
       if (state.requests && state.requests.length) {
+        state.requests.forEach((item) => {
+          if (!item._id) {
+            item._id = this.$.uuid.generate();
+          }
+        });
         this.activeRequests = state.requests;
         this.refreshTabs();
       } else {
@@ -393,6 +398,9 @@
      * @return {Number} Index of newly created request.
      */
     appendRequest(request) {
+      if (!request._id) {
+        request._id = this.$.uuid.generate();
+      }
       let index = this._getEmptyPosition();
       if (index === -1) {
         const length = this.push('activeRequests', {});
@@ -436,23 +444,23 @@
         return;
       }
       this._blockEditors();
-      this.set(`activeRequests.${index}`, {});
-      Polymer.RenderStatus.afterNextRender(this, () => {
-        this.splice('activeRequests', index, 1);
-        if (index === this.selected) {
-          index--;
-        }
-        if (index < 0) {
-          index = 0;
-        }
-        this.selected = index;
-        this._unblockEditors();
-        if (!this.activeRequests.length) {
-          Polymer.RenderStatus.afterNextRender(this, () => {
-            this.addEmptyRequest();
-          });
-        }
-      });
+      // this.set(`activeRequests.${index}`, {});
+      // Polymer.RenderStatus.afterNextRender(this, () => {
+      this.splice('activeRequests', index, 1);
+      if (index === this.selected) {
+        index--;
+      }
+      if (index < 0) {
+        index = 0;
+      }
+      this.selected = index;
+      this._unblockEditors();
+      if (!this.activeRequests.length) {
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          this.addEmptyRequest();
+        });
+      }
+      // });
     }
     /**
      * Serializes workspace state to a JavaScript object.
@@ -885,7 +893,6 @@
       if (!project) {
         throw new Error('Expecting argument.');
       }
-      this.clearWorkspace();
       let e;
       const options = {
         bubbles: true,
@@ -917,7 +924,10 @@
       }
       return e.detail.result
       .then((data) => {
-        this.activeRequests = data;
+        let current = this.activeRequests || [];
+        current = current.concat(data);
+        this.activeRequests = current;
+        this.selected = this.activeRequests.length - 1;
         this.refreshTabs();
       });
     }
@@ -937,6 +947,13 @@
     replaceByRequestsData(requests) {
       this.clearWorkspace();
       Polymer.RenderStatus.afterNextRender(this, () => {
+        if (requests.length) {
+          requests.forEach((item) => {
+            if (!item._id) {
+              item._id = this.$.uuid.generate();
+            }
+          });
+        }
         this.activeRequests = requests;
         this.refreshTabs();
       });
