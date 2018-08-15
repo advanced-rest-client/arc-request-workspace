@@ -19,7 +19,6 @@
     "arc-icons": "advanced-rest-client/arc-icons#^2.0.3",
     "request-panel": "advanced-rest-client/request-panel#2.0.0-preview",
     "uuid-generator": "advanced-rest-client/uuid-generator#^2.0.0",
-    "iron-pages": "PolymerElements/iron-pages#^2.1.1",
     "paper-progress": "PolymerElements/paper-progress#^2.1.1",
     "paper-item": "PolymerElements/paper-item#^2.0.0",
     "http-code-snippets": "advanced-rest-client/http-code-snippets#^2.0.3"

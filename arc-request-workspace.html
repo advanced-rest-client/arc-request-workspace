@@ -9,7 +9,6 @@
 <link rel="import" href="../paper-item/paper-icon-item.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../request-panel/request-panel.html">
-<link rel="import" href="../iron-pages/iron-pages.html">
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../uuid-generator/uuid-generator.html">
 <link rel="import" href="../paper-styles/shadow.html">
@@ -81,7 +80,6 @@
     paper-tab {
       border-top-left-radius: 8px;
       border-top-right-radius: 8px;
-      /* height: calc(100% - 2px); */
     }
 
     paper-progress {
@@ -142,36 +140,6 @@
       <paper-progress indeterminate disabled="[[!restoring]]"></paper-progress>
     </div>
     <section class="requests-list" id="content"></section>
-    <!-- <iron-pages selected="[[selected]]">
-      <template is="dom-repeat" items="{{activeRequests}}" id="requestRepeater" observe="url">
-        <section>
-          <request-panel
-            class="panel"
-            editor-request="{{item}}"
-            editor-state="{{item._state}}"
-            data-request-index$="[[index]]"
-            response-meta="{{item._responseMeta}}"
-            response="{{item._response}}"
-            response-error="{{item._responseError}}"
-            is-error-response="{{item._isErrorResponse}}"
-            bound-events>
-            <paper-icon-item on-click="_requestStoreHandler" slot="request-context-menu">
-              <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
-              Save
-            </paper-icon-item>
-            <paper-icon-item on-click="_renderRequestDetail" slot="request-context-menu">
-              <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
-              Details
-            </paper-icon-item>
-            <paper-icon-item on-click="_renderCodeSnippets" slot="request-context-menu">
-              <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
-              Code examples
-            </paper-icon-item>
-            <slot name="request-context-menu" slot="request-context-menu"></slot>
-          </request-panel>
-        </section>
-      </template>
-    </iron-pages> -->
     <uuid-generator id="uuid"></uuid-generator>
   </template>
   <template id="requestTemplate">
