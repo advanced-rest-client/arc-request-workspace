@@ -765,7 +765,8 @@
     }
 
     _onTrackStart(e) {
-      this._startScrollLeft = this.scrollLeft;
+      // this._startScrollLeft = this.scrollLeft;
+      this._startScrollLeft = this.$.tabs.$.tabsContainer.scrollLeft;
       const dragElement = this._getReorderedItem(e);
       dragElement.style.pointerEvents = 'none';
       dragElement.classList.add('dragging');
@@ -775,6 +776,7 @@
     }
 
     _onTrack(e) {
+      this._updateTabPosition(e.detail.ddx);
       this._updateDragPosition(e.detail.dx);
       const overEl = e.detail.hover();
       const overModel = overEl && this.$.tabsRepeater.modelForElement(overEl);
@@ -889,9 +891,26 @@
      */
     _updateDragPosition(dx) {
       this._trackDelta = dx || this._trackDelta || 0;
-      const scrollDelta = this.scrollLeft - this._startScrollLeft;
+      // const scrollDelta = this.scrollLeft - this._startScrollLeft;
+      const scrollDelta = this.$.tabs.$.tabsContainer.scrollLeft - this._startScrollLeft;
       const pos = this._trackDelta + scrollDelta;
       this._dragElement.style.transform = `translate3d(${pos}px,0,0)`;
+    }
+
+    _updateTabPosition(ddx) {
+      const tabsRect = this.$.tabs.$.tabsContainer.getBoundingClientRect();
+      const tabRect = this._dragElement.getBoundingClientRect();
+      if (ddx > 0) {
+        const mostRigth = tabsRect.x + tabsRect.width;
+        const tabMostRight = tabRect.x + tabRect.width;
+        if (tabMostRight > mostRigth) {
+          this.$.tabs._affectScroll(ddx * 5);
+        }
+      } else if (ddx < 0) {
+        if (tabRect.x < tabsRect.x) {
+          this.$.tabs._affectScroll(ddx * 5);
+        }
+      }
     }
     /**
      * Adds request(s) by id.
