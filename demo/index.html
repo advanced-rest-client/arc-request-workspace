@@ -169,7 +169,7 @@
               <paper-dropdown-menu label="Project name">
                 <paper-listbox slot="dropdown-content" selected="{{project}}">
                   <template is="dom-repeat" items="[[projects]]">
-                    <paper-item>[[item.name]]</paper-item>
+                    <paper-item>[[item.name]] ([[item.requests.length]])</paper-item>
                   </template>
                 </paper-listbox>
               </paper-dropdown-menu>
@@ -202,6 +202,7 @@
       const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
         'oauth-authorization/oauth-popup.html');
       app.oauth2RedirectUri = redirectUrl;
+      app.projectReplace = false;
       app.init = function() {
         app.refreshProjects();
       };
