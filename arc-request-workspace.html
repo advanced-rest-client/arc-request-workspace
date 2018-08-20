@@ -464,13 +464,24 @@
     _closeRequest(e) {
       e.preventDefault();
       e.stopPropagation();
-      let index = Number(e.currentTarget.dataset.index);
+      const index = Number(e.currentTarget.dataset.index);
       if (isNaN(index)) {
         return;
       }
-      // this._blockEditors();
+      this.removeRequest(index);
+    }
+    /**
+     * Removes request for given index
+     * @param {Number} index Request index in the `activeRequests` liost.
+     * @param {?Boolean} removeOnly When true it only removes the panel but
+     * will not check for the selection state and if empty panel is needed
+     */
+    removeRequest(index, removeOnly) {
       const removed = this.splice('activeRequests', index, 1);
       this.__removePanel(removed[0]._id);
+      if (removeOnly) {
+        return;
+      }
       if (index === this.selected) {
         index--;
         if (index < 0) {
@@ -485,13 +496,13 @@
           this.selected--;
         }
       }
-      // this._unblockEditors();
       if (!this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => {
           this.addEmptyRequest();
         });
       }
     }
+
     /**
      * Serializes workspace state to a JavaScript object.
      * @return {Object} An ArcWorkspace object
