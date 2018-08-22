@@ -12,6 +12,10 @@
 <link rel="import" href="../paper-progress/paper-progress.html">
 <link rel="import" href="../uuid-generator/uuid-generator.html">
 <link rel="import" href="../paper-styles/shadow.html">
+<link rel="import" href="../saved-request-editor/saved-request-editor.html">
+<link rel="import" href="../saved-request-detail/saved-request-detail.html">
+<link rel="import" href="../http-code-snippets/http-code-snippets.html">
+<link rel="import" href="../bottom-sheet/bottom-sheet.html">
 <link rel="import" href="request-panels-mixin.html">
 <dom-module id="arc-request-workspace">
   <template>
@@ -126,6 +130,12 @@
       -webkit-transition: -webkit-transform 0.1s ease-in-out;
       transition: transform 0.1s ease-in-out;
     }
+
+    bottom-sheet {
+      width: var(--arc-bottom-sheet-width, 100%);
+      max-width: var(--arc-bottom-sheet-max-width, 700px);
+      @apply --shadow-elevation-6dp;
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
@@ -141,6 +151,16 @@
     </div>
     <section class="requests-list" id="content"></section>
     <uuid-generator id="uuid"></uuid-generator>
+
+    <bottom-sheet opened="{{editorOpened}}" on-iron-overlay-opened="_resizeSheetContent">
+      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit"></saved-request-detail>
+    </bottom-sheet>
+    <bottom-sheet opened="{{detailsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
+      <saved-request-detail id="requestDetails" on-delete-request="_deleteRequestDetails" on-edit-request="_editRequestDetails"></saved-request-detail>
+    </bottom-sheet>
+    <bottom-sheet opened="{{snippetsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
+      <http-code-snippets url="[[snippetRequest.url]]" method="[[snippetRequest.method]]" headers="[[snippetRequest.headers]]" payload="[[snippetRequest.payload]]"></http-code-snippets>
+    </bottom-sheet>
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
@@ -237,7 +257,11 @@
          * The component automatically ask to restore workspace when connected
          * to the DOM. This ensures to prohibit auto restore request.
          */
-        noAutoRestore: Boolean
+        noAutoRestore: Boolean,
+        editorOpened: Boolean,
+        detailsOpened: Boolean,
+        snippetsOpened: Boolean,
+        snippetRequest: Boolean
       };
     }
 
@@ -619,8 +643,7 @@
         item._id === requestId || tmpId && item._tempId === tmpId);
     }
     /**
-     * It ensures `_id` property exists and dispatches `request-save-state`
-     * event with `request` object on the detail.
+     * It ensures `_id` property exists opens save editor
      *
      * @param {CustomEvent} e
      */
@@ -633,21 +656,10 @@
       if (!request) {
         return;
       }
-      if (!request._id) {
-        request._tempId = this.$.uuid.generate();
-      }
-      this.dispatchEvent(new CustomEvent('request-save-state', {
-        composed: true,
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          request
-        }
-      }));
+      this._openSaveDialog(request);
     }
     /**
-     * Dispatches `request-details` event with `request` object on the
-     * detail.
+     * Opens the request details view
      *
      * @param {CustomEvent} e
      */
@@ -660,14 +672,8 @@
       if (!request) {
         return;
       }
-      this.dispatchEvent(new CustomEvent('request-details', {
-        composed: true,
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          request
-        }
-      }));
+      this.$.requestDetails.request = request;
+      this.detailsOpened = true;
     }
     /**
      * Dispatches `request-code-snippets` event with `request` object on the
@@ -684,14 +690,8 @@
       if (!request) {
         return;
       }
-      this.dispatchEvent(new CustomEvent('request-code-snippets', {
-        composed: true,
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          request
-        }
-      }));
+      this.snippetRequest = request;
+      this.snippetsOpened = true;
     }
     /**
      * Handler for non cancelable `request-object-changed` custom event.
@@ -1067,6 +1067,90 @@
         this.addEmptyRequest();
       }
       this.refreshTabs();
+    }
+    /**
+     * Informs components to store request data.
+     * @param {?Object} opts Optional. If `source` property is set it
+     * dispatches `save-request` custom event immidietly. Otherwise dialog
+     * is shown.
+     */
+    saveOpened(opts) {
+      const request = this.activeRequests[this.selected];
+      if (!request) {
+        console.warn('There\'s no request to save.');
+        return;
+      }
+      opts = opts || {};
+      if (request.type && request.type !== 'history' && opts.source === 'shortcut') {
+        const options = {
+          isDrive: !!request.driveId
+        };
+        this.dispatchEvent(new CustomEvent('save-request', {
+          bubbles: true,
+          composed: true,
+          cancelable: true,
+          detail: {
+            request,
+            options
+          }
+        }));
+        return;
+      }
+      this._openSaveDialog(request);
+    }
+
+    _resizeSheetContent(e) {
+      const panel = e.target.querySelector(
+          'saved-request-editor,saved-request-detail,http-code-snippets');
+      if (panel && panel.notifyResize) {
+        panel.notifyResize();
+      }
+    }
+
+    _openSaveDialog(request) {
+      if (!request._id) {
+        request._tempId = this.$.uuid.generate();
+      }
+      this.$.requestEditor.request = request;
+      this.editorOpened = true;
+    }
+
+    _cancelRequestEdit(e) {
+      e.stopPropagation();
+      this.editorOpened = false;
+      this.$.requestEditor.request = undefined;
+    }
+
+    _saveRequestEdit() {
+      this.editorOpened = false;
+      this.$.requestEditor.request = undefined;
+    }
+
+    _deleteRequestDetails(e) {
+      e.stopPropagation();
+      this.detailsOpened = false;
+      const request = e.target.request;
+      e.target.request = undefined;
+      if (!request._rev || !request._id) {
+        return;
+      }
+      document.body.dispatchEvent(new CustomEvent('request-object-deleted', {
+        detail: {
+          type: request.type,
+          id: request._id
+        },
+        bubbles: true,
+        composed: true,
+        cancelable: true
+      }));
+    }
+
+    _editRequestDetails(e) {
+      e.stopPropagation();
+      const request = this.$.requestDetails.request;
+      this.detailsOpened = false;
+      this.$.requestEditor.request = request;
+      this.editorOpened = true;
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);

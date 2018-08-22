@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
     <title>api-request-editor demo</title>
-    <base href="../">
     <script>
     if (location.search.indexOf('response_type') !== -1 &&
       location.search.indexOf('redirect_uri') !== -1) {
@@ -23,42 +22,42 @@
       location.href = red;
     }
     </script>
-    <script src="../webcomponentsjs/webcomponents-loader.js"></script>
-    <link rel="import" href="../shadycss/apply-shim.html">
-    <link rel="import" href="../polymer/lib/elements/custom-style.html">
-    <link rel="import" href="../polymer/lib/elements/dom-bind.html">
-    <link rel="import" href="../app-pouchdb/pouchdb.html">
-    <link rel="import" href="../arc-models/project-model.html">
-    <link rel="import" href="../arc-models/request-model.html">
-    <link rel="import" href="../neon-animation/web-animations.html">
-    <link rel="import" href="../variables-evaluator/variables-evaluator.html">
-    <link rel="import" href="../variables-manager/variables-manager.html">
-    <link rel="import" href="../url-history-saver/url-history-saver.html">
-    <link rel="import" href="../request-hooks-logic/request-hooks-logic.html">
-    <link rel="import" href="../arc-request-logic/arc-request-logic.html">
-    <link rel="import" href="../oauth-authorization/oauth2-authorization.html">
-    <link rel="import" href="../oauth-authorization/oauth1-authorization.html">
-    <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
-    <link rel="import" href="../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../arc-data-generator/arc-data-generator.html">
-    <link rel="import" href="../variables-editor/variables-editor.html">
-    <link rel="import" href="../arc-electron-default-theme/arc-electron-default-theme.html">
-    <link rel="import" href="../paper-styles/shadow.html">
-    <link rel="import" href="../saved-menu/saved-menu.html">
-    <link rel="import" href="../paper-toast/paper-toast.html">
-    <link rel="import" href="../saved-request-editor/saved-request-editor.html">
-    <link rel="import" href="../saved-request-detail/saved-request-detail.html">
-    <link rel="import" href="../bottom-sheet/bottom-sheet.html">
-    <link rel="import" href="../http-code-snippets/http-code-snippets.html">
-    <link rel="import" href="../paper-input/paper-input.html">
-    <link rel="import" href="../paper-icon-button/paper-icon-button.html">
-    <link rel="import" href="../arc-icons/arc-icons.html">
-    <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
-    <link rel="import" href="../paper-item/paper-item.html">
-    <link rel="import" href="../paper-listbox/paper-listbox.html">
-    <link rel="import" href="../paper-checkbox/paper-checkbox.html">
-    <link rel="import" href="arc-request-workspace.html">
+    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+    <link rel="import" href="../../shadycss/apply-shim.html">
+    <link rel="import" href="../../polymer/lib/elements/custom-style.html">
+    <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
+    <link rel="import" href="../../app-pouchdb/pouchdb.html">
+    <link rel="import" href="../../arc-models/project-model.html">
+    <link rel="import" href="../../arc-models/request-model.html">
+    <link rel="import" href="../../neon-animation/web-animations.html">
+    <link rel="import" href="../../variables-evaluator/variables-evaluator.html">
+    <link rel="import" href="../../variables-manager/variables-manager.html">
+    <link rel="import" href="../../url-history-saver/url-history-saver.html">
+    <link rel="import" href="../../request-hooks-logic/request-hooks-logic.html">
+    <link rel="import" href="../../arc-request-logic/arc-request-logic.html">
+    <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
+    <link rel="import" href="../../oauth-authorization/oauth1-authorization.html">
+    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+    <link rel="import" href="../../variables-editor/variables-editor.html">
+    <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
+    <link rel="import" href="../../paper-styles/shadow.html">
+    <link rel="import" href="../../saved-menu/saved-menu.html">
+    <link rel="import" href="../../paper-toast/paper-toast.html">
+    <link rel="import" href="../../saved-request-editor/saved-request-editor.html">
+    <link rel="import" href="../../saved-request-detail/saved-request-detail.html">
+    <link rel="import" href="../../bottom-sheet/bottom-sheet.html">
+    <link rel="import" href="../../http-code-snippets/http-code-snippets.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
+    <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../../arc-icons/arc-icons.html">
+    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../../paper-item/paper-item.html">
+    <link rel="import" href="../../paper-listbox/paper-listbox.html">
+    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <link rel="import" href="../arc-request-workspace.html">
     <style>
     body,
     html {
@@ -183,15 +182,6 @@
             </div>
           </section>
         </div>
-        <bottom-sheet opened="{{editorOpened}}" on-iron-overlay-opened="_resizeSheetContent" with-backdrop>
-          <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit"></saved-request-detail>
-        </bottom-sheet>
-        <bottom-sheet opened="{{detailsOpened}}" on-iron-overlay-opened="_resizeSheetContent" with-backdrop>
-          <saved-request-detail id="requestDetails" on-delete-request="_deleteRequestDetails" on-edit-request="_editRequestDetails"></saved-request-detail>
-        </bottom-sheet>
-        <bottom-sheet opened="{{snippetsOpened}}" on-iron-overlay-opened="_resizeSheetContent" with-backdrop>
-          <http-code-snippets url="[[snippetRequest.url]]" method="[[snippetRequest.method]]" headers="[[snippetRequest.headers]]" payload="[[snippetRequest.payload]]"></http-code-snippets>
-        </bottom-sheet>
       </template>
     </dom-bind>
     <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
@@ -376,72 +366,6 @@
       app._selectRequest = function(e) {
         const workspace = document.querySelector('arc-request-workspace');
         workspace.addRequestById('saved', e.detail.id);
-      };
-      //
-      // Save request flow
-      //
-      app._saveRequestHandler = function(e) {
-        const editor = document.getElementById('requestEditor');
-        editor.request = e.detail.request;
-        app.editorOpened = true;
-      };
-
-      app._resizeSheetContent = function(e) {
-        const panel = e.target.querySelector(
-          'saved-request-editor,saved-request-detail,http-code-snippets');
-        if (panel && panel.notifyResize) {
-          panel.notifyResize();
-        }
-      };
-
-      app._cancelRequestEdit = function() {
-        const editor = document.getElementById('requestEditor');
-        app.editorOpened = false;
-        editor.request = undefined;
-      };
-
-      app._saveRequestEdit = function() {
-        const editor = document.getElementById('requestEditor');
-        app.editorOpened = false;
-        editor.request = undefined;
-      };
-      //
-      // Request details flow
-      //
-      app._requestDetailsHandler = function(e) {
-        const editor = document.getElementById('requestDetails');
-        editor.request = e.detail.request;
-        app.detailsOpened = true;
-      };
-      app._editRequestDetails = function() {
-        const request = document.getElementById('requestDetails').request;
-        app.detailsOpened = false;
-        document.getElementById('requestEditor').request = request;
-        app.editorOpened = true;
-      };
-      app._deleteRequestDetails = function(e) {
-        app.detailsOpened = false;
-        const request = e.target.request;
-        e.target.request = undefined;
-        if (!request._rev || !request._id) {
-          return;
-        }
-        document.body.dispatchEvent(new CustomEvent('request-object-deleted', {
-          detail: {
-            type: request.type,
-            id: request._id
-          },
-          bubbles: true,
-          cancelable: true
-        }));
-      };
-      //
-      // Code snippets flow
-      //
-      app._renderCodeSnippets = function(e) {
-        const request = e.detail.request;
-        app.snippetRequest = request;
-        app.snippetsOpened = true;
       };
       //
       // Google drive export flow
