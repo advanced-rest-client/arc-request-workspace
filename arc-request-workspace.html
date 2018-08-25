@@ -1152,6 +1152,55 @@
       this.$.requestEditor.request = request;
       this.editorOpened = true;
     }
+    /**
+     * Returns a reference to currently selected panel.
+     * @return {HTMLElement}
+     */
+    getActivePanel() {
+      const request = this.activeRequests[this.selected];
+      if (!request) {
+        console.warn('Selected request does not exists');
+        return;
+      }
+      const panel = this.__getPanelById(request._id);
+      if (!panel) {
+        console.warn('Request panel not found');
+        return;
+      }
+      return panel;
+    }
+    /**
+     * Runs cureently active tab.
+     */
+    sendCurrent() {
+      const panel = this.getActivePanel();
+      panel.send();
+    }
+    /**
+     * Aborts currenlt selected panel
+     */
+    abortCurrent() {
+      const panel = this.getActivePanel();
+      panel.abort();
+    }
+    /**
+     * Aborts currenlt selected panel
+     */
+    clearCurrent() {
+      const panel = this.getActivePanel();
+      panel.clear();
+    }
+    /**
+     * Aborts all running requests
+     */
+    abortAll() {
+      const nodes = this.shadowRoot.querySelectorAll('request-panel');
+      for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].loading) {
+          nodes[i].abort();
+        }
+      }
+    }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>
