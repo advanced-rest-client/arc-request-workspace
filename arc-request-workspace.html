@@ -261,7 +261,11 @@
         editorOpened: Boolean,
         detailsOpened: Boolean,
         snippetsOpened: Boolean,
-        snippetRequest: Boolean
+        snippetRequest: Boolean,
+        /**
+         * Set when workspace state has been read.
+         */
+        initialized: {type: Boolean, readOnly: true}
       };
     }
 
@@ -328,6 +332,9 @@
         console.warn(m);
         this.addEmptyRequest();
         this._setRestoring(false);
+        if (!this.initialized) {
+          this._setInitialized(true);
+        }
         return Promise.reject(new Error(m));
       }
       return e.detail.result
@@ -343,6 +350,11 @@
       .catch((cause) => {
         console.warn(cause.message);
         this.addEmptyRequest();
+      })
+      .then(() => {
+        if (!this.initialized) {
+          this._setInitialized(true);
+        }
         this._setRestoring(false);
       });
     }
@@ -546,6 +558,9 @@
      * If there's an error it is not rerported back to the user.
      */
     _notifyStoreWorkspace() {
+      if (this.restoring || !this.initialized) {
+        return;
+      }
       const value = this.serializeWorkspace();
       const e = new CustomEvent('workspace-state-store', {
         bubbles: true,
