@@ -287,6 +287,7 @@
       this._envChangedHandler = this._envChangedHandler.bind(this);
       this._requestChangeHandler = this._requestChangeHandler.bind(this);
       this._requestDeleteHandler = this._requestDeleteHandler.bind(this);
+      this._appendRequestHandler = this._appendRequestHandler.bind(this);
     }
 
     connectedCallback() {
@@ -294,6 +295,7 @@
       window.addEventListener('selected-environment-changed', this._envChangedHandler);
       window.addEventListener('request-object-changed', this._requestChangeHandler);
       window.addEventListener('request-object-deleted', this._requestDeleteHandler);
+      window.addEventListener('request-workspace-append', this._appendRequestHandler);
       if (!this.noAutoRestore && !this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
       }
@@ -305,6 +307,7 @@
       window.removeEventListener('selected-environment-changed', this._envChangedHandler);
       window.removeEventListener('request-object-changed', this._requestChangeHandler);
       window.removeEventListener('request-object-deleted', this._requestDeleteHandler);
+      window.removeEventListener('request-workspace-append', this._appendRequestHandler);
     }
     /**
      * Restores workspace state.
@@ -1215,6 +1218,15 @@
           nodes[i].abort();
         }
       }
+    }
+    /**
+     * Handler for `request-workspace-append` custom event. Appends request
+     * to the worspace.
+     * @param {CustomEvent} e A `request` property on detail object is expected.
+     */
+    _appendRequestHandler(e) {
+      const {request} = e.detail;
+      this.appendRequest(request);
     }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
