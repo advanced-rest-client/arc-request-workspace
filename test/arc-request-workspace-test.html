@@ -260,15 +260,16 @@
       test('Adds empty request to the list of active requests', () => {
         element.appendRequest({method: 'x-test'});
         assert.lengthOf(element.activeRequests, 1);
-        assert.deepEqual(element.activeRequests[0], {});
       });
 
-      test('Eventually sets request data', (done) => {
+      test('Added request has an id', () => {
         element.appendRequest({method: 'x-test'});
-        setTimeout(() => {
-          assert.equal(element.activeRequests[0].method, 'x-test');
-          done();
-        }, 250);
+        assert.typeOf(element.activeRequests[0]._id, 'string');
+      });
+
+      test('Eventually sets request data', () => {
+        element.appendRequest({method: 'x-test'});
+        assert.equal(element.activeRequests[0].method, 'x-test');
       });
 
       test('Selects newly added request', () => {
