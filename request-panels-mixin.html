@@ -1,8 +1,8 @@
 <script>
 (function() {
   'use strict';
-  if (!window.ArcElements) {
-    window.ArcElements = {};
+  if (!window.ArcComponents) {
+    window.ArcComponents = {};
   }
   /**
    * This misin is mostly created to reduce amount of code in
@@ -22,9 +22,9 @@
    *
    * @mixinFunction
    * @polymer
-   * @memberof ArcElements
+   * @memberof ArcComponents
    */
-  window.ArcElements.ArcWorkspaceMixin = Polymer.dedupingMixin((base) => {
+  window.ArcComponents.ArcWorkspaceMixin = Polymer.dedupingMixin((base) => {
     /**
      * @polymer
      * @mixinClass

@@ -16,12 +16,14 @@
 <link rel="import" href="../saved-request-detail/saved-request-detail.html">
 <link rel="import" href="../http-code-snippets/http-code-snippets.html">
 <link rel="import" href="../bottom-sheet/bottom-sheet.html">
+<link rel="import" href="../arc-file-drop-mixin/arc-file-drop-mixin.html">
 <link rel="import" href="request-panels-mixin.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
     :host {
       display: block;
+      position: relative;
       @apply --arc-request-workspace;
     }
 
@@ -136,6 +138,19 @@
       max-width: var(--arc-bottom-sheet-max-width, 700px);
       @apply --shadow-elevation-6dp;
     }
+
+    .drop-target {
+      display: none;
+    }
+
+    :host([dragging]) .drop-target {
+      display: block;
+      @apply --layout-fit;
+      @apply --layout-vertical;
+      @apply --layout-center;
+      background-color: #fff;
+      border: 4px var(--drop-file-importer-header-background-color, var(--primary-color)) solid;
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
@@ -161,6 +176,10 @@
     <bottom-sheet opened="{{snippetsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
       <http-code-snippets url="[[snippetRequest.url]]" method="[[snippetRequest.method]]" headers="[[snippetRequest.headers]]" payload="[[snippetRequest.payload]]"></http-code-snippets>
     </bottom-sheet>
+
+    <section class="drop-target">
+      <p class="drop-message">Drop import file here</p>
+    </section>
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
@@ -206,10 +225,12 @@
    * @polymer
    * @demo demo/index.html
    * @memberof UiElements
-   * @appliesMixin ArcElements.ArcWorkspaceMixin
+   * @appliesMixin ArcComponents.ArcWorkspaceMixin
+   * @appliesMixin ArcComponents.ArcFileDropMixin
    */
-  class ArcRequestWorkspace extends ArcElements.ArcWorkspaceMixin(Polymer.Element) {
-    /* global ArcElements */
+  class ArcRequestWorkspace extends
+    ArcComponents.ArcFileDropMixin(
+      ArcComponents.ArcWorkspaceMixin(Polymer.Element)) {
     static get is() {return 'arc-request-workspace';}
     static get properties() {
       return {
