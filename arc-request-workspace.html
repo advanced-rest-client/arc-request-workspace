@@ -112,6 +112,18 @@
       @apply --request-editor-context-menu-icon;
     }
 
+    .menu-item {
+      @apply --paper-item;
+      color: var(--context-menu-item-color);
+      background-color: var(--context-menu-item-background-color);
+    }
+
+    .menu-item:hover {
+      @apply --paper-item-hover;
+      color: var(--context-menu-item-color-hover);
+      background-color: var(--context-menu-item-background-color-hover);
+    }
+
     .tabs {
       color: var(--arc-request-workspace-tabs-color, rgba(0,0,0,0.87));
       position: relative;
@@ -175,7 +187,7 @@
     <uuid-generator id="uuid"></uuid-generator>
 
     <bottom-sheet opened="{{editorOpened}}" on-iron-overlay-opened="_resizeSheetContent">
-      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit"></saved-request-detail>
+      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit"></saved-request-editor>
     </bottom-sheet>
     <bottom-sheet opened="{{detailsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
       <saved-request-detail id="requestDetails" on-delete-request="_deleteRequestDetails" on-edit-request="_editRequestDetails"></saved-request-detail>
@@ -190,15 +202,15 @@
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
-      <paper-icon-item class="save-icon" slot="request-context-menu">
+      <paper-icon-item class="save-icon menu-item" slot="request-context-menu">
         <iron-icon icon="arc:save" class="context-menu-icon" slot="item-icon" title="Save current request"></iron-icon>
         Save
       </paper-icon-item>
-      <paper-icon-item class="details-icon" slot="request-context-menu">
+      <paper-icon-item class="details-icon menu-item" slot="request-context-menu">
         <iron-icon icon="arc:info-outline" class="context-menu-icon" slot="item-icon" title="Request details"></iron-icon>
         Details
       </paper-icon-item>
-      <paper-icon-item class="code-icon" slot="request-context-menu">
+      <paper-icon-item class="code-icon menu-item" slot="request-context-menu">
         <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
         Code examples
       </paper-icon-item>
@@ -235,6 +247,10 @@
    * `--arc-request-workspace-tabs-add-color-hover` | Color of the add tab button when hovered | `#616161`
    * `--arc-request-workspace-tabs-add-background-color-hover` | Background color of the add tab button when hovered | ``
    * `--arc-request-workspace-tab-dragging-background-color` | Background color of a tab when dragged | `#fff !important`
+   * `--context-menu-item-color` | Color of the context menu item | ``
+   * `--context-menu-item-background-color` | Background color of the context menu item | ``
+   * `--context-menu-item-color-hover` | Color of the context menu item when hovered | ``
+   * `--context-menu-item-background-color-hover` | Background color of the context menu item when hovered | ``
    *
    * @customElement
    * @polymer

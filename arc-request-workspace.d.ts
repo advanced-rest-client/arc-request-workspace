@@ -60,6 +60,10 @@ declare namespace UiElements {
    * `--arc-request-workspace-tabs-add-color-hover` | Color of the add tab button when hovered | `#616161`
    * `--arc-request-workspace-tabs-add-background-color-hover` | Background color of the add tab button when hovered | ``
    * `--arc-request-workspace-tab-dragging-background-color` | Background color of a tab when dragged | `#fff !important`
+   * `--context-menu-item-color` | Color of the context menu item | ``
+   * `--context-menu-item-background-color` | Background color of the context menu item | ``
+   * `--context-menu-item-color-hover` | Color of the context menu item when hovered | ``
+   * `--context-menu-item-background-color-hover` | Background color of the context menu item when hovered | ``
    */
   class ArcRequestWorkspace extends
     ArcComponents.ArcWorkspaceMixin(
