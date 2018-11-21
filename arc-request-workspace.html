@@ -61,22 +61,28 @@
     }
 
     .close-icon {
-      color: rgba(0, 0, 0, 0.78);
+      color: var(--arc-request-workspace-tabs-close-color, rgba(0, 0, 0, 0.78));
       border-radius: 50%;
       width: 14px;
       height: 14px;
     }
 
     .close-icon:hover {
-      color: rgba(255, 255, 255, 0.54);
-      background-color: #FF8A65;
+      color: var(--arc-request-workspace-tabs-close-color-hover, rgba(255, 255, 255, 0.54));
+      background-color: var(--arc-request-workspace-tabs-close-background-color-hover, #FF8A65);
     }
 
     .add-request-button {
-      color: #616161;
+      color: var(--arc-request-workspace-tabs-add-color, #616161);
+      background-color: var(--arc-request-workspace-tabs-add-background-color);
       height: 40px;
       cursor: pointer;
       margin-top: 4px;
+    }
+
+    .add-request-button:hover {
+      color: var(--arc-request-workspace-tabs-add-color-hover, #616161);
+      background-color: var(--arc-request-workspace-tabs-add-background-color-hover);
     }
 
     paper-tab.iron-selected {
@@ -107,6 +113,7 @@
     }
 
     .tabs {
+      color: var(--arc-request-workspace-tabs-color, rgba(0,0,0,0.87));
       position: relative;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
@@ -121,7 +128,7 @@
     }
 
     .dragging {
-      background-color: #fff !important;
+      background-color: var(--arc-request-workspace-tab-dragging-background-color, #fff !important);
       z-index: 1;
       @apply --shadow-elevation-2dp;
       --paper-tab-ink: transparent !important;
@@ -220,6 +227,14 @@
    * `--arc-request-workspace-tabs-border-color` | | `#e5e5e5`
    * `--arc-request-workspace-tabs-color` | | `rgba(0,0,0,0.87)`
    * `--arc-request-workspace-tabs-selected-background-color` | | `#fff`
+   * `--arc-request-workspace-tabs-close-color` | Color of tab close button | `rgba(0, 0, 0, 0.78)`
+   * `--arc-request-workspace-tabs-close-color-hover` | Color of tab close button when hovered | `rgba(255, 255, 255, 0.54)`
+   * `--arc-request-workspace-tabs-close-background-color-hover` | Background color of tab close button when hovered | `#FF8A65`
+   * `--arc-request-workspace-tabs-add-color` | Color of the add tab button | `#616161`
+   * `--arc-request-workspace-tabs-add-background-color` | Background color of the add tab button | ``
+   * `--arc-request-workspace-tabs-add-color-hover` | Color of the add tab button when hovered | `#616161`
+   * `--arc-request-workspace-tabs-add-background-color-hover` | Background color of the add tab button when hovered | ``
+   * `--arc-request-workspace-tab-dragging-background-color` | Background color of a tab when dragged | `#fff !important`
    *
    * @customElement
    * @polymer
@@ -231,7 +246,9 @@
   class ArcRequestWorkspace extends
     ArcComponents.ArcFileDropMixin(
       ArcComponents.ArcWorkspaceMixin(Polymer.Element)) {
-    static get is() {return 'arc-request-workspace';}
+    static get is() {
+      return 'arc-request-workspace';
+    }
     static get properties() {
       return {
         /**
