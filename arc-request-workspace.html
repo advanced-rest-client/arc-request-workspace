@@ -1283,6 +1283,27 @@
       const {request} = e.detail;
       this.appendRequest(request);
     }
+    /**
+     * Duplicates tab values at a position
+     * @param {Number} index Selected tab
+     */
+    duplicateTab(index) {
+      const current = this.get('activeRequests.' + index);
+      if (!current) {
+        console.warn('No request at position ', index);
+        return;
+      }
+      const copy = Object.assign({}, current);
+      delete copy._id;
+      delete copy._rev;
+      delete copy.name;
+      delete copy.driveId;
+      delete copy.projects;
+      delete copy.type;
+      this.appendRequest(copy, {
+        skipPositionCheck: true
+      });
+    }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>
