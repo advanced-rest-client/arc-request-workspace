@@ -64,6 +64,8 @@ declare namespace UiElements {
    * `--context-menu-item-background-color` | Background color of the context menu item | ``
    * `--context-menu-item-color-hover` | Color of the context menu item when hovered | ``
    * `--context-menu-item-background-color-hover` | Background color of the context menu item when hovered | ``
+   * `--bottom-sheet-width` | Bottom sheet width | `100%`
+   * `--bottom-sheet-max-width` | Bottom sheet max width | `700px`
    */
   class ArcRequestWorkspace extends
     ArcComponents.ArcWorkspaceMixin(
