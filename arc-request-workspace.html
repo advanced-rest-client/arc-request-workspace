@@ -1283,6 +1283,13 @@
       const {request} = e.detail;
       this.appendRequest(request);
     }
+    /**
+     * Closes currently selected tab.
+     */
+    closeActiveTab() {
+      const i = this.selected;
+      this.removeRequest(i);
+    }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>
