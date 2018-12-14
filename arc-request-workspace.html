@@ -1284,12 +1284,34 @@
       this.appendRequest(request);
     }
     /**
-     * Closes currently selected tab.
+     * Duplicates tab values at a position
+     * @param {Number} index Selected tab
      */
-    closeActiveTab() {
-      const i = this.selected;
-      this.removeRequest(i);
+    duplicateTab(index) {
+      const current = this.get('activeRequests.' + index);
+      if (!current) {
+        console.warn('No request at position ', index);
+        return;
+      }
+      const copy = Object.assign({}, current);
+      delete copy._id;
+      delete copy._rev;
+      delete copy.name;
+      delete copy.driveId;
+      delete copy.projects;
+      delete copy.type;
+      this.appendRequest(copy, {
+        skipPositionCheck: true
+      });
     }
+
+    /*
+    * Closes currently selected tab.
+    */
+   closeActiveTab() {
+     const i = this.selected;
+     this.removeRequest(i);
+   }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>
