@@ -8,15 +8,30 @@
   <script src="../../web-component-tester/browser.js"></script>
   <link rel="import" href="../arc-request-workspace.html">
   <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../arc-models/project-model.html">
+  <link rel="import" href="../../arc-models/request-model.html">
+  <link rel="import" href="../../arc-models/variables-model.html">
 </head>
 <body>
+  <project-model></project-model>
+  <request-model></request-model>
+  <variables-model></variables-model>
+
   <test-fixture id="Basic">
     <template>
-      <arc-request-workspace></arc-request-workspace>
+      <arc-request-workspace no-auto-projects></arc-request-workspace>
     </template>
   </test-fixture>
 
   <script>
+  function wrapStateReadEvent(element) {
+    element.addEventListener('workspace-state-read', function f(e) {
+      element.removeEventListener('workspace-state-read', f);
+      e.preventDefault();
+      e.detail.result = Promise.resolve({});
+    });
+  }
+
   suite('arc-request-workspace', () => {
     let element;
     /* global DataGenerator */
@@ -42,10 +57,12 @@
     suite('Basics', () => {
       setup(() => {
         element = fixture('Basic');
+        wrapStateReadEvent(element);
       });
 
       test('selected is eventually set', (done) => {
-        element.addEventListener('selected-changed', () => {
+        element.addEventListener('selected-changed', function f() {
+          element.removeEventListener('selected-changed', f);
           done();
         });
       });
@@ -228,7 +245,12 @@
 
     suite('_computeTabName()', () => {
       setup(() => {
+        window.addEventListener('workspace-state-read', restoreHandler);
         element = fixture('Basic');
+      });
+
+      teardown(() => {
+        window.removeEventListener('workspace-state-read', restoreHandler);
       });
 
       test('Returns "New request" for undefined item', () => {
@@ -306,6 +328,116 @@
     });
   });
 
+  suite('_dispatchExportData()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+      wrapStateReadEvent(element);
+    });
+
+    test('Dispatches "export-data" event', () => {
+      const spy = sinon.spy();
+      element.addEventListener('export-data', spy);
+      element._dispatchExportData();
+      assert.isTrue(spy.called);
+    });
+
+    test('Returns the event', () => {
+      const result = element._dispatchExportData();
+      assert.typeOf(result, 'customevent');
+    });
+
+    test('Event is cancelable', () => {
+      const result = element._dispatchExportData();
+      assert.isTrue(result.cancelable);
+    });
+
+    test('Event is composed', () => {
+      const result = element._dispatchExportData();
+      assert.isTrue(result.composed);
+    });
+
+    test('Event bubbles', () => {
+      const result = element._dispatchExportData();
+      assert.isTrue(result.bubbles);
+    });
+
+    test('Event has detail object', () => {
+      const result = element._dispatchExportData();
+      assert.typeOf(result.detail, 'object');
+    });
+
+    test('Detail has type', () => {
+      const result = element._dispatchExportData();
+      assert.equal(result.detail.type, 'arc-export');
+    });
+
+    test('Detail has destination', () => {
+      const result = element._dispatchExportData('test');
+      assert.equal(result.detail.destination, 'test');
+    });
+
+    test('Detail has file', () => {
+      const result = element._dispatchExportData();
+      assert.equal(result.detail.file, 'arc-saved-export.json');
+    });
+
+    test('Detail has kind', () => {
+      const result = element._dispatchExportData();
+      assert.equal(result.detail.kind, 'ARC#SavedExport');
+    });
+
+    test('Detail has data with "requests"', () => {
+      const result = element._dispatchExportData('test', true);
+      assert.typeOf(result.detail.data, 'object');
+      assert.isTrue(result.detail.data.requests);
+    });
+  });
+
+  suite('_exportRequest()', () => {
+    let element;
+    let list;
+    setup(() => {
+      element = fixture('Basic');
+      wrapStateReadEvent(element);
+      list = DataGenerator.generateSavedRequestData();
+    });
+
+    test('Dispatches export event', () => {
+      element.addEventListener('export-data', function f(e) {
+        element.removeEventListener('export-data', f);
+        e.preventDefault();
+        e.detail.result = Promise.resolve();
+      });
+      const spy = sinon.spy();
+      element.addEventListener('export-data', spy);
+      element._exportRequest(list, 'file');
+      assert.isTrue(spy.called);
+    });
+
+    test('Opens error toast when export not found', (done) => {
+      flush(() => {
+        element._exportRequest(list, 'file');
+        const toast = element.shadowRoot.querySelector('#noExport');
+        assert.isTrue(toast.opened);
+        done();
+      });
+    });
+
+    test('Opens drive confirmation toast', (done) => {
+      element.addEventListener('export-data', function f(e) {
+        element.removeEventListener('export-data', f);
+        e.preventDefault();
+        e.detail.result = Promise.resolve();
+      });
+      element._exportRequest(list, 'drive');
+      flush(() => {
+        const toast = element.shadowRoot.querySelector('#driveSaved');
+        assert.isTrue(toast.opened);
+        done();
+      });
+    });
+  });
   </script>
 </body>
 </html>

@@ -25,7 +25,8 @@
     "saved-request-editor": "advanced-rest-client/saved-request-editor#2.0.0-preview",
     "saved-request-detail": "advanced-rest-client/saved-request-detail#2.0.0-preview",
     "bottom-sheet": "advanced-rest-client/bottom-sheet#^2.0.0",
-    "arc-file-drop-mixin": "advanced-rest-client/arc-file-drop-mixin#2.0.0-preview"
+    "arc-file-drop-mixin": "advanced-rest-client/arc-file-drop-mixin#2.0.0-preview",
+    "paper-toast": "PolymerElements/paper-toast#^2.1.2"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
@@ -43,7 +44,6 @@
     "arc-request-logic": "advanced-rest-client/arc-request-logic#2.0.0-preview",
     "arc-data-generator": "advanced-rest-client/arc-data-generator#^1.0.0",
     "variables-editor": "advanced-rest-client/variables-editor#2.0.0-preview",
-    "paper-toast": "PolymerElements/paper-toast#^2.1.2",
     "saved-menu": "advanced-rest-client/saved-menu#2.0.0-preview",
     "arc-models": "advanced-rest-client/arc-models#2.0.0-preview",
     "arc-electron-default-theme": "advanced-rest-client/arc-electron-default-theme#2.0.0-preview"

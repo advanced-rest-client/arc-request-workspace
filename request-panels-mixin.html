@@ -37,6 +37,8 @@
         this._requestStoreHandler = this._requestStoreHandler.bind(this);
         this._renderRequestDetail = this._renderRequestDetail.bind(this);
         this._renderCodeSnippets = this._renderCodeSnippets.bind(this);
+        this._requestStoreFileHandler = this._requestStoreFileHandler.bind(this);
+        this._requestStoreDriveHandler = this._requestStoreDriveHandler.bind(this);
       }
 
       __createPanelInstance() {
@@ -68,6 +70,8 @@
         panel.querySelector('.save-icon').addEventListener('click', this._requestStoreHandler);
         panel.querySelector('.details-icon').addEventListener('click', this._renderRequestDetail);
         panel.querySelector('.code-icon').addEventListener('click', this._renderCodeSnippets);
+        panel.querySelector('.save-file-icon').addEventListener('click', this._requestStoreFileHandler);
+        panel.querySelector('.save-drive-icon').addEventListener('click', this._requestStoreDriveHandler);
       }
 
       __removePanelListeners(panel) {
@@ -81,6 +85,8 @@
         panel.querySelector('.details-icon')
         .removeEventListener('click', this._renderRequestDetail);
         panel.querySelector('.code-icon').removeEventListener('click', this._renderCodeSnippets);
+        panel.querySelector('.save-file-icon').removeEventListener('click', this._requestStoreFileHandler);
+        panel.querySelector('.save-drive-icon').removeEventListener('click', this._requestStoreDriveHandler);
       }
 
       __getPanelById(id) {

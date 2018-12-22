@@ -17,6 +17,7 @@
 <link rel="import" href="../http-code-snippets/http-code-snippets.html">
 <link rel="import" href="../bottom-sheet/bottom-sheet.html">
 <link rel="import" href="../arc-file-drop-mixin/arc-file-drop-mixin.html">
+<link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="request-panels-mixin.html">
 <dom-module id="arc-request-workspace">
   <template>
@@ -169,6 +170,12 @@
       background-color: #fff;
       border: 4px var(--drop-file-importer-header-background-color, var(--primary-color)) solid;
     }
+
+    .error-toast {
+      background-color: var(--warning-primary-color, #FF7043);
+      color: var(--warning-contrast-color, #fff);
+      @apply --error-toast;
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
@@ -186,7 +193,7 @@
     <uuid-generator id="uuid"></uuid-generator>
 
     <bottom-sheet opened="{{editorOpened}}" on-iron-overlay-opened="_resizeSheetContent">
-      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit"></saved-request-editor>
+      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit" no-auto-projects="[[noAutoProjects]]"></saved-request-editor>
     </bottom-sheet>
     <bottom-sheet opened="{{detailsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
       <saved-request-detail id="requestDetails" on-delete-request="_deleteRequestDetails" on-edit-request="_editRequestDetails"></saved-request-detail>
@@ -198,6 +205,9 @@
     <section class="drop-target">
       <p class="drop-message">Drop import file here</p>
     </section>
+
+    <paper-toast id="noExport" class="error-toast" text="Export module not found. Please, report an issue."></paper-toast>
+    <paper-toast id="driveSaved" text="Requests saved on Google Drive."></paper-toast>
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
@@ -212,6 +222,14 @@
       <paper-icon-item class="code-icon menu-item" slot="request-context-menu">
         <iron-icon icon="arc:code" class="context-menu-icon" slot="item-icon" title="Toggles code snippets view"></iron-icon>
         Code examples
+      </paper-icon-item>
+      <paper-icon-item class="save-file-icon menu-item" slot="request-context-menu">
+        <iron-icon icon="arc:archive" slot="item-icon"></iron-icon>
+        Save to file
+      </paper-icon-item>
+      <paper-icon-item class="save-drive-icon menu-item" slot="request-context-menu">
+        <iron-icon icon="arc:drive-color" slot="item-icon"></iron-icon>
+        Save to Google Drive
       </paper-icon-item>
       <slot name="request-context-menu" slot="request-context-menu"></slot>
     </request-panel>
@@ -320,7 +338,12 @@
         /**
          * Set when workspace state has been read.
          */
-        initialized: {type: Boolean, readOnly: true}
+        initialized: {type: Boolean, readOnly: true},
+        /**
+         * When set the elements that require project data won't automatically
+         * ask for project data.
+         */
+        noAutoProjects: Boolean
       };
     }
 
@@ -715,6 +738,15 @@
       return this.activeRequests.findIndex((item) =>
         item._id === requestId || tmpId && item._tempId === tmpId);
     }
+
+    _getMenuRequest(e) {
+      const panelId = e.target.parentElement.dataset.id;
+      if (!panelId && panelId !== 0) {
+        return;
+      }
+      const index = this.findRequestIndex(panelId);
+      return this.activeRequests[index];
+    }
     /**
      * It ensures `_id` property exists opens save editor
      *
@@ -723,9 +755,7 @@
     _requestStoreHandler(e) {
       e.preventDefault();
       e.stopPropagation();
-      const panelId = e.target.parentElement.dataset.id;
-      const index = this.findRequestIndex(panelId);
-      const request = this.activeRequests[index];
+      const request = this._getMenuRequest(e);
       if (!request) {
         return;
       }
@@ -739,9 +769,7 @@
     _renderRequestDetail(e) {
       e.preventDefault();
       e.stopPropagation();
-      const panelId = e.target.parentElement.dataset.id;
-      const index = this.findRequestIndex(panelId);
-      const request = this.activeRequests[index];
+      const request = this._getMenuRequest(e);
       if (!request) {
         return;
       }
@@ -757,14 +785,71 @@
     _renderCodeSnippets(e) {
       e.preventDefault();
       e.stopPropagation();
-      const panelId = e.target.parentElement.dataset.id;
-      const index = this.findRequestIndex(panelId);
-      const request = this.activeRequests[index];
+      const request = this._getMenuRequest(e);
       if (!request) {
         return;
       }
       this.snippetRequest = request;
       this.snippetsOpened = true;
+    }
+
+    _requestStoreFileHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const request = this._getMenuRequest(e);
+      if (!request) {
+        return;
+      }
+      this._exportRequest(request, 'file');
+    }
+
+    _requestStoreDriveHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const request = this._getMenuRequest(e);
+      if (!request) {
+        return;
+      }
+      this._exportRequest(request, 'drive');
+    }
+
+    _exportRequest(request, destination) {
+      const e = this._dispatchExportData(destination, [request]);
+      if (!e.defaultPrevented) {
+        this.$.noExport.opened = true;
+        return;
+      }
+      e.detail.result
+      .then(() => {
+        if (destination === 'drive') {
+          this.$.driveSaved.opened = true;
+        }
+      });
+    }
+
+    /**
+     * Dispatches `export-data` event and returns it.
+     * @param {String} destination A place where export the data (file, drive)
+     * @param {Array<Object>|Boolean} requests
+     * @return {CustomEvent}
+     */
+    _dispatchExportData(destination, requests) {
+      const e = new CustomEvent('export-data', {
+        cancelable: true,
+        composed: true,
+        bubbles: true,
+        detail: {
+          type: 'arc-export',
+          destination,
+          file: 'arc-saved-export.json',
+          kind: 'ARC#SavedExport',
+          data: {
+            requests
+          }
+        }
+      });
+      this.dispatchEvent(e);
+      return e;
     }
     /**
      * Handler for non cancelable `request-object-changed` custom event.
