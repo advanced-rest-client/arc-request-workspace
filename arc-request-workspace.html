@@ -208,6 +208,7 @@
 
     <paper-toast id="noExport" class="error-toast" text="Export module not found. Please, report an issue."></paper-toast>
     <paper-toast id="driveSaved" text="Requests saved on Google Drive."></paper-toast>
+    <paper-toast id="errorToast" class="error-toast"></paper-toast>
   </template>
   <template id="requestTemplate">
     <request-panel class="panel" bound-events>
@@ -824,6 +825,11 @@
         if (destination === 'drive') {
           this.$.driveSaved.opened = true;
         }
+      })
+      .catch((cause) => {
+        this.$.errorToast.text = cause.message;
+        this.$.errorToast.opened = true;
+        console.error(cause);
       });
     }
 
