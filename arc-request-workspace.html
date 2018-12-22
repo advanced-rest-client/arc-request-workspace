@@ -1266,7 +1266,7 @@
     }
 
     _openSaveDialog(request) {
-      if (!request._id) {
+      if (!request._tempId) {
         request._tempId = this.$.uuid.generate();
       }
       this.$.requestEditor.request = request;
