@@ -34,7 +34,8 @@
     <link rel="import" href="../../variables-evaluator/variables-evaluator.html">
     <link rel="import" href="../../variables-manager/variables-manager.html">
     <link rel="import" href="../../variables-editor/variables-editor.html">
-    <link rel="import" href="../../url-history-saver/url-history-saver.html">
+    <link rel="import" href="../../arc-models/url-history-model.html">
+    <link rel="import" href="../../arc-models/url-indexer.html">
     <link rel="import" href="../../request-hooks-logic/request-hooks-logic.html">
     <link rel="import" href="../../arc-request-logic/arc-request-logic.html">
     <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
@@ -58,6 +59,7 @@
     <link rel="import" href="../../paper-item/paper-item.html">
     <link rel="import" href="../../paper-listbox/paper-listbox.html">
     <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <link rel="import" href="../../jexl/jexl.html">
     <link rel="import" href="../arc-request-workspace.html">
     <style>
     body,
@@ -135,21 +137,23 @@
   </head>
   <body>
     <variables-model></variables-model>
-    <url-history-saver></url-history-saver>
+    <url-history-model></url-history-model>
     <variables-manager></variables-manager>
+    <project-model></project-model>
+    <request-model></request-model>
+    <url-indexer></url-indexer>
     <variables-evaluator id="eval" no-before-request></variables-evaluator>
     <oauth2-authorization></oauth2-authorization>
     <oauth1-authorization></oauth1-authorization>
     <arc-request-logic></arc-request-logic>
     <request-hooks-logic></request-hooks-logic>
-    <project-model></project-model>
-    <request-model></request-model>
+
     <dom-bind id="demo">
       <template is="dom-bind">
         <div class="app">
           <nav>
             <div class="search">
-              <paper-input label="Search" class="search" no-label-float value="{{q}}">
+              <paper-input label="Search" class="search" no-label-float value="{{q}}" on-keydown="_searchKeydown">
                 <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
               </paper-input>
             </div>
@@ -381,6 +385,11 @@
       //
       // Search saved
       //
+      app._searchKeydown = function(e) {
+        if (e.code === 'Enter') {
+          app._search();
+        }
+      };
       app._search = function() {
         if (!app.q) {
           document.querySelector('saved-menu').refresh();
@@ -397,7 +406,7 @@
         document.body.dispatchEvent(e);
         e.detail.result
         .then((items) => {
-          document.querySelector('saved-menu').items = items;
+          document.querySelector('saved-menu').requests = items;
         });
       };
       app.refreshProjects = function() {

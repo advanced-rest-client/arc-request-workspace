@@ -96,13 +96,14 @@
       __addPanel(request) {
         if (!request) {
           request = {};
+          console.warn('Adding request panel without id. It won\'t be able to find it later.');
         }
         const panel = this.__createPanelInstance(request);
+        this.$.content.appendChild(panel);
+        this.__setPanelRequestProperties(panel, request);
         Polymer.RenderStatus.afterNextRender(this, () => {
           this.__addPanelListeners(panel);
         });
-        this.$.content.appendChild(panel);
-        this.__setPanelRequestProperties(panel, request);
       }
 
       __removePanel(id) {
