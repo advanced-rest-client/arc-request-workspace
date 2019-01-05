@@ -6,11 +6,11 @@
   <title>arc-request-workspace test</title>
   <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="../arc-request-workspace.html">
-  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../app-pouchdb/pouchdb.html">
   <link rel="import" href="../../arc-models/project-model.html">
   <link rel="import" href="../../arc-models/request-model.html">
   <link rel="import" href="../../arc-models/variables-model.html">
+  <link rel="import" href="../arc-request-workspace.html">
 </head>
 <body>
   <project-model></project-model>
@@ -19,7 +19,7 @@
 
   <test-fixture id="Basic">
     <template>
-      <arc-request-workspace no-auto-projects></arc-request-workspace>
+      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
     </template>
   </test-fixture>
 
@@ -776,7 +776,7 @@
       test('Removes event listeners from the panels', () => {
         const spy = sinon.spy(element, '__removePanelListeners');
         element.__removeAllPanels();
-        assert.equal(spy.called);
+        assert.isTrue(spy.called);
       });
     });
   });

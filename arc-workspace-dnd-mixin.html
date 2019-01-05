@@ -18,17 +18,6 @@
      * @mixinClass
      */
     class ArcWorkspaceDndMixin extends base {
-      constructor() {
-        super();
-        this.__editorRequestHandler = this.__editorRequestHandler.bind(this);
-        this.__editorMetaHandler = this.__editorMetaHandler.bind(this);
-        this._requestStoreHandler = this._requestStoreHandler.bind(this);
-        this._renderRequestDetail = this._renderRequestDetail.bind(this);
-        this._renderCodeSnippets = this._renderCodeSnippets.bind(this);
-        this._requestStoreFileHandler = this._requestStoreFileHandler.bind(this);
-        this._requestStoreDriveHandler = this._requestStoreDriveHandler.bind(this);
-      }
-
       /**
        * @return {Boolean} True if tabs drag and drop is possible.
        */
@@ -36,7 +25,6 @@
         const r = this.activeRequests;
         return !!(r && r.length > 1);
       }
-
       /**
        * Handles track event dispatched by `Polymer.Gestures` library.
        * This method calls corresponding method to current dragging state.
@@ -58,7 +46,10 @@
             break;
         }
       }
-
+      /**
+       * Initializes the tracking of an element.
+       * @param {CustomEvent} e Original event from the Gestures library.
+       */
       _onTrackStart(e) {
         // this._startScrollLeft = this.scrollLeft;
         this._startScrollLeft = this.$.tabs.$.tabsContainer.scrollLeft;
@@ -69,7 +60,10 @@
         this._dragModel = e.model;
         this._blockEditors();
       }
-
+      /**
+       * Called when the element is being tacked (moved).
+       * @param {CustomEvent} e Original event from the Gestures library.
+       */
       _onTrack(e) {
         this._updateTabPosition(e.detail.ddx);
         this._updateDragPosition(e.detail.dx);
@@ -97,7 +91,7 @@
             }
             el.classList.add('moving');
             el.style.transform =
-              `translate3d(${dir * this._dragElement.offsetWidth}px,0,0)`;
+              `translate3d(${dir * this._dragElement.offsetWidth}px, 0px, 0px)`;
           }
         }
         this._overIndex = overModel.index;
@@ -130,6 +124,8 @@
         if (toIdx || toIdx === 0) {
           this.selected = toIdx;
         }
+        this._dragModel = undefined;
+        this._overModel = undefined;
         this._unblockEditors();
         this.refreshTabs();
       }

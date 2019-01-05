@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>arc-request-workspace test</title>
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="../arc-request-workspace.html">
+  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../arc-models/project-model.html">
+  <link rel="import" href="../../arc-models/request-model.html">
+  <link rel="import" href="../../arc-models/variables-model.html">
+  <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
+</head>
+<body>
+  <project-model></project-model>
+  <request-model></request-model>
+  <variables-model></variables-model>
+
+  <test-fixture id="Basic">
+    <template>
+      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
+    </template>
+  </test-fixture>
+
+  <script>
+  /* global DataGenerator, MockInteractions */
+  suite('ArcWorkspaceDndMixin', () => {
+    function stateRestoreHandler(e) {
+      e.preventDefault();
+      e.detail.result = Promise.resolve();
+    }
+
+    function stateStoreHandler(e) {
+      e.preventDefault();
+      e.detail.result = Promise.resolve();
+    }
+
+    suiteSetup(() => {
+      window.addEventListener('workspace-state-read', stateRestoreHandler);
+      window.addEventListener('workspace-state-store', stateStoreHandler);
+    });
+
+    suiteTeardown(() => {
+      window.removeEventListener('workspace-state-read', stateRestoreHandler);
+      window.removeEventListener('workspace-state-store', stateStoreHandler);
+    });
+
+    function addRequests(element, size) {
+      const requests = DataGenerator.generateRequests({
+        requestsSize: size || 2
+      });
+      for (let i = 0; i < requests.length; i++) {
+        requests[i].name = 'Test request name #' + i;
+        element.__addPanel(requests[i]);
+      }
+      element.activeRequests = requests;
+    }
+
+    suite('get _dragPossible()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Returns false when no activeRequests', () => {
+        const orig = element.activeRequests;
+        element.activeRequests = undefined;
+        const result = element._dragPossible;
+        element.activeRequests = orig;
+        assert.isFalse(result);
+      });
+
+      test('Returns false when activeRequests is empty', () => {
+        const orig = element.activeRequests;
+        element.activeRequests = [];
+        const result = element._dragPossible;
+        element.activeRequests = orig;
+        assert.isFalse(result);
+      });
+
+      test('Returns false when activeRequests has single item', () => {
+        element.activeRequests = [{_id: 'x'}];
+        const result = element._dragPossible;
+        assert.isFalse(result);
+      });
+
+      test('Returns true when activeRequests has at least 2 items', () => {
+        element.activeRequests = [{_id: 'x'}, {_id: 'y'}];
+        const result = element._dragPossible;
+        assert.isTrue(result);
+      });
+    });
+
+    suite('_handleTrack()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Won\'t handle when cannot drag', () => {
+        addRequests(element, 1);
+        const spy = sinon.spy(element, '_onTrackStart');
+        element._handleTrack({
+          detail: {
+            state: 'start'
+          }
+        });
+        assert.isFalse(spy.called);
+      });
+
+      test('Calls _onTrackStart()', () => {
+        addRequests(element);
+        element._onTrackStart = () => {};
+        const spy = sinon.spy(element, '_onTrackStart');
+        element._handleTrack({
+          detail: {
+            state: 'start'
+          }
+        });
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls _onTrack()', () => {
+        addRequests(element);
+        element._onTrack = () => {};
+        const spy = sinon.spy(element, '_onTrack');
+        element._handleTrack({
+          detail: {
+            state: 'track'
+          }
+        });
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls _onTrackEnd()', () => {
+        addRequests(element);
+        element._onTrackEnd = () => {};
+        const spy = sinon.spy(element, '_onTrackEnd');
+        element._handleTrack({
+          detail: {
+            state: 'end'
+          }
+        });
+        assert.isTrue(spy.called);
+      });
+    });
+
+    suite('_onTrackStart()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        element._onTrackEnd = () => {};
+        element._onTrack = () => {};
+        addRequests(element);
+        flush(() => {
+          done();
+        });
+      });
+
+      function interact(tab) {
+        MockInteractions.track(tab, 5, 0, 5);
+      }
+
+      test('Sets _startScrollLeft', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.equal(element._startScrollLeft, 0);
+      });
+
+      test('Sets _dragElement', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.isTrue(element._dragElement === tab);
+      });
+
+      test('Tab has pointerEvents style set', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.equal(tab.style.pointerEvents, 'none');
+      });
+
+      test('Tab has "dragging" class', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.isTrue(tab.classList.contains('dragging'));
+      });
+
+      test('Sets _dragModel', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.ok(element._dragModel);
+        assert.isTrue(element.$.tabsRepeater.modelForElement(tab) === element._dragModel);
+      });
+
+      test('Blocks all editors', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        const nodes = element.shadowRoot.querySelectorAll('request-panel');
+        for (let i = 0; i < nodes.length; i++) {
+          assert.isTrue(nodes[i].readonly);
+        }
+      });
+
+      test('Sets _dragElement when target is in tabs light DOM', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        const span = tab.querySelector('.tab-name');
+        interact(span);
+        assert.isTrue(element._dragElement === tab);
+      });
+    });
+
+    suite('_onTrack()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        element._onTrackEnd = () => {};
+        addRequests(element);
+        flush(() => {
+          const nodes = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab');
+          for (let i = 0; i < nodes.length; i++) {
+            nodes[i].dataset.testIndex = i;
+          }
+          done();
+        });
+      });
+
+      function interact(tab, dx) {
+        if (!dx) {
+          dx = -105;
+        }
+        MockInteractions.track(tab, dx, 0, 10);
+      }
+
+      test('Calls _updateTabPosition()', () => {
+        const spy = sinon.spy(element, '_updateTabPosition');
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.isTrue(spy.called);
+        assert.typeOf(spy.args[0][0], 'number');
+      });
+
+      test('Calls _updateDragPosition()', () => {
+        const spy = sinon.spy(element, '_updateDragPosition');
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.isTrue(spy.called);
+        assert.typeOf(spy.args[0][0], 'number');
+      });
+
+      test('Cancels track when it is not over other element', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab, 10);
+        assert.isUndefined(element._dirOffset);
+      });
+
+      test('Sets _dirOffset to -1', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.equal(element._dirOffset, -1);
+      });
+
+      test('Sets _dirOffset to 0', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        interact(first, 105);
+        assert.equal(element._dirOffset, 0);
+      });
+
+      test('Sets _overModel when moving left', () => {
+        const tab = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab')[1];
+        interact(tab);
+        assert.ok(element._overModel);
+        assert.equal(element._overModel.get('index'), 0);
+      });
+
+      test('Sets _overModel when moving right', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        interact(first, 105);
+        assert.ok(element._overModel);
+        assert.equal(element._overModel.get('index'), 1);
+      });
+
+      test('Over element has "moving" class (left move)', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.isTrue(first.classList.contains('moving'));
+      });
+
+      test('Over element has "moving" class (rigth move)', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(first, 105);
+        assert.isTrue(second.classList.contains('moving'));
+      });
+
+      test('Over element has "transform" style (move left)', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.match(first.style.transform, /translate3d\(\d+px, 0px, 0px\)/);
+      });
+
+      test('Over element has "transform" style (move rigth)', () => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(first, 105);
+        assert.match(second.style.transform, /translate3d\(-\d+px, 0px, 0px\)/);
+      });
+    });
+
+    suite('_onTrackEnd()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        addRequests(element);
+        flush(() => {
+          const nodes = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab');
+          for (let i = 0; i < nodes.length; i++) {
+            nodes[i].dataset.testIndex = i;
+          }
+          done();
+        });
+      });
+
+      function interact(tab, dx) {
+        if (!dx) {
+          dx = -105;
+        }
+        MockInteractions.track(tab, dx, 0, 10);
+      }
+
+      test('Does nothing when no _dragElement', () => {
+        element._onTrackEnd();
+        // no error
+      });
+
+      test('Resets tab\'s pointerEvents style', () => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.equal(second.style.pointerEvents, '');
+      });
+
+      test('Tab has "dragging" class', () => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.isFalse(second.classList.contains('dragging'));
+      });
+
+      test('Clears _dragElement', () => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.isUndefined(element._dragElement);
+      });
+
+      test('Clears _dragModel', () => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.isUndefined(element._dragModel);
+      });
+
+      test('Clears _overModel', () => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        assert.isUndefined(element._overModel);
+      });
+
+      test('Replaces tabs position (moving left)', (done) => {
+        const first = element.shadowRoot.querySelector('paper-tab[data-test-index="0"]');
+        interact(first, 105);
+        flush(() => {
+          const tabs = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab');
+          // polymer won't actually replace the elements position in the DOM,
+          // it only updates it's text content
+          assert.notEqual(tabs[0].querySelector('span').innerText.indexOf('#1'), -1);
+          assert.notEqual(tabs[1].querySelector('span').innerText.indexOf('#0'), -1);
+          done();
+        });
+      });
+
+      test('Replaces tabs position (moving right)', (done) => {
+        const second = element.shadowRoot.querySelector('paper-tab[data-test-index="1"]');
+        interact(second);
+        flush(() => {
+          const tabs = element.shadowRoot.querySelectorAll('paper-tabs > paper-tab');
+          assert.notEqual(tabs[0].querySelector('span').innerText.indexOf('#1'), -1);
+          assert.notEqual(tabs[1].querySelector('span').innerText.indexOf('#0'), -1);
+          done();
+        });
+      });
+    });
+  });
+  </script>
+</body>
+</html>
