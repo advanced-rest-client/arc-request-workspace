@@ -24,12 +24,12 @@
    * @polymer
    * @memberof ArcComponents
    */
-  window.ArcComponents.ArcWorkspaceMixin = Polymer.dedupingMixin((base) => {
+  window.ArcComponents.ArcWorkspaceRequestsMixin = Polymer.dedupingMixin((base) => {
     /**
      * @polymer
      * @mixinClass
      */
-    class ArcWorkspaceMixin extends base {
+    class ArcWorkspaceRequestsMixin extends base {
       constructor() {
         super();
         this.__editorRequestHandler = this.__editorRequestHandler.bind(this);
@@ -268,7 +268,7 @@
         }
       }
     }
-    return ArcWorkspaceMixin;
+    return ArcWorkspaceRequestsMixin;
   });
 })();
 </script>
