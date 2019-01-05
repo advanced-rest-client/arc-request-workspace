@@ -48,9 +48,14 @@
         panel.setAttribute('hidden', 'true');
         return panel;
       }
-
+      /**
+       * Sets initial properties to the request panel.
+       * Note, this operation may be very resource consuming since (depending on the request)
+       * there may be a lot of computations happening in the request editor.
+       * @param {!Element} panel Request panel
+       * @param {!Object} request The request object
+       */
       __setPanelRequestProperties(panel, request) {
-        request = request || {};
         panel.dataset.id = request._id;
         panel.editorRequest = request;
         panel.editorState = request._state;
@@ -59,7 +64,10 @@
         panel.responseError = request._responseError;
         panel.isErrorResponse = request._isErrorResponse;
       }
-
+      /**
+       * Adds event listeners to the panel
+       * @param {!Element} panel Request panel
+       */
       __addPanelListeners(panel) {
         panel.addEventListener('editor-request-changed', this.__editorRequestHandler);
         panel.addEventListener('editor-state-changed', this.__editorMetaHandler);
@@ -73,7 +81,10 @@
         panel.querySelector('.save-file-icon').addEventListener('click', this._requestStoreFileHandler);
         panel.querySelector('.save-drive-icon').addEventListener('click', this._requestStoreDriveHandler);
       }
-
+      /**
+       * Removes previously attached listeners from the panel
+       * @param {!Element} panel Request panel
+       */
       __removePanelListeners(panel) {
         panel.removeEventListener('editor-request-changed', this.__editorRequestHandler);
         panel.removeEventListener('editor-state-changed', this.__editorMetaHandler);
@@ -88,15 +99,26 @@
         panel.querySelector('.save-file-icon').removeEventListener('click', this._requestStoreFileHandler);
         panel.querySelector('.save-drive-icon').removeEventListener('click', this._requestStoreDriveHandler);
       }
-
+      /**
+       * Finds and returns panel by id in shadow DOM.
+       * @param {!String} id Request/panel id
+       * @return {Element|undefined} Request panel or undefined if not found
+       */
       __getPanelById(id) {
         return this.$.content.querySelector(`[data-id="${id}"]`);
       }
-
+      /**
+       * Adds new panel to the shadow DOM based on passed request.
+       * The request object must contain its `_id` property when performing this
+       * action even when the request is not saved to the store.
+       * @param {!Object} request Any properties from ARC request + '_id'.
+       */
       __addPanel(request) {
         if (!request) {
-          request = {};
-          console.warn('Adding request panel without id. It won\'t be able to find it later.');
+          throw new Error('Request object is required when adding request panel');
+        }
+        if (!request._id) {
+          throw new Error('Missing request id when adding request panel');
         }
         const panel = this.__createPanelInstance(request);
         this.$.content.appendChild(panel);
@@ -105,7 +127,10 @@
           this.__addPanelListeners(panel);
         });
       }
-
+      /**
+       * Removes panel from the shadow DOM.
+       * @param {String} id Request/panel id
+       */
       __removePanel(id) {
         const panel = this.__getPanelById(id);
         if (!panel) {
@@ -115,7 +140,13 @@
         this.__removePanelListeners(panel);
         this.$.content.removeChild(panel);
       }
-
+      /**
+       * Handler for the `editor-request-changed` from the `request-panel`.
+       * Notifies application about the state.
+       * This works as a bridge between Polymer's binding system and the app
+       * as the request panel is inserted into the DOM manually.
+       * @param {CustomEvent} e
+       */
       __editorRequestHandler(e) {
         const id = e.target.dataset.id;
         const index = this.findRequestIndex(id);
@@ -143,16 +174,22 @@
         this.set(path, value);
         this.notifyPath(path, value);
       }
-
+      /**
+       * Handler for `editor-state-changed`, `response-meta-changed`,
+       * `response-changed`, `response-error-changed`, and `is-error-response-changed`
+       * events to update workspace state when any of the meta data to store
+       * in workspace file changes.
+       * @param {CustomEvent} e
+       */
       __editorMetaHandler(e) {
         const id = e.target.dataset.id;
         const index = this.findRequestIndex(id);
         if (index === -1) {
-          console.warn(`Couldn't update request meta ${id}`);
+          console.warn(`Unable to notify paths for request ${id}`);
           return;
         }
         let notifyPath = `activeRequests.${index}.`;
-        let value = e.detail.value;
+        let {value} = e.detail;
         switch (e.type) {
           case 'editor-state-changed':
             if (e.path) {
@@ -179,19 +216,22 @@
             notifyPath += '_isErrorResponse';
             break;
         }
-        if (notifyPath) {
-          this.set(notifyPath, value);
-          this.notifyPath(notifyPath, value);
-        }
+        this.set(notifyPath, value);
+        this.notifyPath(notifyPath, value);
       }
-
-      __deselectActivePanel() {
+      /**
+       * Hiddes all visible panels in the view by adding "hidden" attribute.
+       */
+      __deselectPanels() {
         const nodes = this.$.content.querySelectorAll('request-panel:not([hidden])');
         for (let i = 0, len = nodes.length; i < len; i++) {
           nodes[i].setAttribute('hidden', true);
         }
       }
-
+      /**
+       * Shows a panel in the view by removing "hidden" attribute.
+       * @param {String} id Panel / request id
+       */
       __selectPanel(id) {
         const panel = this.__getPanelById(id);
         if (!panel) {
@@ -202,7 +242,13 @@
           panel.removeAttribute('hidden');
         }
       }
-
+      /**
+       * Updates request object on existing panel.
+       * The request object may have different id to replace the request at a position.
+       * If the ID is different new ID from the request object is used.
+       * @param {String} id Request / panel id
+       * @param {Object} request Request properties to set.
+       */
       __updatePanelRequest(id, request) {
         const panel = this.__getPanelById(id);
         if (!panel) {
@@ -211,22 +257,15 @@
         }
         this.__setPanelRequestProperties(panel, request);
       }
-
-      __clearAllPanels() {
+      /**
+       * Removes all panels from the workspace.
+       */
+      __removeAllPanels() {
         const nodes = this.$.content.querySelectorAll('request-panel');
         for (let i = 0, len = nodes.length; i < len; i++) {
           this.__removePanelListeners(nodes[i]);
           this.$.content.removeChild(nodes[i]);
         }
-      }
-
-      __updatePanelId(oldId, newId) {
-        const panel = this.__getPanelById(oldId);
-        if (!panel) {
-          console.warn(`Unable to update panel id. Panel do not exists.`);
-          return;
-        }
-        panel.dataset.id = newId;
       }
     }
     return ArcWorkspaceMixin;

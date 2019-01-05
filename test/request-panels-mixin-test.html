@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>arc-request-workspace test</title>
+  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="../arc-request-workspace.html">
+  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../arc-models/project-model.html">
+  <link rel="import" href="../../arc-models/request-model.html">
+  <link rel="import" href="../../arc-models/variables-model.html">
+</head>
+<body>
+  <project-model></project-model>
+  <request-model></request-model>
+  <variables-model></variables-model>
+
+  <test-fixture id="Basic">
+    <template>
+      <arc-request-workspace no-auto-projects></arc-request-workspace>
+    </template>
+  </test-fixture>
+
+  <script>
+  suite('ArcWorkspaceMixin', () => {
+    function stateRestoreHandler(e) {
+      e.preventDefault();
+      e.detail.result = Promise.resolve();
+    }
+
+    function stateStoreHandler(e) {
+      e.preventDefault();
+      e.detail.result = Promise.resolve();
+    }
+
+    suiteSetup(() => {
+      window.addEventListener('workspace-state-read', stateRestoreHandler);
+      window.addEventListener('workspace-state-store', stateStoreHandler);
+    });
+
+    suiteTeardown(() => {
+      window.removeEventListener('workspace-state-read', stateRestoreHandler);
+      window.removeEventListener('workspace-state-store', stateStoreHandler);
+    });
+
+    suite('__createPanelInstance()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Creates request-panel', () => {
+        const result = element.__createPanelInstance();
+        assert.equal(result.nodeName, 'REQUEST-PANEL');
+      });
+
+      test('Panel has "hidden" attribute', () => {
+        const result = element.__createPanelInstance();
+        assert.isTrue(result.hasAttribute('hidden'));
+      });
+    });
+
+    suite('__setPanelRequestProperties()', () => {
+      let element;
+      let request;
+      setup((done) => {
+        element = fixture('Basic');
+        request = {
+          _id: 'test-id',
+          _state: {},
+          _responseMeta: {},
+          _response: {},
+          _responseError: {},
+          _isErrorResponse: false
+        };
+        flush(() => done());
+      });
+
+      test('Throws no request', () => {
+        assert.throws(() => {
+          element.__setPanelRequestProperties(document.createElement('span'));
+        });
+      });
+
+      test('Set data-id attribute', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.equal(panel.dataset.id, 'test-id');
+      });
+
+      test('Set "editorRequest" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.editorRequest, request);
+      });
+
+      test('Set "editorState" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.editorState, request._state);
+      });
+
+      test('Set "responseMeta" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.responseMeta, request._responseMeta);
+      });
+
+      test('Set "response" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.response, request._response);
+      });
+
+      test('Set "responseError" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.responseError, request._responseError);
+      });
+
+      test('Set "isErrorResponse" property', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, request);
+        assert.deepEqual(panel.isErrorResponse, request._isErrorResponse);
+      });
+    });
+
+    suite('__addPanelListeners()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Adds event listener', () => {
+        const panel = element.__createPanelInstance();
+        element.__addPanelListeners(panel);
+      });
+    });
+
+    suite('__removePanelListeners()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Adds event listener', () => {
+        const panel = element.__createPanelInstance();
+        element.__removePanelListeners(panel);
+      });
+    });
+
+    suite('__getPanelById()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Returns null when no such panel', () => {
+        const result = element.__getPanelById('some-id');
+        assert.equal(result, null);
+      });
+
+      test('Returns the panel', () => {
+        const panel = element.__createPanelInstance();
+        element.__setPanelRequestProperties(panel, {_id: 'test-id'});
+        element.$.content.appendChild(panel);
+        const result = element.__getPanelById('test-id');
+        assert.ok(result);
+      });
+    });
+
+    suite('__addPanel()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => done());
+      });
+
+      test('Throws when adding panel without request', () => {
+        assert.throws(() => {
+          element.__addPanel();
+        }, 'Request object is required when adding request panel');
+      });
+
+      test('Throws when adding panel without _id property', () => {
+        assert.throws(() => {
+          element.__addPanel({});
+        }, 'Missing request id when adding request panel');
+      });
+
+      test('Adds panel with request', (done) => {
+        element.__addPanel({
+          _id: 'test-id'
+        });
+        const panel = element.__getPanelById('test-id');
+        assert.ok(panel);
+        Polymer.RenderStatus.afterNextRender(element, () => {
+          done();
+        });
+      });
+
+      test('Calls __setPanelRequestProperties()', (done) => {
+        const spy = sinon.spy(element, '__setPanelRequestProperties');
+        element.__addPanel({
+          _id: 'test-id'
+        });
+        Polymer.RenderStatus.afterNextRender(element, () => {
+          assert.isTrue(spy.called);
+          done();
+        });
+      });
+
+      test('Calls __addPanelListeners()', (done) => {
+        const spy = sinon.spy(element, '__addPanelListeners');
+        element.__addPanel({
+          _id: 'test-id'
+        });
+        Polymer.RenderStatus.afterNextRender(element, () => {
+          assert.isTrue(spy.called);
+          done();
+        });
+      });
+    });
+
+    suite('__removePanel()', () => {
+      let element;
+      const id = 'test-id';
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          element.__addPanel({
+            _id: id
+          });
+          done();
+        });
+      });
+
+      test('Removes panel from the shadow DOM', () => {
+        element.__removePanel(id);
+        const result = element.__getPanelById(id);
+        assert.notOk(result);
+      });
+
+      test('Calls __removePanelListeners()', () => {
+        const spy = sinon.spy(element, '__removePanelListeners');
+        element.__removePanel(id);
+        assert.isTrue(spy.called);
+      });
+
+      test('Does nothing when panel not found', () => {
+        const spy = sinon.spy(element, '__removePanelListeners');
+        element.__removePanel('other-id');
+        assert.isFalse(spy.called);
+      });
+    });
+
+    suite('__editorRequestHandler()', () => {
+      let element;
+      const id = 'test-id';
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const request = {
+            _id: id,
+            url: 'http://test',
+            method: 'GET'
+          };
+          element.__addPanel(request);
+          element.activeRequests = [request];
+          done();
+        });
+      });
+
+      test('Does nothing when panel is not in the DOM', () => {
+        const node = document.createElement('span');
+        node.dataset.id = 'other';
+        const spy = sinon.spy(element, 'notifyPath');
+        element.__editorRequestHandler({
+          target: node
+        });
+        assert.isFalse(spy.called);
+      });
+
+      test('Does nothing when path is splices length', () => {
+        const target = element.__getPanelById(id);
+        const spy = sinon.spy(element, 'notifyPath');
+        element.__editorRequestHandler({
+          target,
+          detail: {
+            path: 'editorRequest.queryParameters.length',
+            value: []
+          }
+        });
+        assert.isFalse(spy.called);
+      });
+
+      test('Sets value and notifies path when empty path', () => {
+        const target = element.__getPanelById(id);
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        const value = {
+          _id: id,
+          url: 'http://domain.com',
+          method: 'POST'
+        };
+        element.__editorRequestHandler({
+          target,
+          detail: {
+            path: '',
+            value
+          }
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0');
+        assert.deepEqual(spy1.args[0][1], value);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0');
+        assert.deepEqual(spy2.args[0][1], value);
+      });
+
+      test('Sets value and notifies path when path is set', () => {
+        const target = element.__getPanelById(id);
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        const value = 'http://domain.com';
+        element.__editorRequestHandler({
+          target,
+          detail: {
+            path: 'editorRequest.url',
+            value
+          }
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0.url');
+        assert.deepEqual(spy1.args[0][1], value);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0.url');
+        assert.deepEqual(spy2.args[0][1], value);
+        assert.equal(element.activeRequests[0].url, value);
+      });
+
+      test('Sets value and notifies path when path is for an array change', () => {
+        const target = element.__getPanelById(id);
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifySplices');
+        const value = {
+          indexSplices: [{
+            index: 0,
+            addedCount: 0,
+            removed: [{
+              variable: 'myVar',
+              value: '',
+              enabled: true
+            }],
+            object: [],
+            type: 'splice'
+          }]};
+        element.set('activeRequests.0.requestActions', {
+          variables: {
+            variable: 'myVar',
+            value: '',
+            enabled: true
+          }
+        });
+        element.__editorRequestHandler({
+          target,
+          detail: {
+            path: 'editorRequest.requestActions.variables.splices',
+            value
+          }
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0.requestActions', 'set path is set');
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0.requestActions.variables', 'notifyPath path is set');
+        assert.deepEqual(spy2.args[0][1], value);
+      });
+    });
+
+    suite('__editorMetaHandler()', () => {
+      let element;
+      const id = 'test-id';
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const request = {
+            _id: id,
+            url: 'http://test',
+            method: 'GET'
+          };
+          element.__addPanel(request);
+          element.activeRequests = [request];
+          done();
+        });
+      });
+
+      test('Does nothing when panel is not in the DOM', () => {
+        const node = document.createElement('span');
+        node.dataset.id = 'other';
+        const spy = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target: node
+        });
+        assert.isFalse(spy.called);
+      });
+
+      test('Handles editor-state-changed event', () => {
+        const target = element.__getPanelById(id);
+        target.editorState = {
+          selectedTab: 1
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: {selectedTab: 1}
+          },
+          path: [target],
+          type: 'editor-state-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._state');
+        assert.deepEqual(spy1.args[0][1], target.editorState);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._state');
+        assert.deepEqual(spy2.args[0][1], target.editorState);
+        assert.equal(element.activeRequests[0]._state.selectedTab, 1);
+      });
+
+      test('Handles editor-state-changed event when no path', () => {
+        const target = element.__getPanelById(id);
+        target.editorState = {
+          selectedTab: 1
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: {selectedTab: 1}
+          },
+          type: 'editor-state-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._state');
+        assert.deepEqual(spy1.args[0][1], target.editorState);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._state');
+        assert.deepEqual(spy2.args[0][1], target.editorState);
+        assert.equal(element.activeRequests[0]._state.selectedTab, 1);
+      });
+
+      test('Handles response-meta-changed event', () => {
+        const target = element.__getPanelById(id);
+        target.responseMeta = {
+          loadingTime: 27
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: {loadingTime: 27}
+          },
+          path: [target],
+          type: 'response-meta-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._responseMeta');
+        assert.deepEqual(spy1.args[0][1], target.responseMeta);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._responseMeta');
+        assert.deepEqual(spy2.args[0][1], target.responseMeta);
+        assert.equal(element.activeRequests[0]._responseMeta.loadingTime, 27);
+      });
+
+      test('Handles response-meta-changed event when no path', () => {
+        const target = element.__getPanelById(id);
+        target.responseMeta = {
+          loadingTime: 27
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: {loadingTime: 27}
+          },
+          type: 'response-meta-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._responseMeta');
+        assert.deepEqual(spy1.args[0][1], target.responseMeta);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._responseMeta');
+        assert.deepEqual(spy2.args[0][1], target.responseMeta);
+        assert.equal(element.activeRequests[0]._responseMeta.loadingTime, 27);
+      });
+
+      test('Handles response-changed event', () => {
+        const target = element.__getPanelById(id);
+        target.response = {
+          headers: 'cache-control: public',
+          payload: 'body',
+          status: 200,
+          statusText: 'OK',
+          url: 'http://api.domain.com'
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: target.response
+          },
+          path: [target],
+          type: 'response-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._response');
+        assert.deepEqual(spy1.args[0][1], target.response);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._response');
+        assert.deepEqual(spy2.args[0][1], target.response);
+        assert.deepEqual(element.activeRequests[0]._response, target.response);
+      });
+
+      test('Handles response-changed event when no path', () => {
+        const target = element.__getPanelById(id);
+        target.response = {
+          headers: 'cache-control: public',
+          payload: 'body',
+          status: 200,
+          statusText: 'OK',
+          url: 'http://api.domain.com'
+        };
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: target.response
+          },
+          type: 'response-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._response');
+        assert.deepEqual(spy1.args[0][1], target.response);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._response');
+        assert.deepEqual(spy2.args[0][1], target.response);
+        assert.deepEqual(element.activeRequests[0]._response, target.response);
+      });
+
+      test('Handles is-error-response-changed event when no path', () => {
+        const target = element.__getPanelById(id);
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value: true
+          },
+          type: 'is-error-response-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._isErrorResponse');
+        assert.isTrue(spy1.args[0][1]);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._isErrorResponse');
+        assert.isTrue(spy2.args[0][1]);
+        assert.isTrue(element.activeRequests[0]._isErrorResponse);
+      });
+
+      test('Handles response-error-changed event when no path', () => {
+        const target = element.__getPanelById(id);
+        const spy1 = sinon.spy(element, 'set');
+        const spy2 = sinon.spy(element, 'notifyPath');
+        const value = {
+          message: 'Failed to fetch'
+        };
+        element.__editorMetaHandler({
+          target,
+          detail: {
+            value
+          },
+          type: 'response-error-changed'
+        });
+        assert.isTrue(spy1.called);
+        assert.equal(spy1.args[0][0], 'activeRequests.0._responseError');
+        assert.deepEqual(spy1.args[0][1], value);
+        assert.isTrue(spy2.called);
+        assert.equal(spy2.args[0][0], 'activeRequests.0._responseError');
+        assert.deepEqual(spy2.args[0][1], value);
+        assert.deepEqual(element.activeRequests[0]._responseError, value);
+      });
+    });
+
+    suite('__deselectPanels()', () => {
+      let element;
+      let p1;
+      let p2;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const r1 = {
+            _id: 'p1',
+            url: 'http://test.org',
+            method: 'GET'
+          };
+          const r2 = {
+            _id: 'p2',
+            url: 'http://test.com',
+            method: 'GET'
+          };
+          element.__addPanel(r1);
+          element.__addPanel(r2);
+          element.activeRequests = [r1, r2];
+          p1 = element.__getPanelById('p1');
+          p2 = element.__getPanelById('p2');
+          p1.removeAttribute('hidden');
+          p2.removeAttribute('hidden');
+          done();
+        });
+      });
+
+      test('Hides all panels', () => {
+        element.__deselectPanels();
+        assert.isTrue(p1.hasAttribute('hidden'));
+        assert.isTrue(p2.hasAttribute('hidden'));
+      });
+    });
+
+    suite('__selectPanel()', () => {
+      let element;
+      let p1;
+      let p2;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const r1 = {
+            _id: 'p1',
+            url: 'http://test.org',
+            method: 'GET'
+          };
+          const r2 = {
+            _id: 'p2',
+            url: 'http://test.com',
+            method: 'GET'
+          };
+          element.__addPanel(r1);
+          element.__addPanel(r2);
+          element.activeRequests = [r1, r2];
+          p1 = element.__getPanelById('p1');
+          p2 = element.__getPanelById('p2');
+          done();
+        });
+      });
+
+      test('Selects the panel', () => {
+        element.__selectPanel('p1');
+        assert.isFalse(p1.hasAttribute('hidden'));
+        assert.isTrue(p2.hasAttribute('hidden'));
+      });
+
+      test('Selects already selected panel', () => {
+        p1.removeAttribute('hidden');
+        element.__selectPanel('p1');
+        assert.isFalse(p1.hasAttribute('hidden'));
+        assert.isTrue(p2.hasAttribute('hidden'));
+      });
+
+      test('Does nothing when panel is not found', () => {
+        element.__selectPanel('other');
+        assert.isTrue(p1.hasAttribute('hidden'));
+        assert.isTrue(p2.hasAttribute('hidden'));
+      });
+    });
+
+    suite('__updatePanelRequest()', () => {
+      let element;
+      let p1;
+      let p2;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const r1 = {
+            _id: 'p1',
+            url: 'http://test.org',
+            method: 'GET'
+          };
+          const r2 = {
+            _id: 'p2',
+            url: 'http://test.com',
+            method: 'GET'
+          };
+          element.__addPanel(r1);
+          element.__addPanel(r2);
+          element.activeRequests = [r1, r2];
+          p1 = element.__getPanelById('p1');
+          p2 = element.__getPanelById('p2');
+          done();
+        });
+      });
+
+      test('Does nothing when id not found', () => {
+        const spy = sinon.spy(element, '__setPanelRequestProperties');
+        element.__updatePanelRequest('other', {_id: 'other'});
+        assert.isFalse(spy.called);
+      });
+
+      test('Updates request at a position', () => {
+        const spy = sinon.spy(element, '__setPanelRequestProperties');
+        const request = {
+          _id: 'p1',
+          url: 'http://api.domain.com',
+          method: 'POST'
+        };
+        element.__updatePanelRequest('p1', request);
+        assert.isTrue(spy.called);
+        assert.isTrue(spy.args[0][0] === p1);
+        assert.deepEqual(spy.args[0][1], request);
+        assert.equal(p1.dataset.id, 'p1');
+      });
+
+      test('Replaces request at a position', () => {
+        const spy = sinon.spy(element, '__setPanelRequestProperties');
+        const request = {
+          _id: 'p3',
+          url: 'http://api.domain.com',
+          method: 'POST'
+        };
+        element.__updatePanelRequest('p2', request);
+        assert.isTrue(spy.called);
+        assert.isTrue(spy.args[0][0] === p2);
+        assert.deepEqual(spy.args[0][1], request);
+        assert.equal(p2.dataset.id, 'p3');
+      });
+    });
+
+    suite('__removeAllPanels()', () => {
+      let element;
+      setup((done) => {
+        element = fixture('Basic');
+        flush(() => {
+          const r1 = {
+            _id: 'p1',
+            url: 'http://test.org',
+            method: 'GET'
+          };
+          const r2 = {
+            _id: 'p2',
+            url: 'http://test.com',
+            method: 'GET'
+          };
+          element.__addPanel(r1);
+          element.__addPanel(r2);
+          element.activeRequests = [r1, r2];
+          done();
+        });
+      });
+
+      test('Removes panels from the container', () => {
+        element.__removeAllPanels();
+        const nodes = element.shadowRoot.querySelectorAll('request-panel');
+        assert.lengthOf(nodes, 0);
+      });
+
+      test('Removes event listeners from the panels', () => {
+        const spy = sinon.spy(element, '__removePanelListeners');
+        element.__removeAllPanels();
+        assert.equal(spy.called);
+      });
+    });
+  });
+  </script>
+</body>
+</html>

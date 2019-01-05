@@ -529,10 +529,7 @@
         const panelId = this.activeRequests[index]._id;
         this.set(`activeRequests.${index}`, request);
         this.refreshTabs(request);
-        if (panelId !== request._id) {
-          this.__updatePanelId(panelId, request._id);
-        }
-        this.__updatePanelRequest(request._id, request);
+        this.__updatePanelRequest(panelId, request);
         lastAddedId = request._id;
       } else {
         if (!request._id) {
@@ -576,7 +573,7 @@
         request._id = this.$.uuid.generate();
       }
       this.set(`activeRequests.${index}`, request);
-      this.__updatePanelRequest(request._id, request);
+      this.__updatePanelRequest(ar._id, request);
     }
 
     _closeRequest(e) {
@@ -676,7 +673,7 @@
       if (!request) {
         return;
       }
-      this.__deselectActivePanel();
+      this.__deselectPanels();
       this.__selectPanel(request._id);
       this._notifyStoreWorkspace();
     }
@@ -1134,7 +1131,7 @@
      * @param {Boolean} ignoreAdd If set it won't add empty panel.
      */
     clearWorkspace(ignoreAdd) {
-      this.__clearAllPanels();
+      this.__removeAllPanels();
       this.set('activeRequests', []);
       this.selected = undefined;
       if (ignoreAdd) {
