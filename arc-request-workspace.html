@@ -368,9 +368,21 @@
          * to the DOM. This ensures to prohibit auto restore request.
          */
         noAutoRestore: Boolean,
+        /**
+         * When set the request meta data editor is opened.
+         */
         editorOpened: Boolean,
+        /**
+         * When set the request meta data viewer is opened.
+         */
         detailsOpened: Boolean,
+        /**
+         * When set the code snippets element is opened.
+         */
         snippetsOpened: Boolean,
+        /**
+         * A request object to be passed to the code snippets element.
+         */
         snippetRequest: Boolean,
         /**
          * Set when workspace state has been read.
@@ -553,7 +565,10 @@
       this.set(`activeRequests.${index}`, request);
       this.__updatePanelRequest(oldId, request);
     }
-
+    /**
+     * Handler for click event on the request close button.
+     * @param {ClickEvent} e
+     */
     _closeRequest(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -624,7 +639,6 @@
       if (this.restoring) {
         return;
       }
-      // console.log('_requestsListChanged', record.path);
       switch (record.path) {
         case 'activeRequests':
         case 'activeRequests.length':
@@ -681,7 +695,12 @@
       return this.activeRequests.findIndex((item) =>
         item._id === requestId || tmpId && item._tempId === tmpId);
     }
-
+    /**
+     * Finds a request associated with the menu item which is the target of the
+     * event. The menu item has to have `data-id` property set to request ID.
+     * @param {ClickEvent} e
+     * @return {Object|undefined} Request object or undefined if not found.
+     */
     _getMenuRequest(e) {
       const panelId = e.target.parentElement.dataset.id;
       if (!panelId && panelId !== 0) {
@@ -735,7 +754,10 @@
       this.snippetRequest = request;
       this.snippetsOpened = true;
     }
-
+    /**
+     * Handler for the store to file request menu item.
+     * @param {ClickEvent} e
+     */
     _requestStoreFileHandler(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -745,7 +767,10 @@
       }
       this._exportRequest(request, 'file');
     }
-
+    /**
+     * Handler for the store to Drive request menu item.
+     * @param {ClickEvent} e
+     */
     _requestStoreDriveHandler(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -755,14 +780,19 @@
       }
       this._exportRequest(request, 'drive');
     }
-
+    /**
+     * Runs export flow.
+     * @param {Object} request Request object to export.
+     * @param {String} destination Destination supported by the export component.
+     * @return {Promise}
+     */
     _exportRequest(request, destination) {
       const e = this._dispatchExportData(destination, [request]);
       if (!e.defaultPrevented) {
         this.$.noExport.opened = true;
         return;
       }
-      e.detail.result
+      return e.detail.result
       .then(() => {
         if (destination === 'drive') {
           this.$.driveSaved.opened = true;
@@ -771,10 +801,9 @@
       .catch((cause) => {
         this.$.errorToast.text = cause.message;
         this.$.errorToast.opened = true;
-        console.error(cause);
+        console.warn(cause);
       });
     }
-
     /**
      * Dispatches `export-data` event and returns it.
      * @param {String} destination A place where export the data (file, drive)
@@ -1034,7 +1063,10 @@
       }
       this._openSaveDialog(request);
     }
-
+    /**
+     * Called to request resize on opened `bottom-sheet` element.
+     * @param {CustomEvent} e
+     */
     _resizeSheetContent(e) {
       const panel = e.target.querySelector(
           'saved-request-editor,saved-request-detail,http-code-snippets');
@@ -1042,7 +1074,10 @@
         panel.notifyResize();
       }
     }
-
+    /**
+     * Render saved dialog (bottom-sheet)
+     * @param {Object} request Request to set on the editor
+     */
     _openSaveDialog(request) {
       if (!request._tempId) {
         request._tempId = this.$.uuid.generate();
@@ -1050,13 +1085,19 @@
       this.$.requestEditor.request = request;
       this.editorOpened = true;
     }
-
+    /**
+     * Cancels request edit dialog and closes the dialog.
+     * @param {CustomEvent} e
+     */
     _cancelRequestEdit(e) {
       e.stopPropagation();
       this.editorOpened = false;
       this.$.requestEditor.request = undefined;
     }
-
+    /**
+     * Closes request edit dialog when save event is dispatched.
+     * @param {CustomEvent} e
+     */
     _saveRequestEdit() {
       this.editorOpened = false;
       this.$.requestEditor.request = undefined;
