@@ -168,9 +168,9 @@
         Polymer.RenderStatus.afterNextRender(this, () => {
           const selected = this.selected;
           this.selected = undefined;
-          this._setInitialized(true);
           this._setRestoring(false);
           this.selected = selected;
+          this._setInitialized(true);
         });
       }
       /**
