@@ -244,30 +244,6 @@
         assert.equal(element.requestTimeout, 20);
       });
 
-      test('Set validateCertificates when true', () => {
-        const config = {validateCertificates: true};
-        element._restoreConfiguration(config);
-        assert.isTrue(element.validateCertificates);
-      });
-
-      test('Set validateCertificates when false', () => {
-        const config = {validateCertificates: false};
-        element._restoreConfiguration(config);
-        assert.isFalse(element.validateCertificates);
-      });
-
-      test('Set followRedirects when true', () => {
-        const config = {followRedirects: true};
-        element._restoreConfiguration(config);
-        assert.isTrue(element.followRedirects);
-      });
-
-      test('Set followRedirects when false', () => {
-        const config = {followRedirects: false};
-        element._restoreConfiguration(config);
-        assert.isFalse(element.followRedirects);
-      });
-
       test('Set sentMessageLimit property', () => {
         const config = {sentMessageLimit: 20};
         element._restoreConfiguration(config);
@@ -278,6 +254,23 @@
         const config = {sentMessageLimit: '20'};
         element._restoreConfiguration(config);
         assert.equal(element.sentMessageLimit, 20);
+      });
+
+      ['validateCertificates', 'followRedirects', 'workspaceReadOnly']
+      .forEach((prop) => {
+        test(`Set ${prop} when true`, () => {
+          const config = {};
+          config[prop] = true;
+          element._restoreConfiguration(config);
+          assert.isTrue(element[prop]);
+        });
+
+        test(`Set ${prop} when false`, () => {
+          const config = {};
+          config[prop] = false;
+          element._restoreConfiguration(config);
+          assert.isFalse(element[prop]);
+        });
       });
     });
 
@@ -540,28 +533,25 @@
         assert.isUndefined(result.sentMessageLimit);
       });
 
-      test('Sets validateCertificates when a boolean', () => {
-        element.validateCertificates = false;
-        const result = element.serializeConfig();
-        assert.isFalse(result.validateCertificates);
-      });
+      ['followRedirects', 'validateCertificates', 'workspaceReadOnly']
+      .forEach((prop) => {
+        test(`Sets ${prop} when false`, () => {
+          element[prop] = false;
+          const result = element.serializeConfig();
+          assert.isFalse(result[prop]);
+        });
 
-      test('Skips validateCertificates when not a boolean', () => {
-        element.validateCertificates = 'test';
-        const result = element.serializeConfig();
-        assert.isUndefined(result.validateCertificates);
-      });
+        test(`Sets ${prop} when true`, () => {
+          element[prop] = true;
+          const result = element.serializeConfig();
+          assert.isTrue(result[prop]);
+        });
 
-      test('Sets followRedirects when a boolean', () => {
-        element.followRedirects = false;
-        const result = element.serializeConfig();
-        assert.isFalse(result.followRedirects);
-      });
-
-      test('Skips followRedirects when not a boolean', () => {
-        element.followRedirects = 'test';
-        const result = element.serializeConfig();
-        assert.isUndefined(result.followRedirects);
+        test(`Skips ${prop} when not a boolean`, () => {
+          element[prop] = 'test';
+          const result = element.serializeConfig();
+          assert.isUndefined(result.validateCertificates);
+        });
       });
     });
 
@@ -696,6 +686,13 @@
         assert.isFalse(spy.called);
       });
 
+      test('Does nothing when workspaceReadOnly', () => {
+        element.workspaceReadOnly = true;
+        const spy = sinon.spy(element, 'serializeWorkspace');
+        element._notifyStoreWorkspace();
+        assert.isFalse(spy.called);
+      });
+
       test('Will not call _clearStoreTimeout() when __storingTimeout is not set', () => {
         const spy = sinon.spy(element, '_clearStoreTimeout');
         element._notifyStoreWorkspace();
@@ -817,6 +814,25 @@
       test('Called when "sentMessageLimit" changes', () => {
         const spy = sinon.spy(element, '_notifyStoreWorkspace');
         element.sentMessageLimit = 100;
+        assert.isTrue(spy.called);
+      });
+    });
+
+    suite('_workspaceReadOnlyChanged()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Calls __dispatchStoreWorkspace()', () => {
+        const spy = sinon.spy(element, '__dispatchStoreWorkspace');
+        element._workspaceReadOnlyChanged();
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "workspaceReadOnly" changes', () => {
+        const spy = sinon.spy(element, '__dispatchStoreWorkspace');
+        element.workspaceReadOnly = false;
         assert.isTrue(spy.called);
       });
     });

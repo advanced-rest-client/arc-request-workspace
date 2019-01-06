@@ -354,6 +354,10 @@
          */
         sentMessageLimit: {type: Number, observer: '_workspaceConfigChanged'},
         /**
+         * When set writing to the workspace state file is disabled.
+         */
+        workspaceReadOnly: {type: Number, observer: '_workspaceReadOnlyChanged'},
+        /**
          * If set then workspace restoration process is in progress.
          */
         restoring: {

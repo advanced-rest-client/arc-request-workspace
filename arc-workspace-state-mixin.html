@@ -159,6 +159,9 @@
         if (config.sentMessageLimit && !isNaN(config.sentMessageLimit)) {
           this.sentMessageLimit = Number(config.sentMessageLimit);
         }
+        if (typeof config.workspaceReadOnly === 'boolean') {
+          this.workspaceReadOnly = config.workspaceReadOnly;
+        }
       }
       /**
        * Forces current selection and resets restoration flags after next
@@ -207,6 +210,9 @@
         if (typeof this.sentMessageLimit === 'number') {
           result.sentMessageLimit = this.sentMessageLimit;
         }
+        if (typeof this.workspaceReadOnly === 'boolean') {
+          result.workspaceReadOnly = this.workspaceReadOnly;
+        }
         return result;
       }
       /**
@@ -215,7 +221,7 @@
        * If timer is running it's going to be cancelled and new timer set.
        */
       _notifyStoreWorkspace() {
-        if (this.restoring || !this.initialized) {
+        if (this.restoring || !this.initialized || this.workspaceReadOnly) {
           return;
         }
         if (this.__storingTimeout) {
@@ -264,6 +270,13 @@
           return;
         }
         this._notifyStoreWorkspace();
+      }
+      /**
+       * Called when workspaceReadOnly property change. Always calls
+       * `_workspaceReadOnlyChanged()`.
+       */
+      _workspaceReadOnlyChanged() {
+        this.__dispatchStoreWorkspace();
       }
     }
     return ArcWorkspaceStateMixin;
