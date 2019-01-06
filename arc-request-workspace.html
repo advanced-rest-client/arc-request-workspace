@@ -350,7 +350,17 @@
          * When set the elements that require project data won't automatically
          * ask for project data.
          */
-        noAutoProjects: Boolean
+        noAutoProjects: Boolean,
+        /**
+         * If set it renders the view in the narrow layout.
+         */
+        narrow: {type: Boolean, value: false, observer: '_narrowChanged'},
+        /**
+         * Redirect URL for the OAuth2 authorization.
+         * If can be also set by dispatching `oauth2-redirect-url-changed`
+         * with `value` property on the `detail` object.
+         */
+        oauth2RedirectUri: {type: String, observer: '_oauthUriChanged'}
       };
     }
 
@@ -1117,13 +1127,21 @@
       });
     }
 
-    /*
-    * Closes currently selected tab.
-    */
-   closeActiveTab() {
-     const i = this.selected;
-     this.removeRequest(i);
-   }
+    /**
+     * Closes currently selected tab.
+     */
+    closeActiveTab() {
+      const i = this.selected;
+      this.removeRequest(i);
+    }
+
+    _narrowChanged(value) {
+      this.__updatePanelsProperty('narrow', value);
+    }
+
+    _oauthUriChanged(value) {
+      this.__updatePanelsProperty('oauth2RedirectUri', value);
+    }
   }
   window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
   </script>

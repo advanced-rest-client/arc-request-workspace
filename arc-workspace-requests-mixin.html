@@ -52,8 +52,8 @@
        * Sets initial properties to the request panel.
        * Note, this operation may be very resource consuming since (depending on the request)
        * there may be a lot of computations happening in the request editor.
-       * @param {!Element} panel Request panel
-       * @param {!Object} request The request object
+       * @param {Element} panel Request panel
+       * @param {Object} request The request object
        */
       __setPanelRequestProperties(panel, request) {
         panel.dataset.id = request._id;
@@ -63,6 +63,14 @@
         panel.response = request._response;
         panel.responseError = request._responseError;
         panel.isErrorResponse = request._isErrorResponse;
+      }
+      /**
+       * Passes configuration like `narrow` and `oauth2RedirectUri` to the panel
+       * @param {Element} panel Request panel
+       */
+      __setPanelConfiguration(panel) {
+        panel.narrow = this.narrow;
+        panel.oauth2RedirectUri = this.oauth2RedirectUri;
       }
       /**
        * Adds event listeners to the panel
@@ -121,6 +129,7 @@
           throw new Error('Missing request id when adding request panel');
         }
         const panel = this.__createPanelInstance(request);
+        this.__setPanelConfiguration(panel);
         this.$.content.appendChild(panel);
         this.__setPanelRequestProperties(panel, request);
         Polymer.RenderStatus.afterNextRender(this, () => {
@@ -265,6 +274,17 @@
         for (let i = 0, len = nodes.length; i < len; i++) {
           this.__removePanelListeners(nodes[i]);
           this.$.content.removeChild(nodes[i]);
+        }
+      }
+      /**
+       * Updates a property on all panels
+       * @param {String} prop Property name to set
+       * @param {*} value Property value
+       */
+      __updatePanelsProperty(prop, value) {
+        const nodes = this.$.content.querySelectorAll('request-panel');
+        for (let i = 0, len = nodes.length; i < len; i++) {
+          nodes[i][prop] = value;
         }
       }
     }
