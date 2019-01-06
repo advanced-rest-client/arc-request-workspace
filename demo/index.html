@@ -283,10 +283,28 @@
           if (selStr && !isNaN(selStr)) {
             selected = Number(selStr);
           }
+          const configStr = localStorage.getItem('workspace.config');
+          let config;
+          if (configStr) {
+            try {
+              config = JSON.parse(configStr);
+            } catch (_) {
+              config = {};
+            }
+          }
+          const variablesStr = localStorage.getItem('workspace.variables');
+          let variables;
+          if (variablesStr) {
+            try {
+              variables = JSON.parse(variablesStr);
+            } catch (_) {}
+          }
           const result = {
             selected,
             environment,
-            requests
+            requests,
+            config,
+            variables
           };
           setTimeout(() => {
             resolve(result);
@@ -296,25 +314,24 @@
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        this.__pendingWorkspace = e.detail.value;
-        if (this.__workspaceWriteDebounce) {
-          return;
+        const {environment, selected, requests, config, variables} = e.detail.value;
+        console.info('Storing workspace data', e.detail.value);
+        if (requests) {
+          const requestsStr = JSON.stringify(requests);
+          localStorage.setItem('workspace.requests', requestsStr);
         }
-        this.__workspaceWriteDebounce = true;
-        setTimeout(() => {
-          this.__workspaceWriteDebounce = false;
-          const workspace = this.__pendingWorkspace;
-          delete this.__pendingWorkspace;
-          console.info('Storing workspace data', workspace);
-          if (workspace.requests) {
-            const requestsStr = JSON.stringify(workspace.requests);
-            localStorage.setItem('workspace.requests', requestsStr);
-          }
-          if (workspace.environment) {
-            localStorage.setItem('workspace.environment', workspace.environment);
-          }
-          localStorage.setItem('workspace.selected', workspace.selected);
-        }, 500);
+        if (environment) {
+          localStorage.setItem('workspace.environment', environment);
+        }
+        if (config) {
+          const consfigStr = JSON.stringify(config);
+          localStorage.setItem('workspace.config', consfigStr);
+        }
+        if (variables) {
+          const variablesStr = JSON.stringify(variables);
+          localStorage.setItem('workspace.variables', variablesStr);
+        }
+        localStorage.setItem('workspace.selected', selected);
       };
 
       app.generateData = function() {

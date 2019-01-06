@@ -625,6 +625,54 @@
         const result = element.serializeWorkspace();
         assert.deepEqual(result.config, {followRedirects: true});
       });
+
+      test('Sets variables', () => {
+        const vars = [{variable: 'test'}];
+        element.variables = vars;
+        const result = element.serializeWorkspace();
+        assert.deepEqual(result.variables, vars);
+      });
+    });
+
+    suite('__dispatchStoreWorkspace()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Calls serializeWorkspace()', () => {
+        const spy = sinon.spy(element, 'serializeWorkspace');
+        element.__dispatchStoreWorkspace();
+        assert.isTrue(spy.called);
+      });
+
+      test('Clears __storingTimeout', () => {
+        element.__storingTimeout = 1234;
+        element.__dispatchStoreWorkspace();
+        assert.isUndefined(element.__storingTimeout);
+      });
+
+      test('Calls _dispatch() with arguments', () => {
+        const spy = sinon.spy(element, '_dispatch');
+        element.__dispatchStoreWorkspace();
+        assert.isTrue(spy.called);
+        assert.equal(spy.args[0][0], 'workspace-state-store', 'Event type is set');
+        const compare = element.serializeWorkspace();
+        assert.deepEqual(spy.args[0][1].value, compare, 'Detail is set');
+      });
+
+      test('Dispatches workspace-state-store event', () => {
+        let detail;
+        element.addEventListener('workspace-state-store', function f(e) {
+          element.removeEventListener('workspace-state-store', f);
+          e.preventDefault();
+          detail = e.detail;
+        });
+        element.__dispatchStoreWorkspace();
+        assert.typeOf(detail, 'object');
+        const compare = element.serializeWorkspace();
+        assert.deepEqual(detail.value, compare, 'Detail is set');
+      });
     });
 
     suite('_notifyStoreWorkspace()', () => {
@@ -632,21 +680,6 @@
       setup(() => {
         element = fixture('Basic');
         element._setInitialized(true);
-      });
-
-      test('Calls serializeWorkspace()', () => {
-        const spy = sinon.spy(element, 'serializeWorkspace');
-        element._notifyStoreWorkspace();
-        assert.isTrue(spy.called);
-      });
-
-      test('Calls _dispatch() with arguments', () => {
-        const spy = sinon.spy(element, '_dispatch');
-        element._notifyStoreWorkspace();
-        assert.isTrue(spy.called);
-        assert.equal(spy.args[0][0], 'workspace-state-store', 'Event type is set');
-        const compare = element.serializeWorkspace();
-        assert.deepEqual(spy.args[0][1].value, compare, 'Detail is set');
       });
 
       test('Does nothing when not initialized', () => {
@@ -663,17 +696,78 @@
         assert.isFalse(spy.called);
       });
 
-      test('Dispatches workspace-state-store event', () => {
-        let detail;
-        element.addEventListener('workspace-state-store', function f(e) {
-          element.removeEventListener('workspace-state-store', f);
-          e.preventDefault();
-          detail = e.detail;
-        });
+      test('Will not call _clearStoreTimeout() when __storingTimeout is not set', () => {
+        const spy = sinon.spy(element, '_clearStoreTimeout');
         element._notifyStoreWorkspace();
-        assert.typeOf(detail, 'object');
-        const compare = element.serializeWorkspace();
-        assert.deepEqual(detail.value, compare, 'Detail is set');
+        assert.isFalse(spy.called);
+      });
+
+      test('Calls _clearStoreTimeout() when __storingTimeout is set', () => {
+        element.__storingTimeout = 123;
+        const spy = sinon.spy(element, '_clearStoreTimeout');
+        element._notifyStoreWorkspace();
+        assert.isTrue(spy.called);
+      });
+
+      test('Sets __storingTimeout property', () => {
+        element._notifyStoreWorkspace();
+        assert.typeOf(element.__storingTimeout, 'number');
+      });
+
+      test('Ewentually calls __dispatchStoreWorkspace()', (done) => {
+        element._notifyStoreWorkspace();
+        const spy = sinon.spy(element, '__dispatchStoreWorkspace');
+        setTimeout(() => {
+          assert.isTrue(spy.called);
+          done();
+        }, 1000);
+      });
+
+      test('Uses requestAnimationFrame() as fallback', (done) => {
+        const old = window.requestIdleCallback;
+        window.requestIdleCallback = undefined;
+        const spy = sinon.spy(window, 'requestAnimationFrame');
+        element._notifyStoreWorkspace();
+        setTimeout(() => {
+          window.requestIdleCallback = old;
+          assert.isTrue(spy.called);
+          done();
+        });
+      });
+    });
+
+    suite('_clearStoreTimeout()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Calls cancelIdleCallback()', () => {
+        if (!window.cancelIdleCallback) {
+          return;
+        }
+        const spy = sinon.spy(window, 'cancelIdleCallback');
+        element.__storingTimeout = 123;
+        element._clearStoreTimeout();
+        window.cancelIdleCallback.restore();
+        assert.isTrue(spy.called);
+      });
+
+      test('Uses cancelAnimationFrame() as fallback', () => {
+        const old = window.cancelIdleCallback;
+        window.cancelIdleCallback = undefined;
+        const spy = sinon.spy(window, 'cancelAnimationFrame');
+        element.__storingTimeout = 123;
+        element._clearStoreTimeout();
+        window.cancelIdleCallback = old;
+        window.cancelAnimationFrame.restore();
+        assert.isTrue(spy.called);
+      });
+
+      test('Clears __storingTimeout', () => {
+        element.__storingTimeout = 123;
+        element._clearStoreTimeout();
+        assert.isUndefined(element.__storingTimeout);
       });
     });
 
@@ -685,14 +779,14 @@
 
       test('Calls _notifyStoreWorkspace()', () => {
         const spy = sinon.spy(element, '_notifyStoreWorkspace');
-        element._notifyStoreWorkspace();
+        element._workspaceConfigChanged();
         assert.isTrue(spy.called);
       });
 
       test('Won\'t call _notifyStoreWorkspace() when restoring', () => {
         element._setRestoring(true);
         const spy = sinon.spy(element, '_notifyStoreWorkspace');
-        element._notifyStoreWorkspace();
+        element._workspaceConfigChanged();
         assert.isFalse(spy.called);
       });
 

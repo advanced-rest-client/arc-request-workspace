@@ -210,15 +210,42 @@
         return result;
       }
       /**
-       * Dispatches `workspace-state-store` custom event to store workspace data.
-       * The type of the request is `workspace-state`.
-       *
-       * If there's an error it is not rerported back to the user.
+       * Runs debouncer and after timeoout it calls `__dispatchStoreWorkspace()`
+       * to dispatch store event.
+       * If timer is running it's going to be cancelled and new timer set.
        */
       _notifyStoreWorkspace() {
         if (this.restoring || !this.initialized) {
           return;
         }
+        if (this.__storingTimeout) {
+          this._clearStoreTimeout();
+        }
+        if (window.requestIdleCallback) {
+          this.__storingTimeout = window.requestIdleCallback(() => this.__dispatchStoreWorkspace(), {timeout: 1000});
+        } else {
+          this.__storingTimeout = window.requestAnimationFrame(() => this.__dispatchStoreWorkspace());
+        }
+      }
+      /**
+       * Clears previously set storing timer.
+       */
+      _clearStoreTimeout() {
+        if (window.cancelIdleCallback) {
+          window.cancelIdleCallback(this.__storingTimeout);
+        } else {
+          window.cancelAnimationFrame(this.__storingTimeout);
+        }
+        this.__storingTimeout = undefined;
+      }
+      /**
+       * Dispatches `workspace-state-store` custom event to store workspace data.
+       * The type of the request is `workspace-state`.
+       *
+       * If there's an error it is not reported back to the user.
+       */
+      __dispatchStoreWorkspace() {
+        this.__storingTimeout = undefined;
         const value = this.serializeWorkspace();
         const e = this._dispatch('workspace-state-store', {
           value
