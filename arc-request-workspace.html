@@ -20,6 +20,7 @@
 <link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="arc-workspace-requests-mixin.html">
 <link rel="import" href="arc-workspace-dnd-mixin.html">
+<link rel="import" href="arc-workspace-state-mixin.html">
 <dom-module id="arc-request-workspace">
   <template>
     <style>
@@ -279,12 +280,14 @@
    * @memberof UiElements
    * @appliesMixin ArcComponents.ArcWorkspaceRequestsMixin
    * @appliesMixin ArcComponents.ArcWorkspaceDndMixin
+   * @appliesMixin ArcComponents.ArcWorkspaceStateMixin
    * @appliesMixin ArcComponents.ArcFileDropMixin
    */
   class ArcRequestWorkspace extends
     ArcComponents.ArcFileDropMixin(
     ArcComponents.ArcWorkspaceRequestsMixin(
-    ArcComponents.ArcWorkspaceDndMixin(Polymer.Element))) {
+    ArcComponents.ArcWorkspaceDndMixin(
+    ArcComponents.ArcWorkspaceStateMixin(Polymer.Element)))) {
     static get is() {
       return 'arc-request-workspace';
     }
@@ -384,93 +387,27 @@
       window.removeEventListener('request-object-deleted', this._requestDeleteHandler);
       window.removeEventListener('request-workspace-append', this._appendRequestHandler);
     }
+
     /**
-     * Restores workspace state.
-     * It dispatches `workspace-state-read` custom event to query for workspace data
-     * and restores requests if they were previously stored.
-     *
-     * @return {Promise}
+     * Dispatches bubbling and composed custom event.
+     * By default the event is cancelable until `cancelable` property is set to false.
+     * @param {String} type Event type
+     * @param {?any} detail A detail to set
+     * @param {?Boolean} cancelable When false the event is not cancelable.
+     * @return {CustomEvent}
      */
-    restoreWorkspace() {
-      if (this.activeRequests.length) {
-        this.clearWorkspace();
+    _dispatch(type, detail, cancelable) {
+      if (typeof cancelable !== 'boolean') {
+        cancelable = true;
       }
-      this._setRestoring(true);
-      const e = new CustomEvent('workspace-state-read', {
+      const e = new CustomEvent(type, {
         bubbles: true,
         composed: true,
-        cancelable: true,
-        detail: {
-          type: 'workspace-state'
-        }
+        cancelable,
+        detail
       });
       this.dispatchEvent(e);
-      if (!e.defaultPrevented) {
-        const m = '"workspace-state-read" event for workspace state not handled';
-        console.warn(m);
-        this.addEmptyRequest();
-        this._setRestoring(false);
-        if (!this.initialized) {
-          this._setInitialized(true);
-        }
-        return Promise.reject(new Error(m));
-      }
-      return e.detail.result
-      .then((data) => this._restore(data))
-      .then(() => {
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          const selected = this.selected;
-          this.selected = undefined;
-          this._setRestoring(false);
-          this.selected = selected;
-        });
-      })
-      .catch((cause) => {
-        console.warn(cause.message);
-        this.addEmptyRequest();
-      })
-      .then(() => {
-        if (!this.initialized) {
-          this._setInitialized(true);
-        }
-        this._setRestoring(false);
-      });
-    }
-    /**
-     * Restores workspace state from previously stored data.
-     * @param {Object} state Workspace state object
-     */
-    _restore(state) {
-      if (!state) {
-        this.addEmptyRequest();
-        return;
-      }
-      if (state.requests && state.requests.length) {
-        state.requests.forEach((item) => {
-          if (!item._id) {
-            item._id = this.$.uuid.generate();
-          }
-          this.appendRequest(item);
-        });
-        this.refreshTabs();
-      } else {
-        this.addEmptyRequest();
-      }
-      if (!isNaN(state.selected)) {
-        this.selected = state.selected;
-      } else {
-        this.selected = this.activeRequests.length - 1;
-      }
-      if (state.environment) {
-        this.environment = state.environment;
-        this.dispatchEvent(new CustomEvent('selected-environment-changed', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            value: state.environment
-          }
-        }));
-      }
+      return e;
     }
     /**
      * Finds first position where the request is empty.
@@ -565,11 +502,12 @@
         console.warn('Trying to update non existing request');
         return;
       }
+      const oldId = ar[index]._id;
       if (!request._id) {
         request._id = this.$.uuid.generate();
       }
       this.set(`activeRequests.${index}`, request);
-      this.__updatePanelRequest(ar._id, request);
+      this.__updatePanelRequest(oldId, request);
     }
 
     _closeRequest(e) {
@@ -602,53 +540,13 @@
           this.selected = undefined;
         }
         this.selected = index;
-      } else {
-        if (this.selected > index) {
-          this.selected--;
-        }
+      } else if (this.selected > index) {
+        this.selected--;
       }
       if (!this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => {
           this.addEmptyRequest();
         });
-      }
-    }
-
-    /**
-     * Serializes workspace state to a JavaScript object.
-     * @return {Object} An ArcWorkspace object
-     */
-    serializeWorkspace() {
-      const result = {
-        environment: this.environment || 'default',
-        selected: this.selected || 0,
-        requests: this.activeRequests || []
-      };
-      return result;
-    }
-    /**
-     * Dispatches `workspace-state-store` custom event to store workspace data.
-     * The type of the request is `workspace-state`.
-     *
-     * If there's an error it is not rerported back to the user.
-     */
-    _notifyStoreWorkspace() {
-      if (this.restoring || !this.initialized) {
-        return;
-      }
-      const value = this.serializeWorkspace();
-      const e = new CustomEvent('workspace-state-store', {
-        bubbles: true,
-        composed: true,
-        cancelable: true,
-        detail: {
-          value
-        }
-      });
-      this.dispatchEvent(e);
-      if (!e.defaultPrevented) {
-        const m = '"workspace-state-store" event for workspace state not handled';
-        console.warn(m);
       }
     }
     /**
@@ -742,7 +640,7 @@
       return this.activeRequests[index];
     }
     /**
-     * It ensures `_id` property exists opens save editor
+     * Opens save editor
      *
      * @param {CustomEvent} e
      */

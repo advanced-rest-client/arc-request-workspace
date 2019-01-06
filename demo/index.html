@@ -267,38 +267,7 @@
       };
       app._restoreHandler = function(e) {
         e.preventDefault();
-        // e.detail.result = Promise.resolve({
-        //   selected: 0,
-        //   environment: 'default',
-        //   requests: []
-        // });
         e.detail.result = new Promise((resolve) => {
-          // const saved = DataGenerator.generateSavedRequestData({
-          //   requestsSize: 2
-          // });
-          // const history = DataGenerator.generateHistoryRequestsData({
-          //   requestsSize: 2
-          // });
-          // const requests = history.concat(saved.requests);
-          // const requests = [{
-          //   method: 'GET',
-          //   url: 'http://a',
-          //   headers: 'a: a',
-          //   name: 'a',
-          //   requestActions: {variables: [{enabled: true, variable: 'a', value: 'a'}]}
-          // }, {
-          //   method: 'PUT',
-          //   url: 'http://b',
-          //   headers: 'b: b',
-          //   name: 'b',
-          //   requestActions: {variables: [{enabled: true, variable: 'b', value: 'b'}]}
-          // }, {
-          //   method: 'POST',
-          //   url: 'http://c',
-          //   headers: 'c: c',
-          //   name: 'c',
-          //   requestActions: {variables: [{enabled: true, variable: 'c', value: 'c'}]}
-          // }];
           const reqStr = localStorage.getItem('workspace.requests');
           let requests;
           if (reqStr) {
@@ -319,7 +288,9 @@
             environment,
             requests
           };
-          resolve(result);
+          setTimeout(() => {
+            resolve(result);
+          });
         });
       };
 

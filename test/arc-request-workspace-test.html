@@ -11,6 +11,7 @@
   <link rel="import" href="../../arc-models/project-model.html">
   <link rel="import" href="../../arc-models/request-model.html">
   <link rel="import" href="../../arc-models/variables-model.html">
+  <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
 </head>
 <body>
   <project-model></project-model>
@@ -23,7 +24,14 @@
     </template>
   </test-fixture>
 
+  <test-fixture id="NoAuto">
+    <template>
+      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
+    </template>
+  </test-fixture>
+
   <script>
+  /* global DataGenerator, MockInteractions */
   function wrapStateReadEvent(element) {
     element.addEventListener('workspace-state-read', function f(e) {
       element.removeEventListener('workspace-state-read', f);
@@ -32,9 +40,83 @@
     });
   }
 
-  suite('arc-request-workspace', () => {
+  function addRequests(element, size) {
+    const requests = DataGenerator.generateRequests({
+      requestsSize: size || 2
+    });
+    for (let i = 0; i < requests.length; i++) {
+      requests[i].name = 'Test request name #' + i;
+      element.__addPanel(requests[i]);
+    }
+    element.activeRequests = requests;
+  }
+
+  suite('Basics', () => {
     let element;
-    /* global DataGenerator */
+    setup(() => {
+      element = fixture('Basic');
+      wrapStateReadEvent(element);
+    });
+
+    test('selected is eventually set', (done) => {
+      element.addEventListener('selected-changed', function f() {
+        element.removeEventListener('selected-changed', f);
+        done();
+      });
+    });
+
+    test('activeRequests has default value', () => {
+      assert.typeOf(element.activeRequests, 'array');
+      assert.lengthOf(element.activeRequests, 0);
+    });
+
+    test('restoring is false when initializing', () => {
+      assert.isFalse(element.restoring);
+    });
+  });
+
+  suite('_dispatch()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+    const eName = 'test-event';
+    const eDetail = 'test-detail';
+    test('Dispatches an event', () => {
+      const spy = sinon.spy();
+      element.addEventListener(eName, spy);
+      element._dispatch(eName);
+      assert.isTrue(spy.called);
+    });
+    test('Returns the event', () => {
+      const e = element._dispatch(eName);
+      assert.typeOf(e, 'customevent');
+    });
+    test('Event is cancelable by default', () => {
+      const e = element._dispatch(eName);
+      assert.isTrue(e.cancelable);
+    });
+    test('Event is composed', () => {
+      const e = element._dispatch(eName);
+      if (typeof e.composed !== 'undefined') {
+        assert.isTrue(e.composed);
+      }
+    });
+    test('Event bubbles', () => {
+      const e = element._dispatch(eName);
+      assert.isTrue(e.bubbles);
+    });
+    test('Event is not cancelable when set', () => {
+      const e = element._dispatch(eName, eDetail, false);
+      assert.isFalse(e.cancelable);
+    });
+    test('Event has detail', () => {
+      const e = element._dispatch(eName, eDetail);
+      assert.equal(e.detail, eDetail);
+    });
+  });
+
+  suite('_computeTabName()', () => {
     function restoreHandler(e) {
       e.preventDefault();
       e.detail.result = new Promise((resolve) => {
@@ -53,278 +135,265 @@
         resolve(result);
       });
     }
-
-    suite('Basics', () => {
-      setup(() => {
-        element = fixture('Basic');
-        wrapStateReadEvent(element);
-      });
-
-      test('selected is eventually set', (done) => {
-        element.addEventListener('selected-changed', function f() {
-          element.removeEventListener('selected-changed', f);
-          done();
-        });
-      });
-
-      test('activeRequests has default value', () => {
-        assert.typeOf(element.activeRequests, 'array');
-        assert.lengthOf(element.activeRequests, 0);
-      });
-
-      test('restoring is false when initializing', () => {
-        assert.isFalse(element.restoring);
-      });
+    let element;
+    setup(() => {
+      window.addEventListener('workspace-state-read', restoreHandler);
+      element = fixture('Basic');
     });
 
-    suite('Restoring workspace', () => {
-      suite('Basics', () => {
-        setup(() => {
-          element = fixture('Basic');
-        });
-
-        test('Eventually sets restoring to "true"', (done) => {
-          element.addEventListener('restoring-changed', function clb() {
-            element.removeEventListener('restoring-changed', clb);
-            done();
-          });
-        });
-
-        test('Dispatches workspace-state-read custom event', (done) => {
-          element.addEventListener('workspace-state-read', function clb(e) {
-            element.removeEventListener('workspace-state-read', clb);
-            assert.isTrue(e.cancelable, 'Event can be canceled');
-            assert.isTrue(e.bubbles, 'Event bubbles');
-            assert.isTrue(e.composed, 'Event is composed');
-            assert.equal(e.detail.type, 'workspace-state', 'Type is set');
-            done();
-          });
-        });
-
-        test('Adds empty panel when the request is not handled', (done) => {
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.typeOf(element.activeRequests, 'array');
-            assert.lengthOf(element.activeRequests, 1);
-            done();
-          });
-        });
-      });
-
-      suite('With restore event handler', () => {
-        setup(() => {
-          window.addEventListener('workspace-state-read', restoreHandler);
-          element = fixture('Basic');
-        });
-
-        teardown(() => {
-          window.removeEventListener('workspace-state-read', restoreHandler);
-        });
-
-        test('Adds restored requests', (done) => {
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.typeOf(element.activeRequests, 'array');
-            assert.lengthOf(element.activeRequests, 6);
-            done();
-          });
-        });
-
-        test('Selects a request', (done) => {
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.equal(element.selected, 1);
-            done();
-          });
-        });
-
-        test('Selects environment', (done) => {
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.equal(element.environment, 'test-env');
-            done();
-          });
-        });
-
-        test('Dispatches selected-environment-changed event', (done) => {
-          let called;
-          element.addEventListener('selected-environment-changed', function sec(e) {
-            element.removeEventListener('selected-environment-changed', sec);
-            assert.isTrue(e.bubbles, 'Event bubbles');
-            assert.isTrue(e.composed, 'Event is composed');
-            assert.equal(e.detail.value, 'test-env', 'Type is set');
-            called = true;
-          });
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.isTrue(called, 'Restoring is called');
-            done();
-          });
-        });
-
-        test('Does not dispatches workspace-state-store when restoring', (done) => {
-          let called;
-          element.addEventListener('workspace-state-store', function clbp() {
-            element.removeEventListener('workspace-state-store', clbp);
-            called = true;
-          });
-          element.addEventListener('restoring-changed', function clb(e) {
-            if (e.detail.value) {
-              return;
-            }
-            element.removeEventListener('restoring-changed', clb);
-            assert.isUndefined(called);
-            done();
-          });
-        });
-      });
+    teardown(() => {
+      window.removeEventListener('workspace-state-read', restoreHandler);
     });
 
-    suite('Storing workspace', () => {
-      suiteSetup(() => {
-        window.addEventListener('workspace-state-read', restoreHandler);
-      });
-
-      suiteTeardown(() => {
-        window.removeEventListener('workspace-state-read', restoreHandler);
-      });
-
-      setup((done) => {
-        element = fixture('Basic');
-        element.addEventListener('restoring-changed', function clb(e) {
-          if (e.detail.value) {
-            return;
-          }
-          element.removeEventListener('restoring-changed', clb);
-          done();
-        });
-      });
-
-      test('Dispatches storing request when selection changes', (done) => {
-        element.addEventListener('workspace-state-store', function clb(e) {
-          element.removeEventListener('workspace-state-store', clb);
-          assert.equal(e.detail.value.selected, 0);
-          done();
-        });
-        element.selected = 0;
-      });
-
-      test('Dispatches storing request when environment changes', (done) => {
-        element.addEventListener('workspace-state-store', function clb(e) {
-          element.removeEventListener('workspace-state-store', clb);
-          assert.equal(e.detail.value.environment, 'default');
-          done();
-        });
-        element.environment = 'default';
-      });
-
-      test('Dispatches storing request when request changes', (done) => {
-        element.addEventListener('workspace-state-store', function clb(e) {
-          element.removeEventListener('workspace-state-store', clb);
-          assert.equal(e.detail.value.requests[0].name, 'test-name');
-          done();
-        });
-        element.set('activeRequests.0.name', 'test-name');
-      });
+    test('Returns "New request" for undefined item', () => {
+      const result = element._computeTabName();
+      assert.equal(result, 'New request');
     });
 
-    suite('_computeTabName()', () => {
-      setup(() => {
-        window.addEventListener('workspace-state-read', restoreHandler);
-        element = fixture('Basic');
-      });
-
-      teardown(() => {
-        window.removeEventListener('workspace-state-read', restoreHandler);
-      });
-
-      test('Returns "New request" for undefined item', () => {
-        const result = element._computeTabName();
-        assert.equal(result, 'New request');
-      });
-
-      test('Returns item name if exists', () => {
-        const result = element._computeTabName('test-name');
-        assert.equal(result, 'test-name');
-      });
-
-      test('Returns URL if item name does not exists', () => {
-        const result = element._computeTabName(undefined, 'test-url');
-        assert.equal(result, 'test-url');
-      });
-
-      test('Returns "New request" otherwise', () => {
-        const result = element._computeTabName('', '');
-        assert.equal(result, 'New request');
-      });
+    test('Returns item name if exists', () => {
+      const result = element._computeTabName('test-name');
+      assert.equal(result, 'test-name');
     });
 
-    suite('appendRequest()', () => {
-      setup(() => {
-        element = fixture('Basic');
-      });
-
-      test('Adds empty request to the list of active requests', () => {
-        element.appendRequest({method: 'x-test'});
-        assert.lengthOf(element.activeRequests, 1);
-      });
-
-      test('Added request has an id', () => {
-        element.appendRequest({method: 'x-test'});
-        assert.typeOf(element.activeRequests[0]._id, 'string');
-      });
-
-      test('Eventually sets request data', () => {
-        element.appendRequest({method: 'x-test'});
-        assert.equal(element.activeRequests[0].method, 'x-test');
-      });
-
-      test('Selects newly added request', () => {
-        element.appendRequest({});
-        assert.equal(element.selected, 0);
-      });
-
-      test('Returns index of created request', () => {
-        const result = element.appendRequest({});
-        assert.equal(result, 0);
-      });
+    test('Returns URL if item name does not exists', () => {
+      const result = element._computeTabName(undefined, 'test-url');
+      assert.equal(result, 'test-url');
     });
 
-    suite('addEmptyRequest()', () => {
-      setup(() => {
-        element = fixture('Basic');
-      });
+    test('Returns "New request" otherwise', () => {
+      const result = element._computeTabName('', '');
+      assert.equal(result, 'New request');
+    });
+  });
 
-      test('Adds request to the list of active requests', (done) => {
-        element.addEmptyRequest();
-        setTimeout(() => {
-          assert.lengthOf(element.activeRequests, 1);
-          const r = element.activeRequests[0];
-          assert.equal(r.method, 'GET');
-          assert.equal(r.url, 'http://');
-          done();
-        }, 250);
-      });
+  suite('appendRequest()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
 
-      test('Selects newly added request', () => {
-        element.addEmptyRequest();
-        assert.equal(element.selected, 0);
+    test('Adds empty request to the list of active requests', () => {
+      element.appendRequest({method: 'x-test'});
+      assert.lengthOf(element.activeRequests, 1);
+    });
+
+    test('Added request has an id', () => {
+      element.appendRequest({method: 'x-test'});
+      assert.typeOf(element.activeRequests[0]._id, 'string');
+    });
+
+    test('Eventually sets request data', () => {
+      element.appendRequest({method: 'x-test'});
+      assert.equal(element.activeRequests[0].method, 'x-test');
+    });
+
+    test('Selects newly added request', () => {
+      element.appendRequest({});
+      assert.equal(element.selected, 0);
+    });
+
+    test('Returns index of created request', () => {
+      const result = element.appendRequest({});
+      assert.equal(result, 0);
+    });
+
+    test('Won\'t set ID if already exists', () => {
+      const request = {
+        _id: 'test-id',
+        url: 'http:api.domain.com'
+      };
+      element.appendRequest(request);
+      assert.deepEqual(element.activeRequests[0], request);
+    });
+
+    test('Won\'t add second empty request', () => {
+      element.appendRequest({});
+      element.appendRequest({});
+      assert.lengthOf(element.activeRequests, 1);
+    });
+
+    test('Adds two empty requests when skipPositionCheck is set', () => {
+      element.appendRequest({});
+      element.appendRequest({}, {skipPositionCheck: true});
+      assert.lengthOf(element.activeRequests, 2);
+    });
+
+    test('Won\'t select added request when noAutoSelect is set', () => {
+      element.appendRequest({});
+      element.appendRequest({}, {noAutoSelect: true});
+      assert.equal(element.selected, 0);
+    });
+  });
+
+  suite('addEmptyRequest()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    test('Adds request to the list of active requests', () => {
+      element.addEmptyRequest();
+      assert.lengthOf(element.activeRequests, 1);
+      const r = element.activeRequests[0];
+      assert.equal(r.method, 'GET');
+      assert.equal(r.url, 'http://');
+    });
+
+    test('Selects newly added request', () => {
+      element.addEmptyRequest();
+      assert.equal(element.selected, 0);
+    });
+  });
+
+  suite('updateRequestObject()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      flush(() => done());
+    });
+
+    test('Adds _id to the request', () => {
+      const request = DataGenerator.generateSavedItem();
+      delete request._id;
+      element.updateRequestObject(request, 0);
+      assert.typeOf(request._id, 'string');
+    });
+
+    test('Calls __updatePanelRequest()', () => {
+      const spy = sinon.spy(element, '__updatePanelRequest');
+      const request = DataGenerator.generateSavedItem();
+      element.updateRequestObject(request, 1);
+      assert.isTrue(spy.called);
+    });
+
+    test('Updates panel id', () => {
+      const request = DataGenerator.generateSavedItem();
+      element.updateRequestObject(request, 0);
+      const node = element.shadowRoot.querySelector(`request-panel[data-id="${request._id}"]`);
+      assert.ok(node);
+    });
+
+    test('Sets active request', () => {
+      const request = DataGenerator.generateSavedItem();
+      element.updateRequestObject(request, 0);
+      assert.deepEqual(element.activeRequests[0], request);
+    });
+
+    test('Does nothing when no active request for the index', () => {
+      const spy = sinon.spy(element, '__updatePanelRequest');
+      const request = DataGenerator.generateSavedItem();
+      element.updateRequestObject(request, 10);
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('_closeRequest()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      flush(() => done());
+    });
+
+    test('Closes request after button click', () => {
+      const spy = sinon.spy(element, 'removeRequest');
+      const button = element.shadowRoot.querySelectorAll('.close-icon')[1];
+      MockInteractions.tap(button);
+      assert.isTrue(spy.called);
+    });
+
+    test('Closes second request', () => {
+      const spy = sinon.spy(element, 'removeRequest');
+      const button = element.shadowRoot.querySelectorAll('.close-icon')[1];
+      MockInteractions.tap(button);
+      assert.equal(spy.args[0][0], 1);
+    });
+
+    test('Does nothing when event target has no data-index', () => {
+      const spy = sinon.spy(element, 'removeRequest');
+      const button = element.shadowRoot.querySelectorAll('.close-icon')[1];
+      button.removeAttribute('data-index');
+      MockInteractions.tap(button);
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('removeRequest()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      flush(() => done());
+    });
+
+    test('Removes request from activeRequests', () => {
+      element.removeRequest(0);
+      assert.lengthOf(element.activeRequests, 1);
+    });
+
+    test('Removes request at the index', () => {
+      const idB = element.activeRequests[1]._id;
+      element.removeRequest(0);
+      assert.equal(element.activeRequests[0]._id, idB);
+    });
+
+    test('Calls __removePanel()', () => {
+      const id = element.activeRequests[0]._id;
+      const spy = sinon.spy(element, '__removePanel');
+      element.removeRequest(0);
+      assert.isTrue(spy.called);
+      assert.equal(spy.args[0][0], id);
+    });
+
+    test('Removes the panel', () => {
+      const id = element.activeRequests[0]._id;
+      element.removeRequest(0);
+      const node = element.shadowRoot.querySelector(`request-panel[data-id="${id}"]`);
+      assert.notOk(node);
+    });
+
+    test('re-sets the selection when first request which is selected', () => {
+      const spy = sinon.spy();
+      element.selected = 0;
+      element.addEventListener('selected-changed', spy);
+      element.removeRequest(0);
+      assert.equal(spy.callCount, 2);
+      assert.equal(spy.args[0][0].detail.value, undefined);
+      assert.equal(spy.args[1][0].detail.value, 0);
+    });
+
+    test('Cheges selection if higher than index', () => {
+      element.selected = 1;
+      element.removeRequest(0);
+      assert.equal(element.selected, 0);
+    });
+
+    test('Adds empty request when no more requests', (done) => {
+      element.selected = 0;
+      element.removeRequest(0);
+      const spy = sinon.spy(element, 'addEmptyRequest');
+      element.removeRequest(0);
+      Polymer.RenderStatus.afterNextRender(element, () => {
+        assert.isTrue(spy.called);
+        done();
       });
+    });
+  });
+
+  suite('refreshTabs()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Calls notifyResize() on tabs', () => {
+      const node = element.shadowRoot.querySelector('paper-tabs');
+      const spy = sinon.spy(node, 'notifyResize');
+      element.refreshTabs();
+      assert.isTrue(spy.called);
     });
   });
 
