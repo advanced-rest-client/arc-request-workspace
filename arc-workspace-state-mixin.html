@@ -76,6 +76,8 @@
         this._restoreRequests(state.requests);
         this._restoreSelected(state.selected);
         this._restoreEnvironment(state.environment);
+        this._restoreVariables(state.variables);
+        this._restoreConfiguration(state.config);
       }
       /**
        * Restores requests from the state object.
@@ -124,6 +126,41 @@
         }, false);
       }
       /**
+       * Restores workspace variables.
+       * Each item must contain the following properties:
+       * - variable {String} - variable name
+       * - value {String} - variable value, can contain nested variables
+       * - enabled {Boolean} - By default it is true, set false to disable the variable
+       * @param {?Array<Object>} variables List of variables to restore
+       */
+      _restoreVariables(variables) {
+        if (!variables || !variables.length) {
+          return;
+        }
+        this.variables = variables;
+      }
+      /**
+       * Restores workspace variables.
+       * @param {?Object} config Workspace configuration
+       */
+      _restoreConfiguration(config) {
+        if (!config) {
+          return;
+        }
+        if (typeof config.requestTimeout !== 'undefined' && !isNaN(config.requestTimeout)) {
+          this.requestTimeout = Number(config.requestTimeout);
+        }
+        if (typeof config.validateCertificates === 'boolean') {
+          this.validateCertificates = config.validateCertificates;
+        }
+        if (typeof config.followRedirects === 'boolean') {
+          this.followRedirects = config.followRedirects;
+        }
+        if (config.sentMessageLimit && !isNaN(config.sentMessageLimit)) {
+          this.sentMessageLimit = Number(config.sentMessageLimit);
+        }
+      }
+      /**
        * Forces current selection and resets restoration flags after next
        * render.
        */
@@ -144,8 +181,32 @@
         const result = {
           environment: this.environment || 'default',
           selected: this.selected || 0,
-          requests: this.activeRequests || []
+          requests: this.activeRequests || [],
+          config: this.serializeConfig()
         };
+        if (this.variables) {
+          result.variables = this.variables;
+        }
+        return result;
+      }
+      /**
+       * Serializes workspace configuration.
+       * @return {Object}
+       */
+      serializeConfig() {
+        const result = {};
+        if (typeof this.requestTimeout === 'number') {
+          result.requestTimeout = this.requestTimeout;
+        }
+        if (typeof this.validateCertificates === 'boolean') {
+          result.validateCertificates = this.validateCertificates;
+        }
+        if (typeof this.followRedirects === 'boolean') {
+          result.followRedirects = this.followRedirects;
+        }
+        if (typeof this.sentMessageLimit === 'number') {
+          result.sentMessageLimit = this.sentMessageLimit;
+        }
         return result;
       }
       /**
@@ -166,6 +227,16 @@
           const m = '"workspace-state-store" event for workspace state not handled';
           console.warn(m);
         }
+      }
+      /**
+       * A handler for any of the workspace configuration options changed.
+       * It notifies change to the listeners.
+       */
+      _workspaceConfigChanged() {
+        if (this.restoring) {
+          return;
+        }
+        this._notifyStoreWorkspace();
       }
     }
     return ArcWorkspaceStateMixin;

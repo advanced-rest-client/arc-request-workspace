@@ -200,6 +200,87 @@
       });
     });
 
+    suite('_restoreVariables()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Set variables property', () => {
+        const vars = [{variable: 'test'}];
+        element._restoreVariables(vars);
+        assert.deepEqual(element.variables, vars);
+      });
+
+      test('Does nothing when variables is not set', () => {
+        element._restoreVariables();
+        assert.isUndefined(element.variables);
+      });
+    });
+
+    suite('_restoreConfiguration()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Does nothing when variables is not set', () => {
+        element._restoreConfiguration();
+        assert.isUndefined(element.requestTimeout);
+        assert.isUndefined(element.validateCertificates);
+        assert.isUndefined(element.followRedirects);
+        assert.isUndefined(element.sentMessageLimit);
+      });
+
+      test('Set requestTimeout property', () => {
+        const config = {requestTimeout: 20};
+        element._restoreConfiguration(config);
+        assert.equal(element.requestTimeout, 20);
+      });
+
+      test('Set requestTimeout property when value is string', () => {
+        const config = {requestTimeout: '20'};
+        element._restoreConfiguration(config);
+        assert.equal(element.requestTimeout, 20);
+      });
+
+      test('Set validateCertificates when true', () => {
+        const config = {validateCertificates: true};
+        element._restoreConfiguration(config);
+        assert.isTrue(element.validateCertificates);
+      });
+
+      test('Set validateCertificates when false', () => {
+        const config = {validateCertificates: false};
+        element._restoreConfiguration(config);
+        assert.isFalse(element.validateCertificates);
+      });
+
+      test('Set followRedirects when true', () => {
+        const config = {followRedirects: true};
+        element._restoreConfiguration(config);
+        assert.isTrue(element.followRedirects);
+      });
+
+      test('Set followRedirects when false', () => {
+        const config = {followRedirects: false};
+        element._restoreConfiguration(config);
+        assert.isFalse(element.followRedirects);
+      });
+
+      test('Set sentMessageLimit property', () => {
+        const config = {sentMessageLimit: 20};
+        element._restoreConfiguration(config);
+        assert.equal(element.sentMessageLimit, 20);
+      });
+
+      test('Set sentMessageLimit property when value is string', () => {
+        const config = {sentMessageLimit: '20'};
+        element._restoreConfiguration(config);
+        assert.equal(element.sentMessageLimit, 20);
+      });
+    });
+
     suite('_afterRestore()', () => {
       let element;
       setup(() => {
@@ -283,6 +364,26 @@
         });
         assert.isTrue(spy.called);
         assert.equal(spy.args[0][0], env);
+      });
+
+      test('Calls _restoreVariables()', () => {
+        const vars = [{variable: 'test'}];
+        const spy = sinon.spy(element, '_restoreVariables');
+        element._restore({
+          variables: vars
+        });
+        assert.isTrue(spy.called);
+        assert.deepEqual(spy.args[0][0], vars);
+      });
+
+      test('Calls _restoreConfiguration()', () => {
+        const config = {followRedirects: true};
+        const spy = sinon.spy(element, '_restoreConfiguration');
+        element._restore({
+          config
+        });
+        assert.isTrue(spy.called);
+        assert.deepEqual(spy.args[0][0], config);
       });
     });
 
@@ -404,6 +505,66 @@
       });
     });
 
+    suite('serializeConfig()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Returns object', () => {
+        const result = element.serializeConfig();
+        assert.typeOf(result, 'object');
+      });
+
+      test('Sets requestTimeout when a number', () => {
+        element.requestTimeout = 20;
+        const result = element.serializeConfig();
+        assert.equal(result.requestTimeout, 20);
+      });
+
+      test('Skips requestTimeout when not a number', () => {
+        element.requestTimeout = 'test';
+        const result = element.serializeConfig();
+        assert.isUndefined(result.requestTimeout);
+      });
+
+      test('Sets sentMessageLimit when a number', () => {
+        element.sentMessageLimit = 20;
+        const result = element.serializeConfig();
+        assert.equal(result.sentMessageLimit, 20);
+      });
+
+      test('Skips sentMessageLimit when not a number', () => {
+        element.sentMessageLimit = 'test';
+        const result = element.serializeConfig();
+        assert.isUndefined(result.sentMessageLimit);
+      });
+
+      test('Sets validateCertificates when a boolean', () => {
+        element.validateCertificates = false;
+        const result = element.serializeConfig();
+        assert.isFalse(result.validateCertificates);
+      });
+
+      test('Skips validateCertificates when not a boolean', () => {
+        element.validateCertificates = 'test';
+        const result = element.serializeConfig();
+        assert.isUndefined(result.validateCertificates);
+      });
+
+      test('Sets followRedirects when a boolean', () => {
+        element.followRedirects = false;
+        const result = element.serializeConfig();
+        assert.isFalse(result.followRedirects);
+      });
+
+      test('Skips followRedirects when not a boolean', () => {
+        element.followRedirects = 'test';
+        const result = element.serializeConfig();
+        assert.isUndefined(result.followRedirects);
+      });
+    });
+
     suite('serializeWorkspace()', () => {
       let element;
       setup(() => {
@@ -451,6 +612,18 @@
         });
         const result = element.serializeWorkspace();
         assert.deepEqual(result.requests, element.activeRequests);
+      });
+
+      test('Calls serializeConfig()', () => {
+        const spy = sinon.spy(element, 'serializeConfig');
+        element.serializeWorkspace();
+        assert.isTrue(spy.called);
+      });
+
+      test('Sets config', () => {
+        element.followRedirects = true;
+        const result = element.serializeWorkspace();
+        assert.deepEqual(result.config, {followRedirects: true});
       });
     });
 
@@ -501,6 +674,56 @@
         assert.typeOf(detail, 'object');
         const compare = element.serializeWorkspace();
         assert.deepEqual(detail.value, compare, 'Detail is set');
+      });
+    });
+
+    suite('_workspaceConfigChanged()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Calls _notifyStoreWorkspace()', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element._notifyStoreWorkspace();
+        assert.isTrue(spy.called);
+      });
+
+      test('Won\'t call _notifyStoreWorkspace() when restoring', () => {
+        element._setRestoring(true);
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element._notifyStoreWorkspace();
+        assert.isFalse(spy.called);
+      });
+
+      test('Called when "environment" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.environment = 'test';
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "requestTimeout" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.requestTimeout = 100;
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "validateCertificates" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.validateCertificates = true;
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "followRedirects" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.followRedirects = true;
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "sentMessageLimit" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.sentMessageLimit = 100;
+        assert.isTrue(spy.called);
       });
     });
   });

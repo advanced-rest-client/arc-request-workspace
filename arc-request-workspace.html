@@ -319,10 +319,39 @@
          * Currently selected workspace.
          * When this value change it triggers workspace state change.
          */
-        environment: {
-          type: String,
-          observer: '_envChanged'
-        },
+        environment: {type: String, observer: '_workspaceConfigChanged'},
+        /**
+         * Workspace variables.
+         * It is added to each request sent from this worksapce so the request logic
+         * can apply additional variables.
+         * @type {Array<Object>}
+         */
+        variables: Array,
+        /**
+         * Each request sent from this workspace timeout.
+         * @type {Number}
+         */
+        requestTimeout: {type: Number, observer: '_workspaceConfigChanged'},
+        /**
+         * Added to all requests sent from this workspace.
+         * Instructs the transport library to validate SSL certificates.
+         * @type {Boolean}
+         */
+        validateCertificates: {type: Boolean, observer: '_workspaceConfigChanged'},
+        /**
+         * Added to all requests sent from this workspace.
+         * Instructs the transport library how to manage redirects.
+         * @type {Boolean}
+         */
+        followRedirects: {type: Boolean, observer: '_workspaceConfigChanged'},
+        /**
+         * Added to all requests sent from this workspace.
+         * Instructs the transport library to limit the size of the source message
+         * sent to the server returned by the library. It is used to limit
+         * memory use when reading the response.
+         * @type {Number}
+         */
+        sentMessageLimit: {type: Number, observer: '_workspaceConfigChanged'},
         /**
          * If set then workspace restoration process is in progress.
          */
@@ -366,7 +395,8 @@
 
     static get observers() {
       return [
-        '_requestsListChanged(activeRequests.*)'
+        '_requestsListChanged(activeRequests.*)',
+        '_variablesChanged(variables.*)'
       ];
     }
 
@@ -376,6 +406,7 @@
       this._requestChangeHandler = this._requestChangeHandler.bind(this);
       this._requestDeleteHandler = this._requestDeleteHandler.bind(this);
       this._appendRequestHandler = this._appendRequestHandler.bind(this);
+      this._sendRequestHandler = this._sendRequestHandler.bind(this);
     }
 
     connectedCallback() {
@@ -384,6 +415,7 @@
       window.addEventListener('request-object-changed', this._requestChangeHandler);
       window.addEventListener('request-object-deleted', this._requestDeleteHandler);
       window.addEventListener('request-workspace-append', this._appendRequestHandler);
+      this.addEventListener('api-request', this._sendRequestHandler);
       if (!this.noAutoRestore && !this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
       }
@@ -396,6 +428,7 @@
       window.removeEventListener('request-object-changed', this._requestChangeHandler);
       window.removeEventListener('request-object-deleted', this._requestDeleteHandler);
       window.removeEventListener('request-workspace-append', this._appendRequestHandler);
+      this.removeEventListener('api-request', this._sendRequestHandler);
     }
 
     /**
@@ -596,7 +629,9 @@
         case 'activeRequests.length':
           return;
         case 'activeRequests.splices':
-          if (!record.value.keySplices || !record.value.keySplices[0].removed.length) {
+          const splice = record.value.indexSplices && record.value.indexSplices[0];
+          const removed = splice && splice.removed;
+          if (!removed || !removed.length) {
             return;
           }
       }
@@ -616,15 +651,20 @@
       this.environment = value;
     }
     /**
-     * Notifies workspace change when environment changes.
+     * Observer for workspace variable change.
+     * Notifies workspace state change when needed.
+     * @param {Object} record Polymer's change record
      */
-    _envChanged() {
+    _variablesChanged(record) {
       if (this.restoring) {
+        return;
+      }
+      const {path} = record;
+      if (!path || path.indexOf('.length') !== -1) {
         return;
       }
       this._notifyStoreWorkspace();
     }
-
     /**
      * Finds requests index in the list of active requests.
      *
@@ -1104,6 +1144,44 @@
     _appendRequestHandler(e) {
       const {request} = e.detail;
       this.appendRequest(request);
+    }
+    /**
+     * Adds workspace configuration to the request object.
+     * This overrides application configuration.
+     * The function won't set configuration property when it is already set on the request.
+     * @param {CustomEvent} e `api-request` event dispatched from any panel.
+     */
+    _sendRequestHandler(e) {
+      const config = {};
+      const rConfig = e.detail.config || {};
+      if (typeof rConfig.timeout !== 'number' && typeof this.requestTimeout === 'number') {
+        config.timeout = this.requestTimeout;
+      }
+      if (typeof rConfig.validateCertificates !== 'boolean' &&
+        typeof this.validateCertificates === 'boolean') {
+        config.validateCertificates = this.validateCertificates;
+      }
+      if (typeof rConfig.followRedirects !== 'boolean' &&
+        typeof this.followRedirects === 'boolean') {
+        config.followRedirects = this.followRedirects;
+      }
+      if (typeof rConfig.sentMessageLimit !== 'number' &&
+        typeof this.sentMessageLimit === 'number') {
+        config.sentMessageLimit = this.sentMessageLimit;
+      }
+      const rVars = rConfig.variables;
+      const hasVars = !!(rVars && rVars instanceof Array && rVars.length);
+      const ownVars = this.variables;
+      if (!hasVars && ownVars && ownVars.length) {
+        config.variables = ownVars.map((item) => Object.assign({}, item));
+      }
+      if (Object.keys(config).length === 0) {
+        return;
+      }
+      if (!e.detail.config) {
+        e.detail.config = {};
+      }
+      e.detail.config = config;
     }
     /**
      * Duplicates tab values at a position

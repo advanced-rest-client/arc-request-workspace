@@ -507,6 +507,142 @@
       });
     });
   });
+
+  suite('_variablesChanged()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      element.variables = [{variable: 'test'}];
+    });
+
+    test('Does nothing when restoring workspace', () => {
+      element._setRestoring(true);
+      const spy = sinon.spy(element, '_notifyStoreWorkspace');
+      element.set('variables.0.value', 'value');
+      assert.isFalse(spy.called);
+    });
+
+    test('Calls _notifyStoreWorkspace() when variable change', () => {
+      const spy = sinon.spy(element, '_notifyStoreWorkspace');
+      element.set('variables.0.value', 'value');
+      assert.equal(spy.callCount, 1);
+    });
+
+    test('Calls _notifyStoreWorkspace() once when adding variable', () => {
+      const spy = sinon.spy(element, '_notifyStoreWorkspace');
+      element.push('variables', {variable: 'other'});
+      assert.equal(spy.callCount, 1);
+    });
+
+    test('Calls _notifyStoreWorkspace() once when removing variable', () => {
+      const spy = sinon.spy(element, '_notifyStoreWorkspace');
+      element.splice('variables', 0, 1);
+      assert.equal(spy.callCount, 1);
+    });
+  });
+
+  suite('_sendRequestHandler()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    function fire(element, config) {
+      const detail = {
+        id: 'test-id',
+        url: 'http://api.domain.com'
+      };
+      if (config) {
+        detail.config = config;
+      }
+      const e = new CustomEvent('api-request', {
+        detail
+      });
+      element.dispatchEvent(e);
+      return e;
+    }
+
+    test('Won\'t create a config object when no properties to add', () => {
+      const e = fire(element);
+      assert.isUndefined(e.detail.config);
+    });
+
+    test('Creates the config object', () => {
+      element.followRedirects = true;
+      const e = fire(element);
+      assert.typeOf(e.detail.config, 'object');
+    });
+
+    test('Sets timeout', () => {
+      element.requestTimeout = 0;
+      const e = fire(element);
+      assert.equal(e.detail.config.timeout, 0);
+    });
+
+    test('Will not set timeout when it is already set', () => {
+      element.requestTimeout = 10;
+      const e = fire(element, {timeout: 5});
+      assert.equal(e.detail.config.timeout, 5);
+    });
+
+    test('Sets sentMessageLimit', () => {
+      element.sentMessageLimit = 0;
+      const e = fire(element);
+      assert.equal(e.detail.config.sentMessageLimit, 0);
+    });
+
+    test('Will not set sentMessageLimit when it is already set', () => {
+      element.sentMessageLimit = 10;
+      const e = fire(element, {sentMessageLimit: 5});
+      assert.equal(e.detail.config.sentMessageLimit, 5);
+    });
+
+    ['followRedirects', 'validateCertificates'].forEach((prop) => {
+      test(`Sets ${prop} when false`, () => {
+        element[prop] = false;
+        const e = fire(element);
+        assert.isFalse(e.detail.config[prop]);
+      });
+
+      test(`Sets ${prop} when true`, () => {
+        element[prop] = true;
+        const e = fire(element);
+        assert.isTrue(e.detail.config[prop]);
+      });
+
+      test(`Will not set ${prop} when it is already set`, () => {
+        element[prop] = true;
+        const config = {};
+        config[prop] = false;
+        const e = fire(element, config);
+        assert.isFalse(e.detail.config[prop]);
+      });
+    });
+
+    test('Sets variables', () => {
+      element.variables = [{variable: 'test'}];
+      const e = fire(element);
+      assert.deepEqual(e.detail.config.variables, element.variables);
+    });
+
+    test('Variables is a copy', () => {
+      element.variables = [{variable: 'test'}];
+      const e = fire(element);
+      e.detail.config.variables.push({variable: 'a'});
+      e.detail.config.variables[0].variable = 'other';
+      assert.lengthOf(element.variables, 1, 'Array is a copy');
+      assert.equal(element.variables[0].variable, 'test', 'Item is a copy');
+    });
+
+    test('Will not set variables if already set', () => {
+      element.variables = [{variable: 'test'}];
+      const cnf = {
+        variables: [{variable: 'other'}]
+      };
+      const e = fire(element, cnf);
+      assert.deepEqual(e.detail.config.variables, cnf.variables);
+    });
+  });
   </script>
 </body>
 </html>
