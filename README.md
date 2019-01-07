@@ -4,7 +4,7 @@
 
 # arc-request-workspace
 
-A request workspace component for Advanced REST Client that creates a list of requests
+A request workspace component for Advanced REST Client.
 
 ```html
 <arc-request-workspace></arc-request-workspace>
