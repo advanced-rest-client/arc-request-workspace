@@ -7,6 +7,29 @@
       "path": "arc-request-workspace.html",
       "properties": [
         {
+          "name": "_dragPossible",
+          "type": "Boolean",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 23,
+              "column": 6
+            },
+            "end": {
+              "line": 26,
+              "column": 7
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
           "name": "dragging",
           "type": "boolean | null | undefined",
           "description": "True when file is dragged over the element.",
@@ -31,38 +54,17 @@
           "inheritedFrom": "ArcComponents.ArcFileDropMixin"
         },
         {
-          "name": "_dragPossible",
-          "type": "Boolean",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 334,
-              "column": 4
-            },
-            "end": {
-              "line": 337,
-              "column": 5
-            }
-          },
-          "metadata": {
-            "polymer": {
-              "readOnly": true
-            }
-          }
-        },
-        {
           "name": "redirectUri",
           "type": "string | null | undefined",
           "description": "The OAuth2 redirect URI to pass to the authorization panel.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 273,
+              "line": 299,
               "column": 8
             },
             "end": {
-              "line": 273,
+              "line": 299,
               "column": 27
             }
           },
@@ -79,11 +81,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 277,
+              "line": 303,
               "column": 8
             },
             "end": {
-              "line": 281,
+              "line": 307,
               "column": 9
             }
           },
@@ -102,11 +104,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 286,
+              "line": 312,
               "column": 8
             },
             "end": {
-              "line": 291,
+              "line": 317,
               "column": 9
             }
           },
@@ -124,18 +126,149 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 296,
+              "line": 322,
               "column": 8
             },
             "end": {
-              "line": 299,
-              "column": 9
+              "line": 322,
+              "column": 72
             }
           },
           "metadata": {
             "polymer": {
-              "observer": "\"_envChanged\"",
+              "observer": "\"_workspaceConfigChanged\"",
               "attributeType": "String"
+            }
+          }
+        },
+        {
+          "name": "variables",
+          "type": "Array.<Object>",
+          "description": "Workspace variables.\nIt is added to each request sent from this worksapce so the request logic\ncan apply additional variables.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 329,
+              "column": 8
+            },
+            "end": {
+              "line": 329,
+              "column": 24
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "attributeType": "Array"
+            }
+          }
+        },
+        {
+          "name": "requestTimeout",
+          "type": "Number",
+          "description": "Each request sent from this workspace timeout.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 334,
+              "column": 8
+            },
+            "end": {
+              "line": 334,
+              "column": 75
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_workspaceConfigChanged\"",
+              "attributeType": "Number"
+            }
+          }
+        },
+        {
+          "name": "validateCertificates",
+          "type": "Boolean",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library to validate SSL certificates.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 340,
+              "column": 8
+            },
+            "end": {
+              "line": 340,
+              "column": 82
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_workspaceConfigChanged\"",
+              "attributeType": "Boolean"
+            }
+          }
+        },
+        {
+          "name": "followRedirects",
+          "type": "Boolean",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library how to manage redirects.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 346,
+              "column": 8
+            },
+            "end": {
+              "line": 346,
+              "column": 77
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_workspaceConfigChanged\"",
+              "attributeType": "Boolean"
+            }
+          }
+        },
+        {
+          "name": "sentMessageLimit",
+          "type": "Number",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library to limit the size of the source message\nsent to the server returned by the library. It is used to limit\nmemory use when reading the response.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 354,
+              "column": 8
+            },
+            "end": {
+              "line": 354,
+              "column": 77
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_workspaceConfigChanged\"",
+              "attributeType": "Number"
+            }
+          }
+        },
+        {
+          "name": "workspaceReadOnly",
+          "type": "number | null | undefined",
+          "description": "When set writing to the workspace state file is disabled.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 358,
+              "column": 8
+            },
+            "end": {
+              "line": 358,
+              "column": 80
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_workspaceReadOnlyChanged\"",
+              "attributeType": "Number"
             }
           }
         },
@@ -146,11 +279,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 303,
+              "line": 362,
               "column": 8
             },
             "end": {
-              "line": 309,
+              "line": 368,
               "column": 9
             }
           },
@@ -170,11 +303,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 314,
+              "line": 373,
               "column": 8
             },
             "end": {
-              "line": 314,
+              "line": 373,
               "column": 30
             }
           },
@@ -187,15 +320,15 @@
         {
           "name": "editorOpened",
           "type": "boolean | null | undefined",
-          "description": "",
+          "description": "When set the request meta data editor is opened.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 315,
+              "line": 377,
               "column": 8
             },
             "end": {
-              "line": 315,
+              "line": 377,
               "column": 29
             }
           },
@@ -208,15 +341,15 @@
         {
           "name": "detailsOpened",
           "type": "boolean | null | undefined",
-          "description": "",
+          "description": "When set the request meta data viewer is opened.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 316,
+              "line": 381,
               "column": 8
             },
             "end": {
-              "line": 316,
+              "line": 381,
               "column": 30
             }
           },
@@ -229,15 +362,15 @@
         {
           "name": "snippetsOpened",
           "type": "boolean | null | undefined",
-          "description": "",
+          "description": "When set the code snippets element is opened.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 317,
+              "line": 385,
               "column": 8
             },
             "end": {
-              "line": 317,
+              "line": 385,
               "column": 31
             }
           },
@@ -250,15 +383,15 @@
         {
           "name": "snippetRequest",
           "type": "boolean | null | undefined",
-          "description": "",
+          "description": "A request object to be passed to the code snippets element.",
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 318,
+              "line": 389,
               "column": 8
             },
             "end": {
-              "line": 318,
+              "line": 389,
               "column": 31
             }
           },
@@ -275,11 +408,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 322,
+              "line": 393,
               "column": 8
             },
             "end": {
-              "line": 322,
+              "line": 393,
               "column": 52
             }
           },
@@ -287,6 +420,72 @@
             "polymer": {
               "readOnly": true,
               "attributeType": "Boolean"
+            }
+          }
+        },
+        {
+          "name": "noAutoProjects",
+          "type": "boolean | null | undefined",
+          "description": "When set the elements that require project data won't automatically\nask for project data.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 398,
+              "column": 8
+            },
+            "end": {
+              "line": 398,
+              "column": 31
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "attributeType": "Boolean"
+            }
+          }
+        },
+        {
+          "name": "narrow",
+          "type": "boolean | null | undefined",
+          "description": "If set it renders the view in the narrow layout.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 402,
+              "column": 8
+            },
+            "end": {
+              "line": 402,
+              "column": 73
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_narrowChanged\"",
+              "attributeType": "Boolean"
+            }
+          },
+          "defaultValue": "false"
+        },
+        {
+          "name": "oauth2RedirectUri",
+          "type": "string | null | undefined",
+          "description": "Redirect URL for the OAuth2 authorization.\nIf can be also set by dispatching `oauth2-redirect-url-changed`\nwith `value` property on the `detail` object.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 408,
+              "column": 8
+            },
+            "end": {
+              "line": 408,
+              "column": 71
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "observer": "\"_oauthUriChanged\"",
+              "attributeType": "String"
             }
           }
         }
@@ -297,184 +496,174 @@
           "description": "",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 41,
+              "line": 43,
               "column": 6
             },
             "end": {
-              "line": 47,
+              "line": 49,
               "column": 7
             }
           },
           "metadata": {},
           "params": [],
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__setPanelRequestProperties",
-          "description": "",
+          "description": "Sets initial properties to the request panel.\nNote, this operation may be very resource consuming since (depending on the request)\nthere may be a lot of computations happening in the request editor.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 49,
+              "line": 57,
               "column": 6
             },
             "end": {
-              "line": 58,
+              "line": 65,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "Element",
+              "description": "Request panel"
             },
             {
-              "name": "request"
+              "name": "request",
+              "type": "Object",
+              "description": "The request object"
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "__setPanelConfiguration",
+          "description": "Passes configuration like `narrow` and `oauth2RedirectUri` to the panel",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 70,
+              "column": 6
+            },
+            "end": {
+              "line": 73,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "panel",
+              "type": "Element",
+              "description": "Request panel"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__addPanelListeners",
-          "description": "",
+          "description": "Adds event listeners to the panel",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 60,
+              "line": 78,
               "column": 6
             },
             "end": {
-              "line": 70,
+              "line": 90,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "!Element",
+              "description": "Request panel"
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__removePanelListeners",
-          "description": "",
+          "description": "Removes previously attached listeners from the panel",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 72,
+              "line": 95,
               "column": 6
             },
             "end": {
-              "line": 83,
+              "line": 108,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "!Element",
+              "description": "Request panel"
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__getPanelById",
-          "description": "",
+          "description": "Finds and returns panel by id in shadow DOM.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 85,
+              "line": 114,
               "column": 6
             },
             "end": {
-              "line": 87,
+              "line": 116,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "id"
+              "name": "id",
+              "type": "!String",
+              "description": "Request/panel id"
             }
           ],
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "return": {
+            "type": "(Element | undefined)",
+            "desc": "Request panel or undefined if not found"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__addPanel",
-          "description": "",
+          "description": "Adds new panel to the shadow DOM based on passed request.\nThe request object must contain its `_id` property when performing this\naction even when the request is not saved to the store.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 89,
-              "column": 6
-            },
-            "end": {
-              "line": 99,
-              "column": 7
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "request"
-            }
-          ],
-          "return": {
-            "type": "void"
-          },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
-        },
-        {
-          "name": "__removePanel",
-          "description": "",
-          "privacy": "private",
-          "sourceRange": {
-            "file": "request-panels-mixin.html",
-            "start": {
-              "line": 101,
-              "column": 6
-            },
-            "end": {
-              "line": 109,
-              "column": 7
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "id"
-            }
-          ],
-          "return": {
-            "type": "void"
-          },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
-        },
-        {
-          "name": "__editorRequestHandler",
-          "description": "",
-          "privacy": "private",
-          "sourceRange": {
-            "file": "request-panels-mixin.html",
-            "start": {
-              "line": 111,
+              "line": 123,
               "column": 6
             },
             "end": {
@@ -485,52 +674,110 @@
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "request",
+              "type": "!Object",
+              "description": "Any properties from ARC request + '_id'."
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
-          "name": "__editorMetaHandler",
-          "description": "",
+          "name": "__removePanel",
+          "description": "Removes panel from the shadow DOM.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 139,
+              "line": 142,
               "column": 6
             },
             "end": {
-              "line": 178,
+              "line": 150,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "id",
+              "type": "String",
+              "description": "Request/panel id"
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
-          "name": "__deselectActivePanel",
-          "description": "",
+          "name": "__editorRequestHandler",
+          "description": "Handler for the `editor-request-changed` from the `request-panel`.\nNotifies application about the state.\nThis works as a bridge between Polymer's binding system and the app\nas the request panel is inserted into the DOM manually.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 180,
+              "line": 158,
               "column": 6
             },
             "end": {
-              "line": 185,
+              "line": 184,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "__editorMetaHandler",
+          "description": "Handler for `editor-state-changed`, `response-meta-changed`,\n`response-changed`, `response-error-changed`, and `is-error-response-changed`\nevents to update workspace state when any of the meta data to store\nin workspace file changes.",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 192,
+              "column": 6
+            },
+            "end": {
+              "line": 229,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "__deselectPanels",
+          "description": "Hiddes all visible panels in the view by adding \"hidden\" attribute.",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 233,
+              "column": 6
+            },
+            "end": {
+              "line": 238,
               "column": 7
             }
           },
@@ -539,75 +786,671 @@
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__selectPanel",
-          "description": "",
+          "description": "Shows a panel in the view by removing \"hidden\" attribute.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
             "start": {
-              "line": 187,
+              "line": 243,
               "column": 6
             },
             "end": {
-              "line": 196,
+              "line": 252,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "id"
+              "name": "id",
+              "type": "String",
+              "description": "Panel / request id"
             }
           ],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
         },
         {
           "name": "__updatePanelRequest",
-          "description": "",
+          "description": "Updates request object on existing panel.\nThe request object may have different id to replace the request at a position.\nIf the ID is different new ID from the request object is used.",
           "privacy": "private",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 260,
+              "column": 6
+            },
+            "end": {
+              "line": 267,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "Request / panel id"
+            },
+            {
+              "name": "request",
+              "type": "Object",
+              "description": "Request properties to set."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "__removeAllPanels",
+          "description": "Removes all panels from the workspace.",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 271,
+              "column": 6
+            },
+            "end": {
+              "line": 277,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "__updatePanelsProperty",
+          "description": "Updates a property on all panels",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-requests-mixin.html",
+            "start": {
+              "line": 283,
+              "column": 6
+            },
+            "end": {
+              "line": 288,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "prop",
+              "type": "String",
+              "description": "Property name to set"
+            },
+            {
+              "name": "value",
+              "type": "*",
+              "description": "Property value"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceRequestsMixin"
+        },
+        {
+          "name": "_handleTrack",
+          "description": "Handles track event dispatched by `Polymer.Gestures` library.\nThis method calls corresponding method to current dragging state.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 32,
+              "column": 6
+            },
+            "end": {
+              "line": 47,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_onTrackStart",
+          "description": "Initializes the tracking of an element.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 52,
+              "column": 6
+            },
+            "end": {
+              "line": 61,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent",
+              "description": "Original event from the Gestures library."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_onTrack",
+          "description": "Called when the element is being tacked (moved).",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 66,
+              "column": 6
+            },
+            "end": {
+              "line": 97,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent",
+              "description": "Original event from the Gestures library."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_onTrackEnd",
+          "description": "Performs operation when the tab drop occurs.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 101,
+              "column": 6
+            },
+            "end": {
+              "line": 130,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_blockEditors",
+          "description": "Sets `readonly` state on all editors",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 134,
+              "column": 6
+            },
+            "end": {
+              "line": 139,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_unblockEditors",
+          "description": "Removes `readonly` state from all editors",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 143,
+              "column": 6
+            },
+            "end": {
+              "line": 151,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_getReorderedItem",
+          "description": "Gets the top level item from the DOM repeater that has been marked as a\ndraggable item.\nThe event can originate from child elements which shouldn't be dragged.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 161,
+              "column": 6
+            },
+            "end": {
+              "line": 176,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "Event",
+              "description": "The track event"
+            }
+          ],
+          "return": {
+            "type": "HTMLElement",
+            "desc": "An element that is container for draggable items. Undefined if couldn't\nfind."
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_updateDragPosition",
+          "description": "Re-positions dragged element to the place where it belongs.\nIt accounts for scroll position if it changed since dragging started.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 182,
+              "column": 6
+            },
+            "end": {
+              "line": 188,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "dx",
+              "type": "Number",
+              "description": "Delta X from starting position."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_updateTabPosition",
+          "description": "Scrolls tabs right or left depending on dragged element position.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-dnd-mixin.html",
+            "start": {
+              "line": 193,
+              "column": 6
+            },
+            "end": {
+              "line": 207,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "ddx",
+              "type": "Number",
+              "description": "delta from last tracked position"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceDndMixin"
+        },
+        {
+          "name": "_dispatchWorkspaceState",
+          "description": "Dispatches `workspace-state-read` event and returns it.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 24,
+              "column": 6
+            },
+            "end": {
+              "line": 28,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "CustomEvent"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "restoreWorkspace",
+          "description": "Restores workspace state.\nIt dispatches `workspace-state-read` custom event to query for workspace data\nand restores requests if they were previously stored.",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 36,
+              "column": 6
+            },
+            "end": {
+              "line": 53,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Promise"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreModelError",
+          "description": "Called when no-model error occurred during workspace restoration.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 58,
+              "column": 6
+            },
+            "end": {
+              "line": 65,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Promise"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restore",
+          "description": "Restores workspace state from previously stored data.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 70,
+              "column": 6
+            },
+            "end": {
+              "line": 80,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "state",
+              "type": "Object",
+              "description": "Workspace state object"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreRequests",
+          "description": "Restores requests from the state object.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 86,
+              "column": 6
+            },
+            "end": {
+              "line": 99,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "requests",
+              "type": "?Array.<Object>",
+              "description": "List of requests to restore. When not set\nthen it adds empty request."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreSelected",
+          "description": "Restores selection from the state file.\nNote, at the point of state restoriation selection won't be handled properly.\nIt has to be re-selected after state restoration is complete.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 107,
+              "column": 6
+            },
+            "end": {
+              "line": 113,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "selected",
+              "type": "?Number",
+              "description": "Selected tab. When not set it selects last available\ntab"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreEnvironment",
+          "description": "Restores selected environment from the state file.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 118,
+              "column": 6
+            },
+            "end": {
+              "line": 126,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "environment",
+              "type": "?String",
+              "description": "Environment to restore. Nothing happens if not set."
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreVariables",
+          "description": "Restores workspace variables.\nEach item must contain the following properties:\n- variable {String} - variable name\n- value {String} - variable value, can contain nested variables\n- enabled {Boolean} - By default it is true, set false to disable the variable",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 135,
+              "column": 6
+            },
+            "end": {
+              "line": 140,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "variables",
+              "type": "?Array.<Object>",
+              "description": "List of variables to restore"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_restoreConfiguration",
+          "description": "Restores workspace variables.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 145,
+              "column": 6
+            },
+            "end": {
+              "line": 164,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "config",
+              "type": "?Object",
+              "description": "Workspace configuration"
+            }
+          ],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_afterRestore",
+          "description": "Forces current selection and resets restoration flags after next\nrender.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 169,
+              "column": 6
+            },
+            "end": {
+              "line": 177,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "serializeWorkspace",
+          "description": "Serializes workspace state to a JavaScript object.",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 182,
+              "column": 6
+            },
+            "end": {
+              "line": 193,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Object",
+            "desc": "An ArcWorkspace object"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "serializeConfig",
+          "description": "Serializes workspace configuration.",
+          "privacy": "public",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
             "start": {
               "line": 198,
               "column": 6
             },
             "end": {
-              "line": 205,
+              "line": 216,
               "column": 7
             }
           },
           "metadata": {},
-          "params": [
-            {
-              "name": "id"
-            },
-            {
-              "name": "request"
-            }
-          ],
+          "params": [],
           "return": {
-            "type": "void"
+            "type": "Object"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
         },
         {
-          "name": "__clearAllPanels",
-          "description": "",
-          "privacy": "private",
+          "name": "_notifyStoreWorkspace",
+          "description": "Runs debouncer and after timeoout it calls `__dispatchStoreWorkspace()`\nto dispatch store event.\nIf timer is running it's going to be cancelled and new timer set.",
+          "privacy": "protected",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-state-mixin.html",
             "start": {
-              "line": 207,
+              "line": 222,
               "column": 6
             },
             "end": {
-              "line": 213,
+              "line": 234,
               "column": 7
             }
           },
@@ -616,36 +1459,95 @@
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
         },
         {
-          "name": "__updatePanelId",
-          "description": "",
-          "privacy": "private",
+          "name": "_clearStoreTimeout",
+          "description": "Clears previously set storing timer.",
+          "privacy": "protected",
           "sourceRange": {
-            "file": "request-panels-mixin.html",
+            "file": "arc-workspace-state-mixin.html",
             "start": {
-              "line": 215,
+              "line": 238,
               "column": 6
             },
             "end": {
-              "line": 222,
+              "line": 245,
               "column": 7
             }
           },
           "metadata": {},
-          "params": [
-            {
-              "name": "oldId"
-            },
-            {
-              "name": "newId"
-            }
-          ],
+          "params": [],
           "return": {
             "type": "void"
           },
-          "inheritedFrom": "ArcComponents.ArcWorkspaceMixin"
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "__dispatchStoreWorkspace",
+          "description": "Dispatches `workspace-state-store` custom event to store workspace data.\nThe type of the request is `workspace-state`.\n\nIf there's an error it is not reported back to the user.",
+          "privacy": "private",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 252,
+              "column": 6
+            },
+            "end": {
+              "line": 262,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_workspaceConfigChanged",
+          "description": "A handler for any of the workspace configuration options changed.\nIt notifies change to the listeners.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 267,
+              "column": 6
+            },
+            "end": {
+              "line": 272,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
+        },
+        {
+          "name": "_workspaceReadOnlyChanged",
+          "description": "Called when workspaceReadOnly property change. Always calls\n`_workspaceReadOnlyChanged()`.",
+          "privacy": "protected",
+          "sourceRange": {
+            "file": "arc-workspace-state-mixin.html",
+            "start": {
+              "line": 277,
+              "column": 6
+            },
+            "end": {
+              "line": 279,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          },
+          "inheritedFrom": "ArcComponents.ArcWorkspaceStateMixin"
         },
         {
           "name": "connectedCallback",
@@ -653,11 +1555,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 347,
+              "line": 428,
               "column": 4
             },
             "end": {
-              "line": 357,
+              "line": 439,
               "column": 5
             }
           },
@@ -804,11 +1706,11 @@
           "sourceRange": {
             "file": "../arc-file-drop-mixin/arc-file-drop-mixin.html",
             "start": {
-              "line": 105,
+              "line": 106,
               "column": 4
             },
             "end": {
-              "line": 132,
+              "line": 137,
               "column": 5
             }
           },
@@ -821,7 +1723,7 @@
             }
           ],
           "return": {
-            "type": "void"
+            "type": "Promise"
           },
           "inheritedFrom": "ArcComponents.ArcFileDropMixin"
         },
@@ -832,11 +1734,11 @@
           "sourceRange": {
             "file": "../arc-file-drop-mixin/arc-file-drop-mixin.html",
             "start": {
-              "line": 138,
+              "line": 143,
               "column": 4
             },
             "end": {
-              "line": 154,
+              "line": 158,
               "column": 5
             }
           },
@@ -860,11 +1762,11 @@
           "sourceRange": {
             "file": "../arc-file-drop-mixin/arc-file-drop-mixin.html",
             "start": {
-              "line": 161,
+              "line": 165,
               "column": 4
             },
             "end": {
-              "line": 170,
+              "line": 174,
               "column": 5
             }
           },
@@ -892,11 +1794,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 359,
+              "line": 441,
               "column": 4
             },
             "end": {
-              "line": 365,
+              "line": 448,
               "column": 5
             }
           },
@@ -907,49 +1809,39 @@
           }
         },
         {
-          "name": "restoreWorkspace",
-          "description": "Restores workspace state.\nIt dispatches `workspace-state-read` custom event to query for workspace data\nand restores requests if they were previously stored.",
-          "privacy": "public",
-          "sourceRange": {
-            "start": {
-              "line": 373,
-              "column": 4
-            },
-            "end": {
-              "line": 417,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "Promise"
-          }
-        },
-        {
-          "name": "_restore",
-          "description": "Restores workspace state from previously stored data.",
+          "name": "_dispatch",
+          "description": "Dispatches bubbling and composed custom event.\nBy default the event is cancelable until `cancelable` property is set to false.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 422,
+              "line": 458,
               "column": 4
             },
             "end": {
-              "line": 453,
+              "line": 470,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "state",
-              "type": "Object",
-              "description": "Workspace state object"
+              "name": "type",
+              "type": "String",
+              "description": "Event type"
+            },
+            {
+              "name": "detail",
+              "type": "?any",
+              "description": "A detail to set"
+            },
+            {
+              "name": "cancelable",
+              "type": "?Boolean",
+              "description": "When false the event is not cancelable."
             }
           ],
           "return": {
-            "type": "void"
+            "type": "CustomEvent"
           }
         },
         {
@@ -958,11 +1850,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 458,
+              "line": 475,
               "column": 4
             },
             "end": {
-              "line": 472,
+              "line": 489,
               "column": 5
             }
           },
@@ -979,11 +1871,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 474,
+              "line": 491,
               "column": 4
             },
             "end": {
-              "line": 482,
+              "line": 499,
               "column": 5
             }
           },
@@ -1003,11 +1895,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 496,
+              "line": 513,
               "column": 4
             },
             "end": {
-              "line": 529,
+              "line": 543,
               "column": 5
             }
           },
@@ -1035,11 +1927,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 533,
+              "line": 547,
               "column": 4
             },
             "end": {
-              "line": 538,
+              "line": 552,
               "column": 5
             }
           },
@@ -1055,11 +1947,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 544,
+              "line": 558,
               "column": 4
             },
             "end": {
-              "line": 555,
+              "line": 570,
               "column": 5
             }
           },
@@ -1082,22 +1974,23 @@
         },
         {
           "name": "_closeRequest",
-          "description": "",
+          "description": "Handler for click event on the request close button.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 557,
+              "line": 575,
               "column": 4
             },
             "end": {
-              "line": 565,
+              "line": 583,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "e",
+              "type": "ClickEvent"
             }
           ],
           "return": {
@@ -1110,11 +2003,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 572,
+              "line": 590,
               "column": 4
             },
             "end": {
-              "line": 597,
+              "line": 613,
               "column": 5
             }
           },
@@ -1136,57 +2029,16 @@
           }
         },
         {
-          "name": "serializeWorkspace",
-          "description": "Serializes workspace state to a JavaScript object.",
+          "name": "refreshTabs",
+          "description": "Update tabs selection.",
           "privacy": "public",
-          "sourceRange": {
-            "start": {
-              "line": 603,
-              "column": 4
-            },
-            "end": {
-              "line": 610,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "Object",
-            "desc": "An ArcWorkspace object"
-          }
-        },
-        {
-          "name": "_notifyStoreWorkspace",
-          "description": "Dispatches `workspace-state-store` custom event to store workspace data.\nThe type of the request is `workspace-state`.\n\nIf there's an error it is not rerported back to the user.",
-          "privacy": "protected",
           "sourceRange": {
             "start": {
               "line": 617,
               "column": 4
             },
             "end": {
-              "line": 635,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "refreshTabs",
-          "description": "Update tabs selection.",
-          "privacy": "public",
-          "sourceRange": {
-            "start": {
-              "line": 639,
-              "column": 4
-            },
-            "end": {
-              "line": 641,
+              "line": 619,
               "column": 5
             }
           },
@@ -1202,11 +2054,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 646,
+              "line": 624,
               "column": 4
             },
             "end": {
-              "line": 657,
+              "line": 635,
               "column": 5
             }
           },
@@ -1228,11 +2080,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 663,
+              "line": 641,
               "column": 4
             },
             "end": {
-              "line": 679,
+              "line": 658,
               "column": 5
             }
           },
@@ -1254,11 +2106,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 685,
+              "line": 664,
               "column": 4
             },
             "end": {
-              "line": 691,
+              "line": 669,
               "column": 5
             }
           },
@@ -1274,21 +2126,27 @@
           }
         },
         {
-          "name": "_envChanged",
-          "description": "Notifies workspace change when environment changes.",
+          "name": "_variablesChanged",
+          "description": "Observer for workspace variable change.\nNotifies workspace state change when needed.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 695,
+              "line": 675,
               "column": 4
             },
             "end": {
-              "line": 700,
+              "line": 684,
               "column": 5
             }
           },
           "metadata": {},
-          "params": [],
+          "params": [
+            {
+              "name": "record",
+              "type": "Object",
+              "description": "Polymer's change record"
+            }
+          ],
           "return": {
             "type": "void"
           }
@@ -1299,11 +2157,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 710,
+              "line": 693,
               "column": 4
             },
             "end": {
-              "line": 716,
+              "line": 699,
               "column": 5
             }
           },
@@ -1326,16 +2184,42 @@
           }
         },
         {
-          "name": "_requestStoreHandler",
-          "description": "It ensures `_id` property exists opens save editor",
+          "name": "_getMenuRequest",
+          "description": "Finds a request associated with the menu item which is the target of the\nevent. The menu item has to have `data-id` property set to request ID.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 722,
+              "line": 706,
               "column": 4
             },
             "end": {
-              "line": 732,
+              "line": 713,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "ClickEvent"
+            }
+          ],
+          "return": {
+            "type": "(Object | undefined)",
+            "desc": "Request object or undefined if not found."
+          }
+        },
+        {
+          "name": "_requestStoreHandler",
+          "description": "Opens save editor",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 719,
+              "column": 4
+            },
+            "end": {
+              "line": 727,
               "column": 5
             }
           },
@@ -1356,11 +2240,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 738,
+              "line": 733,
               "column": 4
             },
             "end": {
-              "line": 749,
+              "line": 742,
               "column": 5
             }
           },
@@ -1381,11 +2265,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 756,
+              "line": 749,
               "column": 4
             },
             "end": {
-              "line": 767,
+              "line": 758,
               "column": 5
             }
           },
@@ -1401,16 +2285,127 @@
           }
         },
         {
+          "name": "_requestStoreFileHandler",
+          "description": "Handler for the store to file request menu item.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 763,
+              "column": 4
+            },
+            "end": {
+              "line": 771,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "ClickEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_requestStoreDriveHandler",
+          "description": "Handler for the store to Drive request menu item.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 776,
+              "column": 4
+            },
+            "end": {
+              "line": 784,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "ClickEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_exportRequest",
+          "description": "Runs export flow.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 791,
+              "column": 4
+            },
+            "end": {
+              "line": 808,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "request",
+              "type": "Object",
+              "description": "Request object to export."
+            },
+            {
+              "name": "destination",
+              "type": "String",
+              "description": "Destination supported by the export component."
+            }
+          ],
+          "return": {
+            "type": "Promise"
+          }
+        },
+        {
+          "name": "_dispatchExportData",
+          "description": "Dispatches `export-data` event and returns it.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 815,
+              "column": 4
+            },
+            "end": {
+              "line": 832,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "destination",
+              "type": "String",
+              "description": "A place where export the data (file, drive)"
+            },
+            {
+              "name": "requests",
+              "type": "(Array.<Object> | Boolean)"
+            }
+          ],
+          "return": {
+            "type": "CustomEvent"
+          }
+        },
+        {
           "name": "_requestChangeHandler",
           "description": "Handler for non cancelable `request-object-changed` custom event.\nUpdates request object if it's one of currently opened objects.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 773,
+              "line": 838,
               "column": 4
             },
             "end": {
-              "line": 783,
+              "line": 848,
               "column": 5
             }
           },
@@ -1431,81 +2426,7 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 791,
-              "column": 4
-            },
-            "end": {
-              "line": 810,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "e",
-              "type": "CustomEvent"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_handleTrack",
-          "description": "Handles track event dispatched by `Polymer.Gestures` library.\nThis method calls corresponding method to current dragging state.",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 816,
-              "column": 4
-            },
-            "end": {
-              "line": 831,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "e",
-              "type": "CustomEvent"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_onTrackStart",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 833,
-              "column": 4
-            },
-            "end": {
-              "line": 842,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "e"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_onTrack",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 844,
+              "line": 856,
               "column": 4
             },
             "end": {
@@ -1516,144 +2437,8 @@
           "metadata": {},
           "params": [
             {
-              "name": "e"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_onTrackEnd",
-          "description": "Performs operation when the tab drop occurs.",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 879,
-              "column": 4
-            },
-            "end": {
-              "line": 906,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_blockEditors",
-          "description": "Sets `readonly` state on all editors",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 910,
-              "column": 4
-            },
-            "end": {
-              "line": 915,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_unblockEditors",
-          "description": "Removes `readonly` state from all editors",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 919,
-              "column": 4
-            },
-            "end": {
-              "line": 927,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_getReorderedItem",
-          "description": "Gets the top level item from the DOM repeater that has been marked as a\ndraggable item.\nThe event can originate from child elements which shouldn't be dragged.",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 937,
-              "column": 4
-            },
-            "end": {
-              "line": 952,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
               "name": "e",
-              "type": "Event",
-              "description": "The track event"
-            }
-          ],
-          "return": {
-            "type": "HTMLElement",
-            "desc": "An element that is container for draggable items. Undefined if couldn't\nfind."
-          }
-        },
-        {
-          "name": "_updateDragPosition",
-          "description": "Re-positions dragged element to the place where it belongs.\nIt accounts for scroll position if it changed since dragging started.",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 958,
-              "column": 4
-            },
-            "end": {
-              "line": 964,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "dx",
-              "type": "Number",
-              "description": "Delta X from starting position."
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "_updateTabPosition",
-          "description": "",
-          "privacy": "protected",
-          "sourceRange": {
-            "start": {
-              "line": 966,
-              "column": 4
-            },
-            "end": {
-              "line": 980,
-              "column": 5
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "ddx"
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -1666,11 +2451,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 987,
+              "line": 882,
               "column": 4
             },
             "end": {
-              "line": 1028,
+              "line": 918,
               "column": 5
             }
           },
@@ -1697,11 +2482,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1035,
+              "line": 925,
               "column": 4
             },
             "end": {
-              "line": 1038,
+              "line": 928,
               "column": 5
             }
           },
@@ -1728,11 +2513,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1044,
+              "line": 934,
               "column": 4
             },
             "end": {
-              "line": 1054,
+              "line": 944,
               "column": 5
             }
           },
@@ -1754,11 +2539,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1060,
+              "line": 950,
               "column": 4
             },
             "end": {
-              "line": 1107,
+              "line": 997,
               "column": 5
             }
           },
@@ -1780,11 +2565,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1113,
+              "line": 1003,
               "column": 4
             },
             "end": {
-              "line": 1116,
+              "line": 1006,
               "column": 5
             }
           },
@@ -1806,11 +2591,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1121,
+              "line": 1011,
               "column": 4
             },
             "end": {
-              "line": 1142,
+              "line": 1032,
               "column": 5
             }
           },
@@ -1832,11 +2617,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1149,
+              "line": 1039,
               "column": 4
             },
             "end": {
-              "line": 1172,
+              "line": 1062,
               "column": 5
             }
           },
@@ -1854,22 +2639,23 @@
         },
         {
           "name": "_resizeSheetContent",
-          "description": "",
+          "description": "Called to request resize on opened `bottom-sheet` element.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1174,
+              "line": 1067,
               "column": 4
             },
             "end": {
-              "line": 1180,
+              "line": 1073,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "e",
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -1878,22 +2664,24 @@
         },
         {
           "name": "_openSaveDialog",
-          "description": "",
+          "description": "Render saved dialog (bottom-sheet)",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1182,
+              "line": 1078,
               "column": 4
             },
             "end": {
-              "line": 1188,
+              "line": 1084,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "request"
+              "name": "request",
+              "type": "Object",
+              "description": "Request to set on the editor"
             }
           ],
           "return": {
@@ -1902,22 +2690,23 @@
         },
         {
           "name": "_cancelRequestEdit",
-          "description": "",
+          "description": "Cancels request edit dialog and closes the dialog.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1190,
+              "line": 1089,
               "column": 4
             },
             "end": {
-              "line": 1194,
+              "line": 1093,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "e",
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -1926,15 +2715,15 @@
         },
         {
           "name": "_saveRequestEdit",
-          "description": "",
+          "description": "Closes request edit dialog when save event is dispatched.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1196,
+              "line": 1098,
               "column": 4
             },
             "end": {
-              "line": 1199,
+              "line": 1101,
               "column": 5
             }
           },
@@ -1946,22 +2735,23 @@
         },
         {
           "name": "_deleteRequestDetails",
-          "description": "",
+          "description": "Handler for the delete action from the details popup.",
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1201,
+              "line": 1106,
               "column": 4
             },
             "end": {
-              "line": 1218,
+              "line": 1118,
               "column": 5
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "e",
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -1974,11 +2764,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1220,
+              "line": 1120,
               "column": 4
             },
             "end": {
-              "line": 1226,
+              "line": 1126,
               "column": 5
             }
           },
@@ -1998,11 +2788,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1231,
+              "line": 1131,
               "column": 4
             },
             "end": {
-              "line": 1243,
+              "line": 1143,
               "column": 5
             }
           },
@@ -2018,11 +2808,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1247,
+              "line": 1147,
               "column": 4
             },
             "end": {
-              "line": 1250,
+              "line": 1150,
               "column": 5
             }
           },
@@ -2038,11 +2828,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1254,
+              "line": 1154,
               "column": 4
             },
             "end": {
-              "line": 1257,
+              "line": 1157,
               "column": 5
             }
           },
@@ -2058,11 +2848,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1261,
+              "line": 1161,
               "column": 4
             },
             "end": {
-              "line": 1264,
+              "line": 1164,
               "column": 5
             }
           },
@@ -2078,11 +2868,11 @@
           "privacy": "public",
           "sourceRange": {
             "start": {
-              "line": 1268,
+              "line": 1168,
               "column": 4
             },
             "end": {
-              "line": 1275,
+              "line": 1175,
               "column": 5
             }
           },
@@ -2098,11 +2888,11 @@
           "privacy": "protected",
           "sourceRange": {
             "start": {
-              "line": 1281,
+              "line": 1181,
               "column": 4
             },
             "end": {
-              "line": 1284,
+              "line": 1184,
               "column": 5
             }
           },
@@ -2112,6 +2902,155 @@
               "name": "e",
               "type": "CustomEvent",
               "description": "A `request` property on detail object is expected."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_sendRequestHandler",
+          "description": "Adds workspace configuration to the request object.\nThis overrides application configuration.\nThe function won't set configuration property when it is already set on the request.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1191,
+              "column": 4
+            },
+            "end": {
+              "line": 1222,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent",
+              "description": "`api-request` event dispatched from any panel."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "duplicateTab",
+          "description": "Duplicates tab values at a position",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 1227,
+              "column": 4
+            },
+            "end": {
+              "line": 1243,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "index",
+              "type": "Number",
+              "description": "Selected tab"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_clearRequestMeta",
+          "description": "Removes all stored properties in a request object to prepare ArcRequest object.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1250,
+              "column": 4
+            },
+            "end": {
+              "line": 1260,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "request",
+              "type": "Object"
+            },
+            {
+              "name": "includeIds",
+              "type": "Boolean"
+            }
+          ],
+          "return": {
+            "type": "Object"
+          }
+        },
+        {
+          "name": "closeActiveTab",
+          "description": "Closes currently selected tab.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 1264,
+              "column": 4
+            },
+            "end": {
+              "line": 1267,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_narrowChanged",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1269,
+              "column": 4
+            },
+            "end": {
+              "line": 1271,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "value"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_oauthUriChanged",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 1273,
+              "column": 4
+            },
+            "end": {
+              "line": 1275,
+              "column": 5
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "value"
             }
           ],
           "return": {
@@ -2129,11 +3068,11 @@
       "metadata": {},
       "sourceRange": {
         "start": {
-          "line": 262,
+          "line": 286,
           "column": 2
         },
         "end": {
-          "line": 1285,
+          "line": 1276,
           "column": 3
         }
       },
@@ -2164,11 +3103,11 @@
           "description": "The OAuth2 redirect URI to pass to the authorization panel.",
           "sourceRange": {
             "start": {
-              "line": 273,
+              "line": 299,
               "column": 8
             },
             "end": {
-              "line": 273,
+              "line": 299,
               "column": 27
             }
           },
@@ -2180,11 +3119,11 @@
           "description": "Index of selected request panel",
           "sourceRange": {
             "start": {
-              "line": 277,
+              "line": 303,
               "column": 8
             },
             "end": {
-              "line": 281,
+              "line": 307,
               "column": 9
             }
           },
@@ -2196,11 +3135,11 @@
           "description": "List of currently loaded requests",
           "sourceRange": {
             "start": {
-              "line": 286,
+              "line": 312,
               "column": 8
             },
             "end": {
-              "line": 291,
+              "line": 317,
               "column": 9
             }
           },
@@ -2212,27 +3151,123 @@
           "description": "Currently selected workspace.\nWhen this value change it triggers workspace state change.",
           "sourceRange": {
             "start": {
-              "line": 296,
+              "line": 322,
               "column": 8
             },
             "end": {
-              "line": 299,
-              "column": 9
+              "line": 322,
+              "column": 72
             }
           },
           "metadata": {},
           "type": "string | null | undefined"
         },
         {
+          "name": "variables",
+          "description": "Workspace variables.\nIt is added to each request sent from this worksapce so the request logic\ncan apply additional variables.",
+          "sourceRange": {
+            "start": {
+              "line": 329,
+              "column": 8
+            },
+            "end": {
+              "line": 329,
+              "column": 24
+            }
+          },
+          "metadata": {},
+          "type": "Array.<Object>"
+        },
+        {
+          "name": "request-timeout",
+          "description": "Each request sent from this workspace timeout.",
+          "sourceRange": {
+            "start": {
+              "line": 334,
+              "column": 8
+            },
+            "end": {
+              "line": 334,
+              "column": 75
+            }
+          },
+          "metadata": {},
+          "type": "Number"
+        },
+        {
+          "name": "validate-certificates",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library to validate SSL certificates.",
+          "sourceRange": {
+            "start": {
+              "line": 340,
+              "column": 8
+            },
+            "end": {
+              "line": 340,
+              "column": 82
+            }
+          },
+          "metadata": {},
+          "type": "Boolean"
+        },
+        {
+          "name": "follow-redirects",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library how to manage redirects.",
+          "sourceRange": {
+            "start": {
+              "line": 346,
+              "column": 8
+            },
+            "end": {
+              "line": 346,
+              "column": 77
+            }
+          },
+          "metadata": {},
+          "type": "Boolean"
+        },
+        {
+          "name": "sent-message-limit",
+          "description": "Added to all requests sent from this workspace.\nInstructs the transport library to limit the size of the source message\nsent to the server returned by the library. It is used to limit\nmemory use when reading the response.",
+          "sourceRange": {
+            "start": {
+              "line": 354,
+              "column": 8
+            },
+            "end": {
+              "line": 354,
+              "column": 77
+            }
+          },
+          "metadata": {},
+          "type": "Number"
+        },
+        {
+          "name": "workspace-read-only",
+          "description": "When set writing to the workspace state file is disabled.",
+          "sourceRange": {
+            "start": {
+              "line": 358,
+              "column": 8
+            },
+            "end": {
+              "line": 358,
+              "column": 80
+            }
+          },
+          "metadata": {},
+          "type": "number | null | undefined"
+        },
+        {
           "name": "restoring",
           "description": "If set then workspace restoration process is in progress.",
           "sourceRange": {
             "start": {
-              "line": 303,
+              "line": 362,
               "column": 8
             },
             "end": {
-              "line": 309,
+              "line": 368,
               "column": 9
             }
           },
@@ -2244,11 +3279,11 @@
           "description": "The component automatically ask to restore workspace when connected\nto the DOM. This ensures to prohibit auto restore request.",
           "sourceRange": {
             "start": {
-              "line": 314,
+              "line": 373,
               "column": 8
             },
             "end": {
-              "line": 314,
+              "line": 373,
               "column": 30
             }
           },
@@ -2257,14 +3292,14 @@
         },
         {
           "name": "editor-opened",
-          "description": "",
+          "description": "When set the request meta data editor is opened.",
           "sourceRange": {
             "start": {
-              "line": 315,
+              "line": 377,
               "column": 8
             },
             "end": {
-              "line": 315,
+              "line": 377,
               "column": 29
             }
           },
@@ -2273,14 +3308,14 @@
         },
         {
           "name": "details-opened",
-          "description": "",
+          "description": "When set the request meta data viewer is opened.",
           "sourceRange": {
             "start": {
-              "line": 316,
+              "line": 381,
               "column": 8
             },
             "end": {
-              "line": 316,
+              "line": 381,
               "column": 30
             }
           },
@@ -2289,14 +3324,14 @@
         },
         {
           "name": "snippets-opened",
-          "description": "",
+          "description": "When set the code snippets element is opened.",
           "sourceRange": {
             "start": {
-              "line": 317,
+              "line": 385,
               "column": 8
             },
             "end": {
-              "line": 317,
+              "line": 385,
               "column": 31
             }
           },
@@ -2305,14 +3340,14 @@
         },
         {
           "name": "snippet-request",
-          "description": "",
+          "description": "A request object to be passed to the code snippets element.",
           "sourceRange": {
             "start": {
-              "line": 318,
+              "line": 389,
               "column": 8
             },
             "end": {
-              "line": 318,
+              "line": 389,
               "column": 31
             }
           },
@@ -2324,16 +3359,64 @@
           "description": "Set when workspace state has been read.",
           "sourceRange": {
             "start": {
-              "line": 322,
+              "line": 393,
               "column": 8
             },
             "end": {
-              "line": 322,
+              "line": 393,
               "column": 52
             }
           },
           "metadata": {},
           "type": "boolean | null | undefined"
+        },
+        {
+          "name": "no-auto-projects",
+          "description": "When set the elements that require project data won't automatically\nask for project data.",
+          "sourceRange": {
+            "start": {
+              "line": 398,
+              "column": 8
+            },
+            "end": {
+              "line": 398,
+              "column": 31
+            }
+          },
+          "metadata": {},
+          "type": "boolean | null | undefined"
+        },
+        {
+          "name": "narrow",
+          "description": "If set it renders the view in the narrow layout.",
+          "sourceRange": {
+            "start": {
+              "line": 402,
+              "column": 8
+            },
+            "end": {
+              "line": 402,
+              "column": 73
+            }
+          },
+          "metadata": {},
+          "type": "boolean | null | undefined"
+        },
+        {
+          "name": "oauth2-redirect-uri",
+          "description": "Redirect URL for the OAuth2 authorization.\nIf can be also set by dispatching `oauth2-redirect-url-changed`\nwith `value` property on the `detail` object.",
+          "sourceRange": {
+            "start": {
+              "line": 408,
+              "column": 8
+            },
+            "end": {
+              "line": 408,
+              "column": 71
+            }
+          },
+          "metadata": {},
+          "type": "string | null | undefined"
         }
       ],
       "events": [
@@ -2357,16 +3440,18 @@
       "slots": [],
       "tagname": "arc-request-workspace",
       "mixins": [
-        "ArcComponents.ArcWorkspaceMixin",
+        "ArcComponents.ArcWorkspaceRequestsMixin",
+        "ArcComponents.ArcWorkspaceDndMixin",
+        "ArcComponents.ArcWorkspaceStateMixin",
         "ArcComponents.ArcFileDropMixin"
       ]
     }
   ],
   "mixins": [
     {
-      "description": "This misin is mostly created to reduce amount of code in\n`arc-request-workspace` element.\n\nThe mixin specializes in placing `request-panel`s in the shadow DOM\nwiyhout using Polymer's repeater.\n\nProblem with repeater is that when re-arranging items or closing an\nitem in the workspace it updates every instance of the request panel\nto the right of the changed element and this costs a lot giving that each\npanel has to perform a lot of computation to render the view.\n\nThis element uses repeater to rendert he tabs, however it handles the content\nby it's own. This mixin contains implementation for DOM manipulation for\nrequest panels.",
+      "description": "This mixin is mostly created to reduce amount of code in\n`arc-request-workspace` element.\n\nThe mixin specializes in placing `request-panel`s in the shadow DOM\nwiyhout using Polymer's repeater.\n\nProblem with repeater is that when re-arranging items or closing an\nitem in the workspace it updates every instance of the request panel\nto the right of the changed element and this costs a lot giving that each\npanel has to perform a lot of computation to render the view.\n\nThis element uses repeater to rendert he tabs, however it handles the content\nby it's own. This mixin contains implementation for DOM manipulation for\nrequest panels.",
       "summary": "",
-      "path": "request-panels-mixin.html",
+      "path": "arc-workspace-requests-mixin.html",
       "properties": [],
       "methods": [
         {
@@ -2375,11 +3460,11 @@
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 41,
+              "line": 43,
               "column": 6
             },
             "end": {
-              "line": 47,
+              "line": 49,
               "column": 7
             }
           },
@@ -2388,25 +3473,55 @@
         },
         {
           "name": "__setPanelRequestProperties",
-          "description": "",
+          "description": "Sets initial properties to the request panel.\nNote, this operation may be very resource consuming since (depending on the request)\nthere may be a lot of computations happening in the request editor.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 49,
+              "line": 57,
               "column": 6
             },
             "end": {
-              "line": 58,
+              "line": 65,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "Element",
+              "description": "Request panel"
             },
             {
-              "name": "request"
+              "name": "request",
+              "type": "Object",
+              "description": "The request object"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "__setPanelConfiguration",
+          "description": "Passes configuration like `narrow` and `oauth2RedirectUri` to the panel",
+          "privacy": "private",
+          "sourceRange": {
+            "start": {
+              "line": 70,
+              "column": 6
+            },
+            "end": {
+              "line": 73,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "panel",
+              "type": "Element",
+              "description": "Request panel"
             }
           ],
           "return": {
@@ -2415,22 +3530,24 @@
         },
         {
           "name": "__addPanelListeners",
-          "description": "",
+          "description": "Adds event listeners to the panel",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 60,
+              "line": 78,
               "column": 6
             },
             "end": {
-              "line": 70,
+              "line": 90,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "!Element",
+              "description": "Request panel"
             }
           ],
           "return": {
@@ -2439,22 +3556,24 @@
         },
         {
           "name": "__removePanelListeners",
-          "description": "",
+          "description": "Removes previously attached listeners from the panel",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 72,
+              "line": 95,
               "column": 6
             },
             "end": {
-              "line": 83,
+              "line": 108,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "panel"
+              "name": "panel",
+              "type": "!Element",
+              "description": "Request panel"
             }
           ],
           "return": {
@@ -2463,80 +3582,38 @@
         },
         {
           "name": "__getPanelById",
-          "description": "",
+          "description": "Finds and returns panel by id in shadow DOM.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 85,
+              "line": 114,
               "column": 6
             },
             "end": {
-              "line": 87,
+              "line": 116,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "id"
+              "name": "id",
+              "type": "!String",
+              "description": "Request/panel id"
             }
-          ]
+          ],
+          "return": {
+            "type": "(Element | undefined)",
+            "desc": "Request panel or undefined if not found"
+          }
         },
         {
           "name": "__addPanel",
-          "description": "",
+          "description": "Adds new panel to the shadow DOM based on passed request.\nThe request object must contain its `_id` property when performing this\naction even when the request is not saved to the store.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 89,
-              "column": 6
-            },
-            "end": {
-              "line": 99,
-              "column": 7
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "request"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "__removePanel",
-          "description": "",
-          "privacy": "private",
-          "sourceRange": {
-            "start": {
-              "line": 101,
-              "column": 6
-            },
-            "end": {
-              "line": 109,
-              "column": 7
-            }
-          },
-          "metadata": {},
-          "params": [
-            {
-              "name": "id"
-            }
-          ],
-          "return": {
-            "type": "void"
-          }
-        },
-        {
-          "name": "__editorRequestHandler",
-          "description": "",
-          "privacy": "private",
-          "sourceRange": {
-            "start": {
-              "line": 111,
+              "line": 123,
               "column": 6
             },
             "end": {
@@ -2547,7 +3624,60 @@
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "request",
+              "type": "!Object",
+              "description": "Any properties from ARC request + '_id'."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "__removePanel",
+          "description": "Removes panel from the shadow DOM.",
+          "privacy": "private",
+          "sourceRange": {
+            "start": {
+              "line": 142,
+              "column": 6
+            },
+            "end": {
+              "line": 150,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "description": "Request/panel id"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "__editorRequestHandler",
+          "description": "Handler for the `editor-request-changed` from the `request-panel`.\nNotifies application about the state.\nThis works as a bridge between Polymer's binding system and the app\nas the request panel is inserted into the DOM manually.",
+          "privacy": "private",
+          "sourceRange": {
+            "start": {
+              "line": 158,
+              "column": 6
+            },
+            "end": {
+              "line": 184,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -2556,22 +3686,23 @@
         },
         {
           "name": "__editorMetaHandler",
-          "description": "",
+          "description": "Handler for `editor-state-changed`, `response-meta-changed`,\n`response-changed`, `response-error-changed`, and `is-error-response-changed`\nevents to update workspace state when any of the meta data to store\nin workspace file changes.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 139,
+              "line": 192,
               "column": 6
             },
             "end": {
-              "line": 178,
+              "line": 229,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "e"
+              "name": "e",
+              "type": "CustomEvent"
             }
           ],
           "return": {
@@ -2579,16 +3710,16 @@
           }
         },
         {
-          "name": "__deselectActivePanel",
-          "description": "",
+          "name": "__deselectPanels",
+          "description": "Hiddes all visible panels in the view by adding \"hidden\" attribute.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 180,
+              "line": 233,
               "column": 6
             },
             "end": {
-              "line": 185,
+              "line": 238,
               "column": 7
             }
           },
@@ -2600,22 +3731,24 @@
         },
         {
           "name": "__selectPanel",
-          "description": "",
+          "description": "Shows a panel in the view by removing \"hidden\" attribute.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 187,
+              "line": 243,
               "column": 6
             },
             "end": {
-              "line": 196,
+              "line": 252,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "id"
+              "name": "id",
+              "type": "String",
+              "description": "Panel / request id"
             }
           ],
           "return": {
@@ -2624,25 +3757,29 @@
         },
         {
           "name": "__updatePanelRequest",
-          "description": "",
+          "description": "Updates request object on existing panel.\nThe request object may have different id to replace the request at a position.\nIf the ID is different new ID from the request object is used.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 198,
+              "line": 260,
               "column": 6
             },
             "end": {
-              "line": 205,
+              "line": 267,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "id"
+              "name": "id",
+              "type": "String",
+              "description": "Request / panel id"
             },
             {
-              "name": "request"
+              "name": "request",
+              "type": "Object",
+              "description": "Request properties to set."
             }
           ],
           "return": {
@@ -2650,16 +3787,16 @@
           }
         },
         {
-          "name": "__clearAllPanels",
-          "description": "",
+          "name": "__removeAllPanels",
+          "description": "Removes all panels from the workspace.",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 207,
+              "line": 271,
               "column": 6
             },
             "end": {
-              "line": 213,
+              "line": 277,
               "column": 7
             }
           },
@@ -2670,26 +3807,30 @@
           }
         },
         {
-          "name": "__updatePanelId",
-          "description": "",
+          "name": "__updatePanelsProperty",
+          "description": "Updates a property on all panels",
           "privacy": "private",
           "sourceRange": {
             "start": {
-              "line": 215,
+              "line": 283,
               "column": 6
             },
             "end": {
-              "line": 222,
+              "line": 288,
               "column": 7
             }
           },
           "metadata": {},
           "params": [
             {
-              "name": "oldId"
+              "name": "prop",
+              "type": "String",
+              "description": "Property name to set"
             },
             {
-              "name": "newId"
+              "name": "value",
+              "type": "*",
+              "description": "Property value"
             }
           ],
           "return": {
@@ -2706,12 +3847,687 @@
           "column": 2
         },
         "end": {
-          "line": 225,
+          "line": 291,
           "column": 4
         }
       },
       "privacy": "public",
-      "name": "ArcComponents.ArcWorkspaceMixin",
+      "name": "ArcComponents.ArcWorkspaceRequestsMixin",
+      "attributes": [],
+      "events": [],
+      "styling": {
+        "cssVariables": [],
+        "selectors": []
+      },
+      "slots": []
+    },
+    {
+      "description": "This mixin is to reduce amount of code in `arc-request-workspace` element\nand to separate drag and drop for tabs logic.",
+      "summary": "",
+      "path": "arc-workspace-dnd-mixin.html",
+      "properties": [
+        {
+          "name": "_dragPossible",
+          "type": "Boolean",
+          "description": "",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 23,
+              "column": 6
+            },
+            "end": {
+              "line": 26,
+              "column": 7
+            }
+          },
+          "metadata": {
+            "polymer": {
+              "readOnly": true
+            }
+          }
+        }
+      ],
+      "methods": [
+        {
+          "name": "_handleTrack",
+          "description": "Handles track event dispatched by `Polymer.Gestures` library.\nThis method calls corresponding method to current dragging state.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 32,
+              "column": 6
+            },
+            "end": {
+              "line": 47,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_onTrackStart",
+          "description": "Initializes the tracking of an element.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 52,
+              "column": 6
+            },
+            "end": {
+              "line": 61,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent",
+              "description": "Original event from the Gestures library."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_onTrack",
+          "description": "Called when the element is being tacked (moved).",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 66,
+              "column": 6
+            },
+            "end": {
+              "line": 97,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "CustomEvent",
+              "description": "Original event from the Gestures library."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_onTrackEnd",
+          "description": "Performs operation when the tab drop occurs.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 101,
+              "column": 6
+            },
+            "end": {
+              "line": 130,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_blockEditors",
+          "description": "Sets `readonly` state on all editors",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 134,
+              "column": 6
+            },
+            "end": {
+              "line": 139,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_unblockEditors",
+          "description": "Removes `readonly` state from all editors",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 143,
+              "column": 6
+            },
+            "end": {
+              "line": 151,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_getReorderedItem",
+          "description": "Gets the top level item from the DOM repeater that has been marked as a\ndraggable item.\nThe event can originate from child elements which shouldn't be dragged.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 161,
+              "column": 6
+            },
+            "end": {
+              "line": 176,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "e",
+              "type": "Event",
+              "description": "The track event"
+            }
+          ],
+          "return": {
+            "type": "HTMLElement",
+            "desc": "An element that is container for draggable items. Undefined if couldn't\nfind."
+          }
+        },
+        {
+          "name": "_updateDragPosition",
+          "description": "Re-positions dragged element to the place where it belongs.\nIt accounts for scroll position if it changed since dragging started.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 182,
+              "column": 6
+            },
+            "end": {
+              "line": 188,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "dx",
+              "type": "Number",
+              "description": "Delta X from starting position."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_updateTabPosition",
+          "description": "Scrolls tabs right or left depending on dragged element position.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 193,
+              "column": 6
+            },
+            "end": {
+              "line": 207,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "ddx",
+              "type": "Number",
+              "description": "delta from last tracked position"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        }
+      ],
+      "staticMethods": [],
+      "demos": [],
+      "metadata": {},
+      "sourceRange": {
+        "start": {
+          "line": 14,
+          "column": 2
+        },
+        "end": {
+          "line": 210,
+          "column": 4
+        }
+      },
+      "privacy": "public",
+      "name": "ArcComponents.ArcWorkspaceDndMixin",
+      "attributes": [],
+      "events": [],
+      "styling": {
+        "cssVariables": [],
+        "selectors": []
+      },
+      "slots": []
+    },
+    {
+      "description": "This mixin is to reduce amount of code in `arc-request-workspace` element\nand to separate workspace state logic.",
+      "summary": "",
+      "path": "arc-workspace-state-mixin.html",
+      "properties": [],
+      "methods": [
+        {
+          "name": "_dispatchWorkspaceState",
+          "description": "Dispatches `workspace-state-read` event and returns it.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 24,
+              "column": 6
+            },
+            "end": {
+              "line": 28,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "CustomEvent"
+          }
+        },
+        {
+          "name": "restoreWorkspace",
+          "description": "Restores workspace state.\nIt dispatches `workspace-state-read` custom event to query for workspace data\nand restores requests if they were previously stored.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 36,
+              "column": 6
+            },
+            "end": {
+              "line": 53,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Promise"
+          }
+        },
+        {
+          "name": "_restoreModelError",
+          "description": "Called when no-model error occurred during workspace restoration.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 58,
+              "column": 6
+            },
+            "end": {
+              "line": 65,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Promise"
+          }
+        },
+        {
+          "name": "_restore",
+          "description": "Restores workspace state from previously stored data.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 70,
+              "column": 6
+            },
+            "end": {
+              "line": 80,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "state",
+              "type": "Object",
+              "description": "Workspace state object"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_restoreRequests",
+          "description": "Restores requests from the state object.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 86,
+              "column": 6
+            },
+            "end": {
+              "line": 99,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "requests",
+              "type": "?Array.<Object>",
+              "description": "List of requests to restore. When not set\nthen it adds empty request."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_restoreSelected",
+          "description": "Restores selection from the state file.\nNote, at the point of state restoriation selection won't be handled properly.\nIt has to be re-selected after state restoration is complete.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 107,
+              "column": 6
+            },
+            "end": {
+              "line": 113,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "selected",
+              "type": "?Number",
+              "description": "Selected tab. When not set it selects last available\ntab"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_restoreEnvironment",
+          "description": "Restores selected environment from the state file.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 118,
+              "column": 6
+            },
+            "end": {
+              "line": 126,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "environment",
+              "type": "?String",
+              "description": "Environment to restore. Nothing happens if not set."
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_restoreVariables",
+          "description": "Restores workspace variables.\nEach item must contain the following properties:\n- variable {String} - variable name\n- value {String} - variable value, can contain nested variables\n- enabled {Boolean} - By default it is true, set false to disable the variable",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 135,
+              "column": 6
+            },
+            "end": {
+              "line": 140,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "variables",
+              "type": "?Array.<Object>",
+              "description": "List of variables to restore"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_restoreConfiguration",
+          "description": "Restores workspace variables.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 145,
+              "column": 6
+            },
+            "end": {
+              "line": 164,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [
+            {
+              "name": "config",
+              "type": "?Object",
+              "description": "Workspace configuration"
+            }
+          ],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_afterRestore",
+          "description": "Forces current selection and resets restoration flags after next\nrender.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 169,
+              "column": 6
+            },
+            "end": {
+              "line": 177,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "serializeWorkspace",
+          "description": "Serializes workspace state to a JavaScript object.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 182,
+              "column": 6
+            },
+            "end": {
+              "line": 193,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Object",
+            "desc": "An ArcWorkspace object"
+          }
+        },
+        {
+          "name": "serializeConfig",
+          "description": "Serializes workspace configuration.",
+          "privacy": "public",
+          "sourceRange": {
+            "start": {
+              "line": 198,
+              "column": 6
+            },
+            "end": {
+              "line": 216,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "Object"
+          }
+        },
+        {
+          "name": "_notifyStoreWorkspace",
+          "description": "Runs debouncer and after timeoout it calls `__dispatchStoreWorkspace()`\nto dispatch store event.\nIf timer is running it's going to be cancelled and new timer set.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 222,
+              "column": 6
+            },
+            "end": {
+              "line": 234,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_clearStoreTimeout",
+          "description": "Clears previously set storing timer.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 238,
+              "column": 6
+            },
+            "end": {
+              "line": 245,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "__dispatchStoreWorkspace",
+          "description": "Dispatches `workspace-state-store` custom event to store workspace data.\nThe type of the request is `workspace-state`.\n\nIf there's an error it is not reported back to the user.",
+          "privacy": "private",
+          "sourceRange": {
+            "start": {
+              "line": 252,
+              "column": 6
+            },
+            "end": {
+              "line": 262,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_workspaceConfigChanged",
+          "description": "A handler for any of the workspace configuration options changed.\nIt notifies change to the listeners.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 267,
+              "column": 6
+            },
+            "end": {
+              "line": 272,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        },
+        {
+          "name": "_workspaceReadOnlyChanged",
+          "description": "Called when workspaceReadOnly property change. Always calls\n`_workspaceReadOnlyChanged()`.",
+          "privacy": "protected",
+          "sourceRange": {
+            "start": {
+              "line": 277,
+              "column": 6
+            },
+            "end": {
+              "line": 279,
+              "column": 7
+            }
+          },
+          "metadata": {},
+          "params": [],
+          "return": {
+            "type": "void"
+          }
+        }
+      ],
+      "staticMethods": [],
+      "demos": [],
+      "metadata": {},
+      "sourceRange": {
+        "start": {
+          "line": 14,
+          "column": 2
+        },
+        "end": {
+          "line": 282,
+          "column": 4
+        }
+      },
+      "privacy": "public",
+      "name": "ArcComponents.ArcWorkspaceStateMixin",
       "attributes": [],
       "events": [],
       "styling": {

@@ -8,6 +8,10 @@
  *   arc-request-workspace.html
  */
 
+
+// tslint:disable:variable-name Describing an API that's defined elsewhere.
+// tslint:disable:no-any describes the API as best we are able today
+
 /// <reference path="../polymer/types/polymer-element.d.ts" />
 /// <reference path="../polymer/types/lib/elements/dom-repeat.d.ts" />
 /// <reference path="../polymer/types/lib/utils/render-status.d.ts" />
@@ -27,7 +31,10 @@
 /// <reference path="../http-code-snippets/http-code-snippets.d.ts" />
 /// <reference path="../bottom-sheet/bottom-sheet.d.ts" />
 /// <reference path="../arc-file-drop-mixin/arc-file-drop-mixin.d.ts" />
-/// <reference path="request-panels-mixin.d.ts" />
+/// <reference path="../paper-toast/paper-toast.d.ts" />
+/// <reference path="arc-workspace-requests-mixin.d.ts" />
+/// <reference path="arc-workspace-dnd-mixin.d.ts" />
+/// <reference path="arc-workspace-state-mixin.d.ts" />
 
 declare namespace UiElements {
 
@@ -68,10 +75,11 @@ declare namespace UiElements {
    * `--bottom-sheet-max-width` | Bottom sheet max width | `700px`
    */
   class ArcRequestWorkspace extends
-    ArcComponents.ArcWorkspaceMixin(
+    ArcComponents.ArcWorkspaceRequestsMixin(
+    ArcComponents.ArcWorkspaceDndMixin(
+    ArcComponents.ArcWorkspaceStateMixin(
     ArcComponents.ArcFileDropMixin(
-    Object)) {
-    readonly _dragPossible: Boolean|null;
+    Object)))) {
 
     /**
      * The OAuth2 redirect URI to pass to the authorization panel.
@@ -95,6 +103,43 @@ declare namespace UiElements {
     environment: string|null|undefined;
 
     /**
+     * Workspace variables.
+     * It is added to each request sent from this worksapce so the request logic
+     * can apply additional variables.
+     */
+    variables: Array<object|null>|null;
+
+    /**
+     * Each request sent from this workspace timeout.
+     */
+    requestTimeout: Number|null;
+
+    /**
+     * Added to all requests sent from this workspace.
+     * Instructs the transport library to validate SSL certificates.
+     */
+    validateCertificates: Boolean|null;
+
+    /**
+     * Added to all requests sent from this workspace.
+     * Instructs the transport library how to manage redirects.
+     */
+    followRedirects: Boolean|null;
+
+    /**
+     * Added to all requests sent from this workspace.
+     * Instructs the transport library to limit the size of the source message
+     * sent to the server returned by the library. It is used to limit
+     * memory use when reading the response.
+     */
+    sentMessageLimit: Number|null;
+
+    /**
+     * When set writing to the workspace state file is disabled.
+     */
+    workspaceReadOnly: number|null|undefined;
+
+    /**
      * If set then workspace restoration process is in progress.
      */
     readonly restoring: boolean|null|undefined;
@@ -104,31 +149,61 @@ declare namespace UiElements {
      * to the DOM. This ensures to prohibit auto restore request.
      */
     noAutoRestore: boolean|null|undefined;
+
+    /**
+     * When set the request meta data editor is opened.
+     */
     editorOpened: boolean|null|undefined;
+
+    /**
+     * When set the request meta data viewer is opened.
+     */
     detailsOpened: boolean|null|undefined;
+
+    /**
+     * When set the code snippets element is opened.
+     */
     snippetsOpened: boolean|null|undefined;
+
+    /**
+     * A request object to be passed to the code snippets element.
+     */
     snippetRequest: boolean|null|undefined;
 
     /**
      * Set when workspace state has been read.
      */
     readonly initialized: boolean|null|undefined;
+
+    /**
+     * When set the elements that require project data won't automatically
+     * ask for project data.
+     */
+    noAutoProjects: boolean|null|undefined;
+
+    /**
+     * If set it renders the view in the narrow layout.
+     */
+    narrow: boolean|null|undefined;
+
+    /**
+     * Redirect URL for the OAuth2 authorization.
+     * If can be also set by dispatching `oauth2-redirect-url-changed`
+     * with `value` property on the `detail` object.
+     */
+    oauth2RedirectUri: string|null|undefined;
     connectedCallback(): void;
     disconnectedCallback(): void;
 
     /**
-     * Restores workspace state.
-     * It dispatches `workspace-state-read` custom event to query for workspace data
-     * and restores requests if they were previously stored.
-     */
-    restoreWorkspace(): Promise<any>|null;
-
-    /**
-     * Restores workspace state from previously stored data.
+     * Dispatches bubbling and composed custom event.
+     * By default the event is cancelable until `cancelable` property is set to false.
      *
-     * @param state Workspace state object
+     * @param type Event type
+     * @param detail A detail to set
+     * @param cancelable When false the event is not cancelable.
      */
-    _restore(state: object|null): void;
+    _dispatch(type: String|null, detail: any|null, cancelable: Boolean|null): CustomEvent|null;
 
     /**
      * Finds first position where the request is empty.
@@ -165,7 +240,11 @@ declare namespace UiElements {
      * @param index Request index
      */
     updateRequestObject(request: object|null, index: Number|null): void;
-    _closeRequest(e: any): void;
+
+    /**
+     * Handler for click event on the request close button.
+     */
+    _closeRequest(e: ClickEvent|null): void;
 
     /**
      * Removes request for given index
@@ -175,21 +254,6 @@ declare namespace UiElements {
      * will not check for the selection state and if empty panel is needed
      */
     removeRequest(index: Number|null, removeOnly: Boolean|null): void;
-
-    /**
-     * Serializes workspace state to a JavaScript object.
-     *
-     * @returns An ArcWorkspace object
-     */
-    serializeWorkspace(): object|null;
-
-    /**
-     * Dispatches `workspace-state-store` custom event to store workspace data.
-     * The type of the request is `workspace-state`.
-     *
-     * If there's an error it is not rerported back to the user.
-     */
-    _notifyStoreWorkspace(): void;
 
     /**
      * Update tabs selection.
@@ -216,9 +280,12 @@ declare namespace UiElements {
     _envChangedHandler(e: CustomEvent|null): void;
 
     /**
-     * Notifies workspace change when environment changes.
+     * Observer for workspace variable change.
+     * Notifies workspace state change when needed.
+     *
+     * @param record Polymer's change record
      */
-    _envChanged(): void;
+    _variablesChanged(record: object|null): void;
 
     /**
      * Finds requests index in the list of active requests.
@@ -231,7 +298,15 @@ declare namespace UiElements {
     findRequestIndex(requestId: String|null, tmpId: String|null): Number|null;
 
     /**
-     * It ensures `_id` property exists opens save editor
+     * Finds a request associated with the menu item which is the target of the
+     * event. The menu item has to have `data-id` property set to request ID.
+     *
+     * @returns Request object or undefined if not found.
+     */
+    _getMenuRequest(e: ClickEvent|null): object|null|undefined;
+
+    /**
+     * Opens save editor
      */
     _requestStoreHandler(e: CustomEvent|null): void;
 
@@ -247,6 +322,31 @@ declare namespace UiElements {
     _renderCodeSnippets(e: CustomEvent|null): void;
 
     /**
+     * Handler for the store to file request menu item.
+     */
+    _requestStoreFileHandler(e: ClickEvent|null): void;
+
+    /**
+     * Handler for the store to Drive request menu item.
+     */
+    _requestStoreDriveHandler(e: ClickEvent|null): void;
+
+    /**
+     * Runs export flow.
+     *
+     * @param request Request object to export.
+     * @param destination Destination supported by the export component.
+     */
+    _exportRequest(request: object|null, destination: String|null): Promise<any>|null;
+
+    /**
+     * Dispatches `export-data` event and returns it.
+     *
+     * @param destination A place where export the data (file, drive)
+     */
+    _dispatchExportData(destination: String|null, requests: Array<object|null>|Boolean|null): CustomEvent|null;
+
+    /**
      * Handler for non cancelable `request-object-changed` custom event.
      * Updates request object if it's one of currently opened objects.
      */
@@ -258,49 +358,6 @@ declare namespace UiElements {
      * removes information related to "saved" request.
      */
     _requestDeleteHandler(e: CustomEvent|null): void;
-
-    /**
-     * Handles track event dispatched by `Polymer.Gestures` library.
-     * This method calls corresponding method to current dragging state.
-     */
-    _handleTrack(e: CustomEvent|null): void;
-    _onTrackStart(e: any): void;
-    _onTrack(e: any): void;
-
-    /**
-     * Performs operation when the tab drop occurs.
-     */
-    _onTrackEnd(): void;
-
-    /**
-     * Sets `readonly` state on all editors
-     */
-    _blockEditors(): void;
-
-    /**
-     * Removes `readonly` state from all editors
-     */
-    _unblockEditors(): void;
-
-    /**
-     * Gets the top level item from the DOM repeater that has been marked as a
-     * draggable item.
-     * The event can originate from child elements which shouldn't be dragged.
-     *
-     * @param e The track event
-     * @returns An element that is container for draggable items. Undefined if couldn't
-     * find.
-     */
-    _getReorderedItem(e: Event|null): HTMLElement|null;
-
-    /**
-     * Re-positions dragged element to the place where it belongs.
-     * It accounts for scroll position if it changed since dragging started.
-     *
-     * @param dx Delta X from starting position.
-     */
-    _updateDragPosition(dx: Number|null): void;
-    _updateTabPosition(ddx: any): void;
 
     /**
      * Adds request(s) by id.
@@ -354,11 +411,33 @@ declare namespace UiElements {
      * is shown.
      */
     saveOpened(opts: object|null): void;
-    _resizeSheetContent(e: any): void;
-    _openSaveDialog(request: any): void;
-    _cancelRequestEdit(e: any): void;
+
+    /**
+     * Called to request resize on opened `bottom-sheet` element.
+     */
+    _resizeSheetContent(e: CustomEvent|null): void;
+
+    /**
+     * Render saved dialog (bottom-sheet)
+     *
+     * @param request Request to set on the editor
+     */
+    _openSaveDialog(request: object|null): void;
+
+    /**
+     * Cancels request edit dialog and closes the dialog.
+     */
+    _cancelRequestEdit(e: CustomEvent|null): void;
+
+    /**
+     * Closes request edit dialog when save event is dispatched.
+     */
     _saveRequestEdit(): void;
-    _deleteRequestDetails(e: any): void;
+
+    /**
+     * Handler for the delete action from the details popup.
+     */
+    _deleteRequestDetails(e: CustomEvent|null): void;
     _editRequestDetails(e: any): void;
 
     /**
@@ -393,6 +472,34 @@ declare namespace UiElements {
      * @param e A `request` property on detail object is expected.
      */
     _appendRequestHandler(e: CustomEvent|null): void;
+
+    /**
+     * Adds workspace configuration to the request object.
+     * This overrides application configuration.
+     * The function won't set configuration property when it is already set on the request.
+     *
+     * @param e `api-request` event dispatched from any panel.
+     */
+    _sendRequestHandler(e: CustomEvent|null): void;
+
+    /**
+     * Duplicates tab values at a position
+     *
+     * @param index Selected tab
+     */
+    duplicateTab(index: Number|null): void;
+
+    /**
+     * Removes all stored properties in a request object to prepare ArcRequest object.
+     */
+    _clearRequestMeta(request: object|null, includeIds: Boolean|null): object|null;
+
+    /**
+     * Closes currently selected tab.
+     */
+    closeActiveTab(): void;
+    _narrowChanged(value: any): void;
+    _oauthUriChanged(value: any): void;
   }
 }
 
