@@ -186,6 +186,14 @@
               <h4>Demo: Variables editor</h4>
               <variables-editor></variables-editor>
             </div>
+
+            <div class="vertical-section-container centered card">
+              <h4>Workspace configuration</h4>
+              <paper-input label="Request timeout" value="{{requestTimeout}}" type="number" step="1" min="0" on-change="_requestTimeoutChanged"></paper-input>
+              <paper-input label="Sent message preview bytes limit" value="{{sentMessageLimit}}" type="number" step="1" min="0" on-change="_sentMessageLimitChanged"></paper-input>
+              <paper-toggle-button checked="{{validateCertificates}}" on-change="_validateCertificatesChanged">Validate certificates</paper-toggle-button>
+              <paper-toggle-button checked="{{followRedirects}}" on-change="_followRedirectsChanged">Follow redirects</paper-toggle-button>
+            </div>
           </section>
         </div>
       </template>
@@ -306,6 +314,20 @@
             config,
             variables
           };
+          if (config) {
+            if (config.requestTimeout) {
+              app.requestTimeout = Number(config.requestTimeout);
+            }
+            if (config.sentMessageLimit) {
+              app.sentMessageLimit = Number(config.sentMessageLimit);
+            }
+            if (config.followRedirects) {
+              app.followRedirects = Boolean(config.followRedirects);
+            }
+            if (config.validateCertificates) {
+              app.validateCertificates = Boolean(config.validateCertificates);
+            }
+          }
           setTimeout(() => {
             resolve(result);
           });
@@ -429,6 +451,23 @@
           resolve();
         });
       });
+
+      app._requestTimeoutChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.requestTimeout = Number(app.requestTimeout);
+      };
+      app._sentMessageLimitChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.sentMessageLimit = Number(app.sentMessageLimit);
+      };
+      app._validateCertificatesChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.validateCertificates = app.validateCertificates;
+      };
+      app._followRedirectsChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.followRedirects = app.followRedirects;
+      };
       window.addEventListener('transport-request', app.send);
       window.addEventListener('workspace-state-read', app._restoreHandler);
       window.addEventListener('workspace-state-store', app._storeHandler);
