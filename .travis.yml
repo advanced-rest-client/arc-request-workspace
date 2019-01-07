@@ -11,19 +11,11 @@ addons:
     - google-chrome
     packages:
     - google-chrome-stable
-  sauce_connect: true
 script:
 - npm run lint
 - xvfb-run polymer test --plugin local
-- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then polymer test --plugin sauce --job-name
-  "arc-request-workspace:${TRAVIS_BRANCH}" --build-number=${TRAVIS_BUILD_NUMBER};
-  fi
 cache:
   directories:
   - node_modules
 after_success:
 - node tasks/ci.js
-env:
-  global:
-  - secure: OodGVpZ1PT08g+s4Mvb55ss594b6vuBThfbVOkdN1tXLTxqDrCZnrVnuVXrJSgewnHAm9ggQ/cmXYpZFCr7qnRFWMbJyOjJYo+ti6JZ1obFdYaxBYkm2cIG8t2O7bwrclur1QRO2X4pQH18LIgO/85tNOBKy55ug+jkAy2Put9E+KKCoEX/iBroQfuc6yEXTtHRuGkUfmuHvdQ60KaXZLR+O6itmsD1t6QTIv6YIRNcsPkjGWw+FUueXYa/d9C8bcw3hZ0Ezy/IHto18zibjP5snQzkn7rCVm/RdjKTDhlUMTEt/NyFiv2n/PVrPsLEDUCf4H+hFsxe7IVeFC5BEJ/mkSDpbLRvuAsDxY2HlYpt4HwApM0zLx5dzXA1q/v/bGS4Fuh3Cx6RnugBgberM1q2TV/KK8KIStfzo5Z1E4Xq5Bw2qCRN2cvnLw5DJh5Bii9af0+XZHMFvp6iqiHD2J520j2ku12l/EBDZz2Lv/4At0zp/R6FbslCKfdd22NnXm+fL6kKuC/pY2H+H9TfqUQKg4uZNFUoa1dRiCOZ9g43nkpbGagQ/UWi5/Lic2bC7M+R/bZAkMrHQwz62Fe5N9YVdRTrnYNpTg8fyCMzSViEBdYGCjal7y8A6as3enzZ+skcdnGMBpENztxbbsddvLDtWr4K6gCSPoVljk3ZSH0c=
-  - secure: bG07CdLgNOTwKQyG/s8zoXFvyksdrXMXT26MTJ3OHuoWhL/vu5Rn6LCcWut0bz/kdSOxAHZCYkgDN9haa8M7BT/ItUiL47BQgcrulqflHilnx7kI9+WqEQyObxjgOrotW0tEFd7dhhk+lwHohSQCnvDKZreRWm4HXJQyUqLXYkS03olh/u72I73gjRNS3Xybb7ET20khps9Fhj1ntd+3HrKCpLH+Eu9Pzle0+8DYD5Umu8+gysp++e8toycZg7apQKDrPwTyALUmFNbzvI7iVvWIoMl/pv4aKFXdOtLmm+ms/aIDEQeuy+pzEc1sZo1AcQd1BTi8L5/4Tm1CAWW/a/rgjSv4FMlGoWB/uY7DuoIz6ocCnqAAz9NNhVNC19fsE6sbR767lICA1SfMejHCW1e6H0qDCqq0a9Zh4egSqNweaEJTki8lXA8cR0ksCed6kLGuFzwjholos8iVmVyE/6Zmcg3yTs3kBqCh//RlGDhjBR0dj7YWqB8nHehHpHOK+pKTm6mSN4kUzganWfG2k82BO1HMcfMjYWa+ZeOj8hb+gkU/yNkhN8hEDb8agcM5xLl1fxpjTYVNjDGAubAA5oEjdc2m0yvUWM7HAwfBOfjoNDLE1kNtao24d3Q3K9AdLnn/rKjEy7Zh24LqpWrTnsd/u268NOXLeBFsOASJ97g=
