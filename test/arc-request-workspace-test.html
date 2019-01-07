@@ -423,7 +423,9 @@
 
     test('Event is composed', () => {
       const result = element._dispatchExportData();
-      assert.isTrue(result.composed);
+      if (typeof result.composed !== undefined) {
+        assert.isTrue(result.composed);
+      }
     });
 
     test('Event bubbles', () => {
@@ -465,11 +467,10 @@
 
   suite('_exportRequest()', () => {
     let element;
-    let list;
+    let request;
     setup(() => {
-      element = fixture('Basic');
-      wrapStateReadEvent(element);
-      list = DataGenerator.generateSavedRequestData();
+      element = fixture('NoAuto');
+      request = DataGenerator.generateSavedItem();
     });
 
     test('Dispatches export event', () => {
@@ -480,13 +481,13 @@
       });
       const spy = sinon.spy();
       element.addEventListener('export-data', spy);
-      element._exportRequest(list, 'file');
+      element._exportRequest(request, 'file');
       assert.isTrue(spy.called);
     });
 
     test('Opens error toast when export not found', (done) => {
       flush(() => {
-        element._exportRequest(list, 'file');
+        element._exportRequest(request, 'file');
         const toast = element.shadowRoot.querySelector('#noExport');
         assert.isTrue(toast.opened);
         done();
@@ -499,7 +500,7 @@
         e.preventDefault();
         e.detail.result = Promise.resolve();
       });
-      element._exportRequest(list, 'drive');
+      element._exportRequest(request, 'drive');
       flush(() => {
         const toast = element.shadowRoot.querySelector('#driveSaved');
         assert.isTrue(toast.opened);
@@ -641,6 +642,1153 @@
       };
       const e = fire(element, cnf);
       assert.deepEqual(e.detail.config.variables, cnf.variables);
+    });
+  });
+
+  suite('_envChangedHandler()', () => {
+    let element;
+    const env = 'test-env';
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    function fire(node) {
+      const e = new CustomEvent('selected-environment-changed', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value: env
+        }
+      });
+      (node || document.body).dispatchEvent(e);
+      return e;
+    }
+
+    test('Does nothing when restoring', () => {
+      element._setRestoring(true);
+      fire();
+      assert.isUndefined(element.environment);
+    });
+
+    test('Does nothing when dispatched by self', () => {
+      fire(element);
+      assert.isUndefined(element.environment);
+    });
+
+    test('Sets the environment', () => {
+      fire();
+      assert.equal(element.environment, env);
+    });
+  });
+
+  suite('findRequestIndex()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+    });
+
+    test('Returns -1 when no arguments', () => {
+      const result = element.findRequestIndex();
+      assert.equal(result, -1);
+    });
+
+    test('Returns -1 when cannot find request', () => {
+      const result = element.findRequestIndex('not-existing');
+      assert.equal(result, -1);
+    });
+
+    test('Returns index of the request', () => {
+      const result = element.findRequestIndex(element.activeRequests[1]._id);
+      assert.equal(result, 1);
+    });
+
+    test('Returns index of the request by _tempId', () => {
+      element.activeRequests[0]._tempId = 'some';
+      const result = element.findRequestIndex(undefined, 'some');
+      assert.equal(result, 0);
+    });
+  });
+
+  suite('_getMenuRequest()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    test('Returns request object', (done) => {
+      addRequests(element, 1);
+      flush(() => {
+        const node = element.shadowRoot.querySelector('request-panel .save-icon');
+        const result = element._getMenuRequest({
+          target: node
+        });
+        assert.typeOf(result, 'object');
+        done();
+      });
+    });
+
+    test('Returns undefined when request ID cannot be find', () => {
+      const parent = document.createElement('div');
+      const target = document.createElement('span');
+      parent.appendChild(target);
+      const result = element._getMenuRequest({
+        target
+      });
+      assert.isUndefined(result);
+    });
+
+    test('Returns undefined when request does not exist', () => {
+      const parent = document.createElement('div');
+      const target = document.createElement('span');
+      parent.dataset.id = 'other-id';
+      parent.appendChild(target);
+      const result = element._getMenuRequest({
+        target
+      });
+      assert.isUndefined(result);
+    });
+  });
+
+  suite('_requestStoreHandler()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Calls _openSaveDialog()', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_openSaveDialog');
+      element._requestStoreHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Cancels the event', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'preventDefault');
+      element._requestStoreHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Stops event propagation', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'stopPropagation');
+      element._requestStoreHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Does nothing when request is not found', () => {
+      const node = element.shadowRoot.querySelector('request-panel');
+      assert.isUndefined(node.parentElement.dataset.id);
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_openSaveDialog');
+      element._requestStoreHandler(e);
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('_renderRequestDetail()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Sets detailsOpened to true', () => {
+      const node = element.shadowRoot.querySelector('request-panel .details-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderRequestDetail(e);
+      assert.isTrue(element.detailsOpened);
+    });
+
+    test('Sets request data on the panel', () => {
+      const node = element.shadowRoot.querySelector('request-panel .details-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderRequestDetail(e);
+      assert.typeOf(element.$.requestDetails.request, 'object');
+    });
+
+    test('Cancels the event', () => {
+      const node = element.shadowRoot.querySelector('request-panel .details-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'preventDefault');
+      element._renderRequestDetail(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Stops event propagation', () => {
+      const node = element.shadowRoot.querySelector('request-panel .details-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'stopPropagation');
+      element._renderRequestDetail(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Does nothing when request is not found', () => {
+      const node = element.shadowRoot.querySelector('request-panel');
+      assert.isUndefined(node.parentElement.dataset.id);
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderRequestDetail(e);
+      assert.isFalse(element.detailsOpened);
+    });
+  });
+
+  suite('_renderCodeSnippets()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Sets snippetsOpened to true', () => {
+      const node = element.shadowRoot.querySelector('request-panel .code-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderCodeSnippets(e);
+      assert.isTrue(element.snippetsOpened);
+    });
+
+    test('Sets snippetRequest property', () => {
+      const node = element.shadowRoot.querySelector('request-panel .code-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderCodeSnippets(e);
+      assert.typeOf(element.snippetRequest, 'object');
+    });
+
+    test('Cancels the event', () => {
+      const node = element.shadowRoot.querySelector('request-panel .code-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'preventDefault');
+      element._renderCodeSnippets(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Stops event propagation', () => {
+      const node = element.shadowRoot.querySelector('request-panel .code-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'stopPropagation');
+      element._renderCodeSnippets(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Does nothing when request is not found', () => {
+      const node = element.shadowRoot.querySelector('request-panel');
+      assert.isUndefined(node.parentElement.dataset.id);
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      element._renderCodeSnippets(e);
+      assert.isFalse(element.snippetsOpened);
+    });
+  });
+
+  suite('_requestStoreFileHandler()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Calls _exportRequest() with arguments', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_exportRequest');
+      element._requestStoreFileHandler(e);
+      assert.isTrue(spy.called);
+      assert.deepEqual(spy.args[0][0], element.activeRequests[0]);
+      assert.equal(spy.args[0][1], 'file');
+    });
+
+    test('Cancels the event', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'preventDefault');
+      element._requestStoreFileHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Stops event propagation', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'stopPropagation');
+      element._requestStoreFileHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Does nothing when request is not found', () => {
+      const node = element.shadowRoot.querySelector('request-panel');
+      assert.isUndefined(node.parentElement.dataset.id);
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_exportRequest');
+      element._requestStoreFileHandler(e);
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('_requestStoreDriveHandler()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    test('Calls _exportRequest() with arguments', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
+      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_exportRequest');
+      element._requestStoreDriveHandler(e);
+      assert.isTrue(spy.called);
+      assert.deepEqual(spy.args[0][0], element.activeRequests[0]);
+      assert.equal(spy.args[0][1], 'drive');
+    });
+
+    test('Cancels the event', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'preventDefault');
+      element._requestStoreDriveHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Stops event propagation', () => {
+      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(e, 'stopPropagation');
+      element._requestStoreDriveHandler(e);
+      assert.isTrue(spy.called);
+    });
+
+    test('Does nothing when request is not found', () => {
+      const node = element.shadowRoot.querySelector('request-panel');
+      assert.isUndefined(node.parentElement.dataset.id);
+      const e = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        target: node
+      };
+      const spy = sinon.spy(element, '_exportRequest');
+      element._requestStoreDriveHandler(e);
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('_requestChangeHandler()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    function fire(request, cancelable) {
+      const e = new CustomEvent('request-object-changed', {
+        bubbles: true,
+        cancelable,
+        detail: {
+          request
+        }
+      });
+      document.body.dispatchEvent(e);
+      return e;
+    }
+
+    test('Updates the request', () => {
+      const copy = Object.assign({}, element.activeRequests[0]);
+      copy.name = 'other-name';
+      fire(copy);
+      assert.equal(element.activeRequests[0].name, 'other-name');
+    });
+
+    test('Updates request by tempId', () => {
+      element.activeRequests[0]._tempId = 'tmp';
+      const copy = Object.assign({}, element.activeRequests[0]);
+      copy.name = 'other-name';
+      copy._id = 'other-id';
+      fire(copy);
+      assert.equal(element.activeRequests[0].name, 'other-name');
+    });
+
+    test('Does nothing when request is unknown', () => {
+      const request = DataGenerator.generateSavedItem();
+      const old = Object.assign({}, element.activeRequests[0]);
+      fire(request);
+      assert.deepEqual(element.activeRequests[0], old);
+    });
+
+    test('Does nothing when event is cancelable', () => {
+      const request = DataGenerator.generateSavedItem();
+      const old = Object.assign({}, element.activeRequests[0]);
+      fire(request, true);
+      assert.deepEqual(element.activeRequests[0], old);
+    });
+  });
+
+  suite('_requestDeleteHandler()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      flush(() => done());
+    });
+
+    function fire(id, cancelable) {
+      const e = new CustomEvent('request-object-deleted', {
+        bubbles: true,
+        cancelable,
+        detail: {
+          id
+        }
+      });
+      document.body.dispatchEvent(e);
+      return e;
+    }
+
+    test('Does nothing when request is unknown', () => {
+      const old = Object.assign({}, element.activeRequests[0]);
+      fire('some-id');
+      assert.deepEqual(element.activeRequests[0], old);
+    });
+
+    test('Does nothing when event is cancelable', () => {
+      const old = Object.assign({}, element.activeRequests[0]);
+      fire(element.activeRequests[0]._id, true);
+      assert.deepEqual(element.activeRequests[0], old);
+    });
+
+    test('Clears request name', () => {
+      fire(element.activeRequests[0]._id);
+      assert.equal(element.activeRequests[0].name, '');
+    });
+
+    ['type', 'driveId', 'projects', '_id', '_rev', 'created', 'updated']
+    .forEach((prop) => {
+      test(`Clears "${prop}" property`, () => {
+        element.activeRequests[0][prop] = 'value';
+        fire(element.activeRequests[0]._id);
+        assert.isUndefined(element.activeRequests[0][prop]);
+      });
+    });
+  });
+
+  suite('addRequestById()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    function modelFactory(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.detail.result = new Promise((resolve) => {
+        const {id} = e.detail;
+        let data;
+        if (id instanceof Array) {
+          data = DataGenerator.generateRequests({
+            requestsSize: id.length
+          });
+          data.forEach((item, i) => item._id = id[i]);
+        } else {
+          data = DataGenerator.generateSavedItem();
+          data._id = id;
+        }
+        resolve(data);
+      });
+    }
+
+    test('Rejects when model not found', () => {
+      element.addEventListener('request-object-read', function f(e) {
+        element.removeEventListener('request-object-read', f);
+        e.stopPropagation();
+      });
+      return element.addRequestById('saved', 'my-id')
+      .then(() => {
+        throw new Error('Should not resolve');
+      })
+      .catch((cause) => {
+        assert.equal(cause.message, 'Request model not found');
+      });
+    });
+
+    test('Calls dispatch with query arguments', () => {
+      element.addEventListener('request-object-read', function f(e) {
+        element.removeEventListener('request-object-read', f);
+        e.stopPropagation();
+      });
+      const spy = sinon.spy(element, '_dispatch');
+      element.addRequestById('saved', 'my-id').catch(() => {});
+      assert.isTrue(spy.called);
+      assert.equal(spy.args[0][0], 'request-object-read', 'Event type set');
+      assert.equal(spy.args[0][1].type, 'saved');
+      assert.equal(spy.args[0][1].id, 'my-id');
+      assert.equal(spy.args[0][1].opts.restorePayload, true);
+    });
+
+    test('Sets "restoring" property', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      element.addRequestById('saved', 'my-id').catch(() => {});
+      element.removeEventListener('request-object-read', modelFactory);
+      assert.isTrue(element.restoring);
+    });
+
+    test('Restores single request', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      return element.addRequestById('saved', 'my-id')
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.lengthOf(element.activeRequests, 1);
+        assert.equal(element.activeRequests[0]._id, 'my-id');
+      });
+    });
+
+    test('Restores multiple request', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      return element.addRequestById('saved', ['r1', 'r2', 'r3'])
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.lengthOf(element.activeRequests, 3);
+        assert.equal(element.activeRequests[0]._id, 'r1');
+        assert.equal(element.activeRequests[1]._id, 'r2');
+        assert.equal(element.activeRequests[2]._id, 'r3');
+      });
+    });
+
+    test('Re-sets restoring property', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      return element.addRequestById('saved', 'my-id')
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.isFalse(element.restoring);
+      });
+    });
+
+    test('Updates request object if already exists', () => {
+      const existing = DataGenerator.generateSavedItem();
+      existing._id = 'r2';
+      element.appendRequest(existing, {
+        noAutoSelect: true
+      });
+      element.addEventListener('request-object-read', modelFactory);
+      return element.addRequestById('saved', ['r1', 'r2', 'r3'])
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.lengthOf(element.activeRequests, 3);
+        assert.equal(element.activeRequests[0]._id, 'r2');
+        assert.equal(element.activeRequests[1]._id, 'r1');
+      });
+    });
+
+    test('Selectes last added', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      return element.addRequestById('saved', ['r1', 'r2'])
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.lengthOf(element.activeRequests, 2);
+        assert.equal(element.selected, 1);
+      });
+    });
+  });
+
+  suite('replaceByRequestId()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+    });
+
+    function modelFactory(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.detail.result = Promise.resolve({_id: 'test'});
+    }
+
+    test('Calls clearWorkspace()', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      const spy = sinon.spy(element, 'clearWorkspace');
+      return element.replaceByRequestId('type', 'test')
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.isTrue(spy.called, 'Function called');
+        assert.isTrue(spy.args[0][0], 'Argument is set');
+      });
+    });
+
+    test('Calls addRequestById()', () => {
+      element.addEventListener('request-object-read', modelFactory);
+      const spy = sinon.spy(element, 'addRequestById');
+      return element.replaceByRequestId('saved', 'test')
+      .then(() => {
+        element.removeEventListener('request-object-read', modelFactory);
+        assert.isTrue(spy.called, 'Function called');
+        assert.equal(spy.args[0][0], 'saved', 'Type argument is set');
+        assert.equal(spy.args[0][1], 'test', 'Id argument is set');
+      });
+    });
+  });
+
+  suite('clearWorkspace()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+    });
+
+    test('Calls __removeAllPanels()', () => {
+      const spy = sinon.spy(element, '__removeAllPanels');
+      element.clearWorkspace(true);
+      assert.isTrue(spy.called);
+    });
+
+    test('Request panels are not in the DOM', () => {
+      element.clearWorkspace(true);
+      const nodes = element.shadowRoot.querySelectorAll('request-panel');
+      assert.lengthOf(nodes, 0);
+    });
+
+    test('Sets activeRequests to empty array', () => {
+      element.clearWorkspace(true);
+      assert.deepEqual(element.activeRequests, []);
+    });
+
+    test('Clears selection', () => {
+      element.selected = 0;
+      element.clearWorkspace(true);
+      assert.isUndefined(element.selected);
+    });
+
+    test('Will not call addEmptyRequest() when argument is true', (done) => {
+      const spy = sinon.spy(element, 'addEmptyRequest');
+      element.clearWorkspace(true);
+      Polymer.RenderStatus.afterNextRender(element, () => {
+        assert.isFalse(spy.called);
+        done();
+      });
+    });
+
+    test('Calls addEmptyRequest() when no argument', (done) => {
+      const spy = sinon.spy(element, 'addEmptyRequest');
+      element.clearWorkspace();
+      Polymer.RenderStatus.afterNextRender(element, () => {
+        assert.isTrue(spy.called);
+        done();
+      });
+    });
+  });
+
+  suite('appendByProject()', () => {
+    let project;
+    let requests;
+    suiteSetup(() => {
+      return DataGenerator.insertSavedRequestData()
+      .then((result) => {
+        project = result.projects.find((item) => !!item.requests.length);
+        if (!project) {
+          throw new Error('Chance did not produced project with requests');
+        }
+        requests = result.requests.filter((item) => item.projects && item.projects.indexOf(project._id) !== -1);
+      });
+    });
+
+    suiteTeardown(() => {
+      return DataGenerator.destroySavedRequestData();
+    });
+
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    test('Restores by project ID', () => {
+      return element.appendByProject(project._id)
+      .then(() => {
+        assert.lengthOf(element.activeRequests, requests.length);
+      });
+    });
+
+    test('Restores project.requests list', () => {
+      return element.appendByProject(project)
+      .then(() => {
+        assert.lengthOf(element.activeRequests, requests.length);
+      });
+    });
+
+    test('Restores by project._id', () => {
+      const copy = Object.assign({}, project);
+      delete copy.requests;
+      return element.appendByProject(project)
+      .then(() => {
+        assert.lengthOf(element.activeRequests, requests.length);
+      });
+    });
+
+    test('Throws when no requests to request', () => {
+      const copy = Object.assign({}, project);
+      delete copy.requests;
+      delete copy._id;
+      assert.throws(() => {
+        element.appendByProject(copy);
+      }, 'Unknown configuration');
+    });
+
+    test('Throws when no argument', () => {
+      assert.throws(() => {
+        element.appendByProject();
+      }, 'Expecting argument.');
+    });
+
+    test('Throws when event not handled', () => {
+      element.addEventListener('request-project-list', function f(e) {
+        element.removeEventListener('request-project-list', f);
+        e.stopPropagation();
+      });
+      assert.throws(() => {
+        element.appendByProject(project._id);
+      }, 'Request model not found');
+    });
+  });
+
+  suite('replaceByProject()', () => {
+    let project;
+    let requests;
+    suiteSetup(() => {
+      return DataGenerator.insertSavedRequestData()
+      .then((result) => {
+        project = result.projects.find((item) => !!item.requests.length);
+        if (!project) {
+          throw new Error('Chance did not produced project with requests');
+        }
+        requests = result.requests.filter((item) => item.projects && item.projects.indexOf(project._id) !== -1);
+      });
+    });
+
+    suiteTeardown(() => {
+      return DataGenerator.destroySavedRequestData();
+    });
+
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element, requests.length + 1);
+    });
+
+    test('Calls clearWorkspace()', () => {
+      const spy = sinon.spy(element, 'clearWorkspace');
+      return element.replaceByProject(project)
+      .then(() => {
+        assert.isTrue(spy.called, 'Function called');
+        assert.isTrue(spy.args[0][0], 'Argument is set');
+      });
+    });
+
+    test('Calls appendByProject()', () => {
+      const spy = sinon.spy(element, 'appendByProject');
+      return element.replaceByProject(project)
+      .then(() => {
+        assert.isTrue(spy.called, 'Function called');
+        assert.deepEqual(spy.args[0][0], project, 'Argument is set');
+      });
+    });
+
+    test('Replaces requests list', () => {
+      return element.replaceByProject(project)
+      .then(() => {
+        assert.lengthOf(element.activeRequests, requests.length);
+      });
+    });
+  });
+
+  suite('replaceByRequestsData()', () => {
+    let element;
+    let requests;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      requests = DataGenerator.generateRequests({
+        requestsSize: 3
+      });
+    });
+
+    test('Calls clearWorkspace()', () => {
+      const spy = sinon.spy(element, 'clearWorkspace');
+      element.replaceByRequestsData(requests);
+      assert.isTrue(spy.called, 'Function called');
+      assert.isTrue(spy.args[0][0], 'Argument is set');
+    });
+
+    test('Sets restoring', () => {
+      const spy = sinon.spy(element, '_setRestoring');
+      element.replaceByRequestsData(requests);
+      assert.equal(spy.callCount, 2);
+      assert.isTrue(spy.args[0][0], 'First time argument is true');
+      assert.isFalse(spy.args[1][0], 'Second time argument is false');
+    });
+
+    test('Sets refreshTabs()', () => {
+      const spy = sinon.spy(element, 'refreshTabs');
+      element.replaceByRequestsData(requests);
+      assert.isTrue(spy.called);
+    });
+
+    test('Calls appendRequest() for each request', () => {
+      const spy = sinon.spy(element, 'appendRequest');
+      element.replaceByRequestsData(requests);
+      assert.equal(spy.callCount, 3);
+      assert.deepEqual(spy.args[0][0], requests[0], 'Request argument is set');
+      assert.isTrue(spy.args[0][1].skipPositionCheck, 'skipPositionCheck is set');
+      assert.isTrue(spy.args[0][1].noAutoSelect, 'noAutoSelect is set');
+    });
+
+    test('Sets request _id property if missing', () => {
+      delete requests[0]._id;
+      element.replaceByRequestsData(requests);
+      assert.typeOf(requests[0]._id, 'string');
+    });
+
+    test('Sets selected to latest request', () => {
+      element.replaceByRequestsData(requests);
+      assert.equal(element.selected, 2);
+    });
+  });
+
+  suite('getActivePanel()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+    });
+
+    test('Returns panel for selected', () => {
+      element.selected = 0;
+      const result = element.getActivePanel();
+      assert.ok(result);
+    });
+
+    test('Undefined if no selected request', () => {
+      const result = element.getActivePanel();
+      assert.isUndefined(result);
+    });
+
+    test('Undefined if no panel for request id', () => {
+      element.selected = 0;
+      element.activeRequests[0]._id = 'some-id';
+      const result = element.getActivePanel();
+      assert.isUndefined(result);
+    });
+  });
+
+  suite('sendCurrent()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      element.selected = 0;
+    });
+
+    test('Calls getActivePanel()', () => {
+      const spy = sinon.spy(element, 'getActivePanel');
+      element.sendCurrent();
+      assert.isTrue(spy.called);
+    });
+
+    test('Calls send() on the panel', () => {
+      const panel = element.getActivePanel();
+      const spy = sinon.spy(panel, 'send');
+      element.sendCurrent();
+      assert.isTrue(spy.called);
+    });
+  });
+
+  suite('abortCurrent()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      element.selected = 0;
+    });
+
+    test('Calls getActivePanel()', () => {
+      const spy = sinon.spy(element, 'getActivePanel');
+      element.abortCurrent();
+      assert.isTrue(spy.called);
+    });
+
+    test('Calls abort() on the panel', () => {
+      const panel = element.getActivePanel();
+      const spy = sinon.spy(panel, 'abort');
+      element.abortCurrent();
+      assert.isTrue(spy.called);
+    });
+  });
+
+  suite('clearCurrent()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+      element.selected = 0;
+    });
+
+    test('Calls getActivePanel()', () => {
+      const spy = sinon.spy(element, 'getActivePanel');
+      element.clearCurrent();
+      assert.isTrue(spy.called);
+    });
+
+    test('Calls clear() on the panel', () => {
+      const panel = element.getActivePanel();
+      const spy = sinon.spy(panel, 'clear');
+      element.clearCurrent();
+      assert.isTrue(spy.called);
+    });
+  });
+
+  suite('abortAll()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+    });
+
+    test('Calls abort() on request panel', () => {
+      element.selected = 1;
+      const panel = element.getActivePanel();
+      panel.loading = true;
+      const spy = sinon.spy(panel, 'abort');
+      element.abortAll();
+      assert.isTrue(spy.called);
+    });
+
+    test('Skips panels that are not loading', () => {
+      element.selected = 1;
+      const panel = element.getActivePanel();
+      panel.loading = false;
+      const spy = sinon.spy(panel, 'abort');
+      element.abortAll();
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('duplicateTab()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element);
+    });
+
+    test('Does nothing if index is incorrect', () => {
+      const spy = sinon.spy(element, 'appendRequest');
+      element.duplicateTab(3);
+      assert.isFalse(spy.called);
+    });
+
+    test('Calls appendRequest() with arguments', () => {
+      const spy = sinon.spy(element, 'appendRequest');
+      element.duplicateTab(1);
+      assert.isTrue(spy.called, 'Function called');
+      assert.equal(spy.args[0][0].url, element.activeRequests[1].url);
+      assert.isTrue(spy.args[0][1].skipPositionCheck);
+    });
+
+    test('Calls _clearRequestMeta()', () => {
+      const spy = sinon.spy(element, '_clearRequestMeta');
+      element.duplicateTab(1);
+      assert.isTrue(spy.called);
+      assert.isTrue(spy.args[0][1]);
+    });
+
+    test('Removes request properties', () => {
+      const request = element.activeRequests[0];
+      request.name = 'test-name';
+      request.driveId = 'test-drive-id';
+      request.projects = ['project-id'];
+      request.type = 'saved';
+      request.legacyProject = 'abc';
+      element.duplicateTab(0);
+      assert.lengthOf(element.activeRequests, 3);
+      const copy = element.activeRequests[2];
+      assert.notEqual(copy._id, request._id, + '_id is cleared');
+      ['_rev', 'name', 'driveId', 'projects', 'type', 'legacyProject']
+      .forEach((prop) => {
+        assert.isUndefined(copy[prop], prop + ' is cleared');
+      });
+    });
+  });
+
+  suite('_clearRequestMeta()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    test('Removes properties with "_"', () => {
+      const obj = {
+        _a: true,
+        b: true
+      };
+      element._clearRequestMeta(obj);
+      assert.isUndefined(obj._a);
+    });
+
+    test('Keeps other properties', () => {
+      const obj = {
+        _a: true,
+        b: true
+      };
+      element._clearRequestMeta(obj);
+      assert.isTrue(obj.b);
+    });
+
+    test('Will not clear _id', () => {
+      const obj = {
+        _id: 'true',
+        _rev: 'true'
+      };
+      element._clearRequestMeta(obj);
+      assert.equal(obj._id, 'true');
+    });
+
+    test('Will not clear _rev', () => {
+      const obj = {
+        _id: 'true',
+        _rev: 'true'
+      };
+      element._clearRequestMeta(obj);
+      assert.equal(obj._rev, 'true');
+    });
+
+    test('Removes _id when includeIds is set', () => {
+      const obj = {
+        _id: 'true',
+        _rev: 'true'
+      };
+      element._clearRequestMeta(obj, true);
+      assert.isUndefined(obj._id);
+    });
+
+    test('Removes _rev when includeIds is set', () => {
+      const obj = {
+        _id: 'true',
+        _rev: 'true'
+      };
+      element._clearRequestMeta(obj, true);
+      assert.isUndefined(obj._rev);
+    });
+  });
+
+  suite('closeActiveTab()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element, 1);
+      element.selected = 0;
+    });
+
+    test('Calls removeRequest() with argument', () => {
+      const spy = sinon.spy(element, 'removeRequest');
+      element.closeActiveTab();
+      assert.isTrue(spy.called);
+      assert.equal(spy.args[0][0], 0);
+    });
+
+    test('Removes the request', () => {
+      element.closeActiveTab();
+      assert.deepEqual(element.activeRequests, []);
     });
   });
   </script>

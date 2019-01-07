@@ -666,8 +666,7 @@
       if (e.composedPath()[0] === this || this.restoring) {
         return;
       }
-      const value = e.detail.value;
-      this.environment = value;
+      this.environment = e.detail.value;
     }
     /**
      * Observer for workspace variable change.
@@ -882,18 +881,13 @@
      * @return {Promise}
      */
     addRequestById(type, id) {
-      const ev = new CustomEvent('request-object-read', {
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          id,
-          type,
-          opts: {
-            restorePayload: true
-          }
+      const ev = this._dispatch('request-object-read', {
+        id,
+        type,
+        opts: {
+          restorePayload: true
         }
       });
-      this.dispatchEvent(ev);
       if (!ev.defaultPrevented) {
         return Promise.reject(new Error('Request model not found'));
       }
@@ -1106,7 +1100,10 @@
       this.editorOpened = false;
       this.$.requestEditor.request = undefined;
     }
-
+    /**
+     * Handler for the delete action from the details popup.
+     * @param {CustomEvent} e
+     */
     _deleteRequestDetails(e) {
       e.stopPropagation();
       this.detailsOpened = false;
@@ -1115,15 +1112,10 @@
       if (!request._rev || !request._id) {
         return;
       }
-      document.body.dispatchEvent(new CustomEvent('request-object-deleted', {
-        detail: {
-          type: request.type,
-          id: request._id
-        },
-        bubbles: true,
-        composed: true,
-        cancelable: true
-      }));
+      this._dispatch('request-object-deleted', {
+        type: request.type,
+        id: request._id
+      });
     }
 
     _editRequestDetails(e) {
@@ -1240,17 +1232,33 @@
         return;
       }
       const copy = Object.assign({}, current);
-      delete copy._id;
-      delete copy._rev;
+      this._clearRequestMeta(copy, true);
       delete copy.name;
       delete copy.driveId;
       delete copy.projects;
       delete copy.type;
+      delete copy.legacyProject;
       this.appendRequest(copy, {
         skipPositionCheck: true
       });
     }
-
+    /**
+     * Removes all stored properties in a request object to prepare ArcRequest object.
+     * @param {Object} request
+     * @param {Boolean} includeIds
+     * @return {Object}
+     */
+    _clearRequestMeta(request, includeIds) {
+      Object.keys(request).forEach((key) => {
+        if (key[0] === '_') {
+          if (!includeIds && (key === '_id' || key === '_rev')) {
+            return;
+          }
+          delete request[key];
+        }
+      });
+      return request;
+    }
     /**
      * Closes currently selected tab.
      */
