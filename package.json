@@ -1,7 +1,7 @@
 {
-  "name": "@api-components/arc-request-workspace",
+  "name": "@advanced-rest-client/arc-request-workspace",
   "description": "A request workspace component for Advanced REST Client that creates a list of requests",
-  "version": "2.0.0-preview",
+  "version": "2.0.0",
   "license": "Apache-2.0",
   "main": "arc-request-workspace.html",
   "authors": [
@@ -9,7 +9,7 @@
     "The Advanced REST client authors <arc@mulesoft.com>"
   ],
   "devDependencies": {
-    "@polymer/gen-typescript-declarations": "^1.1.1"
+    "@polymer/gen-typescript-declarations": "^1.6.0"
   },
   "private": false,
   "scripts": {

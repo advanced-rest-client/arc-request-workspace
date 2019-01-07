@@ -1,7 +1,7 @@
 {
   "name": "arc-request-workspace",
   "description": "A request workspace component for Advanced REST Client that creates a list of requests",
-  "version": "2.0.0-preview",
+  "version": "2.0.0",
   "license": "Apache-2.0",
   "main": "arc-request-workspace.html",
   "keywords": [
@@ -16,10 +16,17 @@
     "paper-tabs": "PolymerElements/paper-tabs#^2.1.1",
     "paper-icon-button": "PolymerElements/paper-icon-button#^2.2.0",
     "iron-icon": "PolymerElements/iron-icon#^2.1.0",
-    "paper-toast": "PolymerElements/paper-toast#^2.1.2",
     "arc-icons": "advanced-rest-client/arc-icons#^2.0.3",
-    "request-panel": "advanced-rest-client/request-panel#2.0.0-preview",
-    "iron-pages": "PolymerElements/iron-pages#^2.1.1"
+    "request-panel": "advanced-rest-client/request-panel#^2.0.0",
+    "uuid-generator": "advanced-rest-client/uuid-generator#^2.0.0",
+    "paper-progress": "PolymerElements/paper-progress#^2.1.1",
+    "paper-item": "PolymerElements/paper-item#^2.0.0",
+    "http-code-snippets": "advanced-rest-client/http-code-snippets#^2.0.3",
+    "saved-request-editor": "advanced-rest-client/saved-request-editor#^2.0.0",
+    "saved-request-detail": "advanced-rest-client/saved-request-detail#^2.0.0",
+    "bottom-sheet": "advanced-rest-client/bottom-sheet#^2.0.0",
+    "arc-file-drop-mixin": "advanced-rest-client/arc-file-drop-mixin#^2.0.0",
+    "paper-toast": "PolymerElements/paper-toast#^2.1.2"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
@@ -29,12 +36,17 @@
     "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
     "app-pouchdb": "PolymerElements/app-pouchdb#^2.1.1",
     "web-animations-js": "web-animations/web-animations-js#^2.3",
-    "variables-manager": "advanced-rest-client/variables-manager#2.0.0-preview",
-    "variables-evaluator": "advanced-rest-client/variables-evaluator#2.0.0-preview",
-    "url-history-saver": "advanced-rest-client/url-history-saver#2.0.0-preview",
-    "request-hooks-logic": "advanced-rest-client/request-hooks-logic#2.0.0-preview",
+    "variables-manager": "advanced-rest-client/variables-manager#^2.0.0",
+    "variables-evaluator": "advanced-rest-client/variables-evaluator#^2.0.0",
+    "request-hooks-logic": "advanced-rest-client/request-hooks-logic#^2.0.0",
     "oauth-authorization": "advanced-rest-client/oauth-authorization#^2.0.0",
-    "arc-request-logic": "advanced-rest-client/arc-request-logic#2.0.0-preview"
+    "arc-request-logic": "advanced-rest-client/arc-request-logic#^2.0.0",
+    "arc-data-generator": "advanced-rest-client/arc-data-generator#^1.0.0",
+    "variables-editor": "advanced-rest-client/variables-editor#^2.0.0",
+    "saved-menu": "advanced-rest-client/saved-menu#^2.0.0",
+    "arc-models": "advanced-rest-client/arc-models#2.0.0-preview",
+    "arc-electron-default-theme": "advanced-rest-client/arc-electron-default-theme#2.0.0-preview",
+    "jexl": "advanced-rest-client/Jexl#^2.0.0"
   },
   "repository": {
     "type": "git",

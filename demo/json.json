@@ -1,0 +1,11 @@
+{
+  "test": true,
+  "number": 123456,
+  "float": 123456.789,
+  "object": {
+    "test": true,
+    "number": 123456,
+    "float": 123456.789
+  },
+  "maxNum": 991230983780112345634
+}

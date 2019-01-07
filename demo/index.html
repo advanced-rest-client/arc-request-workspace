@@ -8,10 +8,11 @@
     if (location.search.indexOf('response_type') !== -1 &&
       location.search.indexOf('redirect_uri') !== -1) {
       // OAUTH DEMO
-      var p = new URLSearchParams(location.search);
-      var state = p.get('state');
-      var type = p.get('response_type');
-      var red = p.get('redirect_uri');
+      /* global URLSearchParams */
+      const p = new URLSearchParams(location.search);
+      const state = p.get('state');
+      const type = p.get('response_type');
+      let red = p.get('redirect_uri');
       red += '?state=' + state;
       if (type === 'token') {
         red += '&access_token=ya.12345.asdfghh';
@@ -26,10 +27,15 @@
     <link rel="import" href="../../polymer/lib/elements/custom-style.html">
     <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
     <link rel="import" href="../../app-pouchdb/pouchdb.html">
+    <link rel="import" href="../../arc-models/project-model.html">
+    <link rel="import" href="../../arc-models/request-model.html">
+    <link rel="import" href="../../arc-models/variables-model.html">
     <link rel="import" href="../../neon-animation/web-animations.html">
     <link rel="import" href="../../variables-evaluator/variables-evaluator.html">
     <link rel="import" href="../../variables-manager/variables-manager.html">
-    <link rel="import" href="../../url-history-saver/url-history-saver.html">
+    <link rel="import" href="../../variables-editor/variables-editor.html">
+    <link rel="import" href="../../arc-models/url-history-model.html">
+    <link rel="import" href="../../arc-models/url-indexer.html">
     <link rel="import" href="../../request-hooks-logic/request-hooks-logic.html">
     <link rel="import" href="../../arc-request-logic/arc-request-logic.html">
     <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
@@ -37,32 +43,173 @@
     <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+    <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
+    <link rel="import" href="../../paper-styles/shadow.html">
+    <link rel="import" href="../../saved-menu/saved-menu.html">
+    <link rel="import" href="../../paper-toast/paper-toast.html">
+    <link rel="import" href="../../saved-request-editor/saved-request-editor.html">
+    <link rel="import" href="../../saved-request-detail/saved-request-detail.html">
+    <link rel="import" href="../../bottom-sheet/bottom-sheet.html">
+    <link rel="import" href="../../http-code-snippets/http-code-snippets.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
+    <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../../arc-icons/arc-icons.html">
+    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+    <link rel="import" href="../../paper-item/paper-item.html">
+    <link rel="import" href="../../paper-listbox/paper-listbox.html">
+    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <link rel="import" href="../../jexl/jexl.html">
     <link rel="import" href="../arc-request-workspace.html">
+    <style>
+    body,
+    html {
+      background-color: #e5e5e5;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    </style>
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
-      .vertical-section-container {
+      h1 {
+        @apply --paper-font-headline;
+      }
+
+      h2 {
+        @apply --paper-font-title;
+      }
+
+      .card {
+        @apply --shadow-elevation-4dp;
+        padding: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        background-color: #fff;
+      }
+
+      .app {
+        @apply --layout-horizontal;
+        height: 100vh;
+      }
+
+      nav {
+        min-width: 256px;
+        width: 256px;
+        height: 100vh;
+        background-color: #fff;
+      }
+
+      saved-menu {
+        overflow: auto;
+        width: 256px;
+        height: calc(100vh - 58px);
+      }
+
+      .main {
+        @apply --layout-flex;
+        height: 100vh;
+        overflow: auto;
+        margin: 0 24px;
+      }
+
+      arc-request-workspace {
+        width: 100%;
         max-width: 1100px;
+      }
+
+      .main > div {
+        max-width: 1100px;
+      }
+
+      bottom-sheet {
+        width: 60%;
+        max-width: 700px;
+      }
+
+      .search {
+        margin-left: 12px;
+        margin-right: 12px;
       }
       </style>
     </custom-style>
   </head>
   <body>
-    <url-history-saver></url-history-saver>
+    <variables-model></variables-model>
+    <url-history-model></url-history-model>
     <variables-manager></variables-manager>
+    <project-model></project-model>
+    <request-model></request-model>
+    <url-indexer></url-indexer>
     <variables-evaluator id="eval" no-before-request></variables-evaluator>
     <oauth2-authorization></oauth2-authorization>
     <oauth1-authorization></oauth1-authorization>
     <arc-request-logic></arc-request-logic>
     <request-hooks-logic></request-hooks-logic>
+
     <dom-bind id="demo">
       <template is="dom-bind">
-        <div class="vertical-section-container centered" role="main">
-          <arc-request-workspace></arc-request-workspace>
+        <div class="app">
+          <nav>
+            <div class="search">
+              <paper-input label="Search" class="search" no-label-float value="{{q}}" on-keydown="_searchKeydown">
+                <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
+              </paper-input>
+            </div>
+            <saved-menu on-navigate="_selectRequest"></saved-menu>
+          </nav>
+          <section class="main">
+            <div class="centered card">
+              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]"></arc-request-workspace>
+            </div>
+
+            <div class="centered card">
+              <paper-button on-click="generateData">Generate 100 saved items</paper-button>
+              <paper-button on-click="clearData">Clear datastore</paper-button>
+            </div>
+
+            <div class="centered card">
+              <h2>Select project to restore</h2>
+              <paper-dropdown-menu label="Project name">
+                <paper-listbox slot="dropdown-content" selected="{{project}}">
+                  <template is="dom-repeat" items="[[projects]]">
+                    <paper-item>[[item.name]] ([[item.requests.length]])</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-checkbox checked="{{projectReplace}}">Replace requests in workspace</paper-checkbox>
+              <paper-button on-click="getProjectRequestsData">Open requests</paper-button>
+            </div>
+
+            <div class="vertical-section-container centered card">
+              <h4>Demo: Variables editor</h4>
+              <variables-editor></variables-editor>
+            </div>
+
+            <div class="vertical-section-container centered card">
+              <h4>Workspace configuration</h4>
+              <paper-input label="Request timeout" value="{{requestTimeout}}" type="number" step="1" min="0" on-change="_requestTimeoutChanged"></paper-input>
+              <paper-input label="Sent message preview bytes limit" value="{{sentMessageLimit}}" type="number" step="1" min="0" on-change="_sentMessageLimitChanged"></paper-input>
+              <paper-toggle-button checked="{{validateCertificates}}" on-change="_validateCertificatesChanged">Validate certificates</paper-toggle-button>
+              <paper-toggle-button checked="{{followRedirects}}" on-change="_followRedirectsChanged">Follow redirects</paper-toggle-button>
+            </div>
+          </section>
         </div>
       </template>
     </dom-bind>
+    <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
+    <paper-toast id="clearToast" text="The request data has been removed"></paper-toast>
     <script>
+    /* global DataGenerator, chance */
     (function(app) {
+      const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
+        'oauth-authorization/oauth-popup.html');
+      app.oauth2RedirectUri = redirectUrl;
+      app.projectReplace = false;
+      app.init = function() {
+        app.refreshProjects();
+      };
       app.createHeaders = function(data) {
         const headers = new Headers();
         if (data) {
@@ -126,7 +273,209 @@
           }));
         });
       };
+      app._restoreHandler = function(e) {
+        e.preventDefault();
+        e.detail.result = new Promise((resolve) => {
+          const reqStr = localStorage.getItem('workspace.requests');
+          let requests;
+          if (reqStr) {
+            try {
+              requests = JSON.parse(reqStr);
+            } catch (_) {
+              requests = [];
+            }
+          }
+          let environment = localStorage.getItem('workspace.environment');
+          let selected;
+          let selStr = localStorage.getItem('workspace.selected');
+          if (selStr && !isNaN(selStr)) {
+            selected = Number(selStr);
+          }
+          const configStr = localStorage.getItem('workspace.config');
+          let config;
+          if (configStr) {
+            try {
+              config = JSON.parse(configStr);
+            } catch (_) {
+              config = {};
+            }
+          }
+          const variablesStr = localStorage.getItem('workspace.variables');
+          let variables;
+          if (variablesStr) {
+            try {
+              variables = JSON.parse(variablesStr);
+            } catch (_) {}
+          }
+          const result = {
+            selected,
+            environment,
+            requests,
+            config,
+            variables
+          };
+          if (config) {
+            if (config.requestTimeout) {
+              app.requestTimeout = Number(config.requestTimeout);
+            }
+            if (config.sentMessageLimit) {
+              app.sentMessageLimit = Number(config.sentMessageLimit);
+            }
+            if (config.followRedirects) {
+              app.followRedirects = Boolean(config.followRedirects);
+            }
+            if (config.validateCertificates) {
+              app.validateCertificates = Boolean(config.validateCertificates);
+            }
+          }
+          setTimeout(() => {
+            resolve(result);
+          });
+        });
+      };
+
+      app._storeHandler = function(e) {
+        e.preventDefault();
+        const {environment, selected, requests, config, variables} = e.detail.value;
+        console.info('Storing workspace data', e.detail.value);
+        if (requests) {
+          const requestsStr = JSON.stringify(requests);
+          localStorage.setItem('workspace.requests', requestsStr);
+        }
+        if (environment) {
+          localStorage.setItem('workspace.environment', environment);
+        }
+        if (config) {
+          const consfigStr = JSON.stringify(config);
+          localStorage.setItem('workspace.config', consfigStr);
+        }
+        if (variables) {
+          const variablesStr = JSON.stringify(variables);
+          localStorage.setItem('workspace.variables', variablesStr);
+        }
+        localStorage.setItem('workspace.selected', selected);
+      };
+
+      app.generateData = function() {
+        DataGenerator.insertSavedRequestData({
+          requestsSize: 100
+        })
+        .then(() => {
+          document.getElementById('genToast').opened = true;
+          document.body.dispatchEvent(new CustomEvent('data-imported', {
+            bubbles: true
+          }));
+        });
+      };
+      app.clearData = function() {
+        DataGenerator.destroySavedRequestData()
+        .then(() => {
+          document.getElementById('clearToast').opened = true;
+          document.body.dispatchEvent(new CustomEvent('datastore-destroyed', {
+            detail: {
+              datastore: 'all'
+            },
+            bubbles: true
+          }));
+        });
+      };
+      app._selectRequest = function(e) {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.addRequestById('saved', e.detail.id);
+      };
+      //
+      // Google drive export flow
+      //
+      app._exportDriveHandler = function(e) {
+        e.preventDefault();
+        e.detail.result = Promise.resolve({
+          id: chance.guid({version: 5})
+        });
+      };
+      //
+      // Search saved
+      //
+      app._searchKeydown = function(e) {
+        if (e.code === 'Enter') {
+          app._search();
+        }
+      };
+      app._search = function() {
+        if (!app.q) {
+          document.querySelector('saved-menu').refresh();
+          return;
+        }
+        const e = new CustomEvent('request-query', {
+          cancelable: true,
+          bubbles: true,
+          detail: {
+            type: 'saved',
+            q: app.q
+          }
+        });
+        document.body.dispatchEvent(e);
+        e.detail.result
+        .then((items) => {
+          document.querySelector('saved-menu').requests = items;
+        });
+      };
+      app.refreshProjects = function() {
+        const e = new CustomEvent('project-model-query', {
+          cancelable: true,
+          bubbles: true,
+          detail: {}
+        });
+        document.body.dispatchEvent(e);
+        e.detail.result
+        .then((data) => {
+          console.log('Projects query result', data);
+          app.projects = data;
+        });
+      };
+      app.getProjectRequestsData = function() {
+        const project = app.projects[app.project];
+        if (!project) {
+          return;
+        }
+        const workspace = document.querySelector('arc-request-workspace');
+        if (app.projectReplace) {
+          workspace.replaceByProject(project);
+        } else {
+          workspace.appendByProject(project);
+        }
+      };
+      // Mocking of the data export component.
+      document.body.addEventListener('export-data', function(e) {
+        e.preventDefault();
+        e.detail.result = new Promise((resolve) => {
+          resolve();
+        });
+      });
+
+      app._requestTimeoutChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.requestTimeout = Number(app.requestTimeout);
+      };
+      app._sentMessageLimitChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.sentMessageLimit = Number(app.sentMessageLimit);
+      };
+      app._validateCertificatesChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.validateCertificates = app.validateCertificates;
+      };
+      app._followRedirectsChanged = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.followRedirects = app.followRedirects;
+      };
       window.addEventListener('transport-request', app.send);
+      window.addEventListener('workspace-state-read', app._restoreHandler);
+      window.addEventListener('workspace-state-store', app._storeHandler);
+      window.addEventListener('request-save-state', app._saveRequestHandler);
+      window.addEventListener('request-details', app._requestDetailsHandler);
+      window.addEventListener('request-code-snippets', app._renderCodeSnippets);
+      window.addEventListener('export-google-drive', app._exportDriveHandler);
+      window.addEventListener('WebComponentsReady', app.init);
     })(document.getElementById('demo'));
   </script>
   </body>
