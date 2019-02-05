@@ -1493,6 +1493,78 @@
     });
   });
 
+  suite('_openProjectHandler()', () => {
+    let project;
+    let requests;
+    suiteSetup(() => {
+      return DataGenerator.insertSavedRequestData()
+      .then((result) => {
+        project = result.projects.find((item) => !!item.requests.length);
+        if (!project) {
+          throw new Error('Chance did not produced project with requests');
+        }
+        requests = result.requests.filter((item) => item.projects && item.projects.indexOf(project._id) !== -1);
+      });
+    });
+
+    suiteTeardown(() => {
+      return DataGenerator.destroySavedRequestData();
+    });
+
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+      addRequests(element, requests.length + 1);
+    });
+
+    function fire(project, replace) {
+      const e = new CustomEvent('workspace-open-project-requests', {
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          project,
+          replace
+        }
+      });
+      document.body.dispatchEvent(e);
+      return e;
+    }
+
+    test('Calls replaceByProject()', () => {
+      const spy = sinon.spy(element, 'replaceByProject');
+      const e = fire(project, true);
+      assert.isTrue(spy.called);
+      return e.detail.result;
+    });
+
+    test('Calls appendByProject()', () => {
+      const spy = sinon.spy(element, 'appendByProject');
+      const e = fire(project, false);
+      assert.isTrue(spy.called);
+      return e.detail.result;
+    });
+
+    test('Cancels the event', () => {
+      const e = fire(project, false);
+      assert.isTrue(e.defaultPrevented);
+      return e.detail.result;
+    });
+
+    test('Ignores cancelled events', () => {
+      const spy = sinon.spy(element, 'appendByProject');
+      const e = {
+        preventDefault: () => {},
+        defaultPrevented: true,
+        detail: {
+          project,
+          replace: true
+        }
+      };
+      element._openProjectHandler(e);
+      assert.isFalse(spy.called);
+    });
+  });
+
   suite('replaceByRequestsData()', () => {
     let element;
     let requests;

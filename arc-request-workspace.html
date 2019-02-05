@@ -424,6 +424,7 @@
       this._requestDeleteHandler = this._requestDeleteHandler.bind(this);
       this._appendRequestHandler = this._appendRequestHandler.bind(this);
       this._sendRequestHandler = this._sendRequestHandler.bind(this);
+      this._openProjectHandler = this._openProjectHandler.bind(this);
     }
 
     connectedCallback() {
@@ -432,6 +433,7 @@
       window.addEventListener('request-object-changed', this._requestChangeHandler);
       window.addEventListener('request-object-deleted', this._requestDeleteHandler);
       window.addEventListener('request-workspace-append', this._appendRequestHandler);
+      window.addEventListener('workspace-open-project-requests', this._openProjectHandler);
       this.addEventListener('api-request', this._sendRequestHandler);
       if (!this.noAutoRestore && !this.activeRequests.length) {
         Polymer.RenderStatus.afterNextRender(this, () => this.restoreWorkspace());
@@ -445,6 +447,7 @@
       window.removeEventListener('request-object-changed', this._requestChangeHandler);
       window.removeEventListener('request-object-deleted', this._requestDeleteHandler);
       window.removeEventListener('request-workspace-append', this._appendRequestHandler);
+      window.removeEventListener('workspace-open-project-requests', this._openProjectHandler);
       this.removeEventListener('api-request', this._sendRequestHandler);
     }
 
@@ -1004,6 +1007,25 @@
     replaceByProject(project) {
       this.clearWorkspace(true);
       return this.appendByProject(project);
+    }
+    /**
+     * Handler for `workspace-open-project-requests` dispatched by projects
+     * menu.
+     * @param {CustomEvent} e Detail object contains `project` which can be
+     * string as project ID or project object and `replace` which determines
+     * if the workspace state should be replaced.
+     */
+    _openProjectHandler(e) {
+      if (e.defaultPrevented) {
+        return;
+      }
+      e.preventDefault();
+      const {project, replace} = e.detail;
+      if (replace) {
+        e.detail.result = this.replaceByProject(project);
+      } else {
+        e.detail.result = this.appendByProject(project);
+      }
     }
     /**
      * Replaces current workspace with the request data passed as an argument.

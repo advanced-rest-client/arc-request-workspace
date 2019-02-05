@@ -397,6 +397,16 @@ declare namespace UiElements {
     replaceByProject(project: String|object|null): Promise<any>|null;
 
     /**
+     * Handler for `workspace-open-project-requests` dispatched by projects
+     * menu.
+     *
+     * @param e Detail object contains `project` which can be
+     * string as project ID or project object and `replace` which determines
+     * if the workspace state should be replaced.
+     */
+    _openProjectHandler(e: CustomEvent|null): void;
+
+    /**
      * Replaces current workspace with the request data passed as an argument.
      *
      * @param requests List of ArcRequest objects to use.
