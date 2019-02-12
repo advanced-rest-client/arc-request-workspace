@@ -183,7 +183,7 @@
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
         <template is="dom-repeat" items="[[activeRequests]]" id="tabsRepeater">
-          <paper-tab on-track="_handleTrack">
+          <paper-tab draggable="[[_computeDraggableValue(draggableEnabled)]]" on-dragstart="_dragStart" on-dragend="_dragEnd">
             <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
             <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
           </paper-tab>

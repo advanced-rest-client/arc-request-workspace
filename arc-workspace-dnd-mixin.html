@@ -18,12 +18,192 @@
      * @mixinClass
      */
     class ArcWorkspaceDndMixin extends base {
+      static get properties() {
+        return {
+          /**
+           * Adds draggable property to the request list item element.
+           * The `dataTransfer` object has `arc/request-object` mime type with
+           * serialized JSON with request model.
+           */
+          draggableEnabled: {type: Boolean, value: false, observer: '_draggableChanged'}
+        };
+      }
       /**
        * @return {Boolean} True if tabs drag and drop is possible.
        */
       get _dragPossible() {
         const r = this.activeRequests;
         return !!(r && r.length > 1);
+      }
+
+      constructor() {
+        super();
+        this._dragoverHandler = this._dragoverHandler.bind(this);
+        this._dragleaveHandler = this._dragleaveHandler.bind(this);
+        this._dropHandler = this._dropHandler.bind(this);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        if (this.draggableEnabled) {
+          this._addDndEvents();
+        }
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._removeDndEvents();
+      }
+
+      _draggableChanged(value) {
+        if (value) {
+          this._addDndEvents();
+        } else {
+          this._removeDndEvents();
+        }
+      }
+
+      _addDndEvents() {
+        if (this.__dndAdded) {
+          return;
+        }
+        this.__dndAdded = true;
+        this.$.tabs.addEventListener('dragover', this._dragoverHandler);
+        this.$.tabs.addEventListener('dragleave', this._dragleaveHandler);
+        this.$.tabs.addEventListener('drop', this._dropHandler);
+      }
+
+      _removeDndEvents() {
+        if (!this.__dndAdded) {
+          return;
+        }
+        this.__dndAdded = false;
+        this.$.tabs.removeEventListener('dragover', this._dragoverHandler);
+        this.$.tabs.removeEventListener('dragleave', this._dragleaveHandler);
+        this.$.tabs.removeEventListener('drop', this._dropHandler);
+      }
+
+      /**
+       * Handler for the `dragstart` event added to the list item when `draggableEnabled`
+       * is set to true.
+       * This function sets request data on the `dataTransfer` object with `arc/request-object`
+       * mime type. The request data is a serialized JSON with request model.
+       * @param {Event} e
+       */
+      _dragStart(e) {
+        if (!this.draggableEnabled) {
+          return;
+        }
+        const request = e.model.get('item');
+        const data = JSON.stringify(request);
+        e.dataTransfer.setData('arc/request-object', data);
+        if (request.type === 'saved') {
+          e.dataTransfer.setData('arc/saved-request', request._id);
+        } else if (request.type === 'history') {
+          e.dataTransfer.setData('arc/history-request', request._id);
+        }
+        e.dataTransfer.setData('arc-source/requests-workspace', request._id);
+        e.dataTransfer.effectAllowed = 'copy';
+        const target = e.currentTarget;
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          const style = getComputedStyle(this);
+          this.__tabsSelectionColor = style.getPropertyValue('--paper-tabs-selection-bar-color').trim();
+          this.__tabsSelectionColor2 = style.getPropertyValue('--paper-tabs-selection-bar_-_border-color').trim();
+          this.$.tabs.style.setProperty('--paper-tabs-selection-bar-color', 'transparent');
+          this.$.tabs.style.setProperty('--paper-tabs-selection-bar_-_border-color', 'transparent');
+          this.__tabsInitialDisplay = target.style.display;
+          target.style.display = 'none';
+        });
+      }
+
+      _dragEnd(e) {
+        e.currentTarget.style.display = this.__tabsInitialDisplay;
+        this.$.tabs.style.setProperty('--paper-tabs-selection-bar-color', this.__tabsSelectionColor);
+        this.$.tabs.style.setProperty('--paper-tabs-selection-bar_-_border-color', this.__tabsSelectionColor2);
+      }
+      /**
+       * Computes value for the `draggable` property of the list item.
+       * When `draggableEnabled` is set it returns true which is one of the
+       * conditions to enable drag and drop on an element.
+       * @param {Boolean} draggableEnabled Current value of `draggableEnabled`
+       * @return {String} `true` or `false` (as string) depending on the argument.
+       */
+      _computeDraggableValue(draggableEnabled) {
+        return draggableEnabled ? 'true' : 'false';
+      }
+      /**
+       * Handler for `dragover` event on this element. If the dagged item is compatible
+       * it renders drop message.
+       * @param {DragEvent} e
+       */
+      _dragoverHandler(e) {
+        if (!this.draggableEnabled) {
+          return;
+        }
+        console.log('over', e);
+        if (e.dataTransfer.types.indexOf('arc/request-object') === -1) {
+          return;
+        }
+        e.dataTransfer.dropEffect = 'copy';
+        e.preventDefault();
+        if (e.dataTransfer.types.indexOf('arc-source/requests-workspace') !== -1) {
+          this._reorderDragover(e);
+        } else {
+          this._newTabDragover(e);
+        }
+      }
+
+      _reorderDragover(e) {
+        const dragElement = this._getReorderedItem(e);
+        this._dragElement = dragElement;
+        this._dragModel = e.model;
+        this._blockEditors();
+      }
+
+      _newTabDragover() {
+
+      }
+      /**
+       * Handler for `dragleave` event on this element. If the dagged item is compatible
+       * it hides drop message.
+       * @param {DragEvent} e
+       */
+      _dragleaveHandler(e) {
+        if (!this.draggableEnabled) {
+          return;
+        }
+        console.log('leave', e);
+        if (e.dataTransfer.types.indexOf('arc/request-object') === -1) {
+          return;
+        }
+        e.preventDefault();
+        if (this.classList.contains('drop-target')) {
+          this.classList.remove('drop-target');
+        }
+      }
+      /**
+       * Handler for `drag` event on this element. If the dagged item is compatible
+       * it adds request to saved requests.
+       * @param {DragEvent} e
+       */
+      _dropHandler(e) {
+        if (!this.draggableEnabled) {
+          return;
+        }
+        if (e.dataTransfer.types.indexOf('arc/request-object') === -1 ||
+          e.dataTransfer.types.indexOf('arc/saved-request') !== -1) {
+          return;
+        }
+        e.preventDefault();
+        if (this.classList.contains('drop-target')) {
+          this.classList.remove('drop-target');
+        }
+        const data = e.dataTransfer.getData('arc/request-object');
+        if (!data) {
+          return;
+        }
+        const request = JSON.parse(data);
+        this._appendRequest(request);
       }
       /**
        * Handles track event dispatched by `Polymer.Gestures` library.

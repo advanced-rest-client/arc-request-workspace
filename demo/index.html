@@ -157,11 +157,11 @@
                 <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
               </paper-input>
             </div>
-            <saved-menu on-navigate="_selectRequest"></saved-menu>
+            <saved-menu on-navigate="_selectRequest" draggable-enabled></saved-menu>
           </nav>
           <section class="main">
             <div class="centered card">
-              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]"></arc-request-workspace>
+              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]" draggable-enabled></arc-request-workspace>
             </div>
 
             <div class="centered card">
