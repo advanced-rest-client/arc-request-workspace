@@ -28,13 +28,6 @@
           draggableEnabled: {type: Boolean, value: false, observer: '_draggableChanged'}
         };
       }
-      /**
-       * @return {Boolean} True if tabs drag and drop is possible.
-       */
-      get _dragPossible() {
-        const r = this.activeRequests;
-        return !!(r && r.length > 1);
-      }
 
       constructor() {
         super();
