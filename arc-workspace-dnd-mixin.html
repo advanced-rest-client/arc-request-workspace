@@ -107,17 +107,25 @@
         e.dataTransfer.effectAllowed = 'copyMove';
         this._startReorderDrag(e);
         const target = e.currentTarget;
-        Polymer.RenderStatus.afterNextRender(this, () => {
-          const style = getComputedStyle(this);
-          this.__tabsSelectionColor = style.getPropertyValue('--paper-tabs-selection-bar-color').trim();
-          this.__tabsSelectionColor2 = style.getPropertyValue('--paper-tabs-selection-bar_-_border-color').trim();
-          this.$.tabs.style.setProperty('--paper-tabs-selection-bar-color', 'transparent');
-          this.$.tabs.style.setProperty('--paper-tabs-selection-bar_-_border-color', 'transparent');
-          this.__tabsInitialDisplay = target.style.display;
-          target.style.visibility = 'hidden';
-        });
+        Polymer.RenderStatus.afterNextRender(this, () => this._removeTabSelectionColor(target));
       }
-
+      /**
+       * Memorizes and removes tabs selection colors. It can be restored by calling `_resetReorderStyles()`.
+       * @param {Element} target Dragged element.
+       */
+      _removeTabSelectionColor(target) {
+        const style = getComputedStyle(this);
+        this.__tabsSelectionColor = style.getPropertyValue('--paper-tabs-selection-bar-color').trim();
+        this.__tabsSelectionColor2 = style.getPropertyValue('--paper-tabs-selection-bar_-_border-color').trim();
+        this.$.tabs.style.setProperty('--paper-tabs-selection-bar-color', 'transparent');
+        this.$.tabs.style.setProperty('--paper-tabs-selection-bar_-_border-color', 'transparent');
+        this.__tabsInitialDisplay = target.style.display;
+        target.style.visibility = 'hidden';
+      }
+      /**
+       * Starts tabs reordering action.
+       * @param {DragEvent} e
+       */
       _startReorderDrag(e) {
         const element = e.currentTarget;
         const model = e.model;
@@ -127,7 +135,11 @@
         this.__reorderInfo.dragIndex = model.get('index');
         this._blockEditors();
       }
-
+      /**
+       * Handler for the dragend event. It only performs an action when reordering
+       * is active.
+       * @param {DragEvent} e
+       */
       _dragEnd(e) {
         if (this.__reorderInfo.type === 'track') {
           this._finishReorder(e);
@@ -135,7 +147,10 @@
           this._unblockEditors();
         }
       }
-
+      /**
+       * Reorders tabs and resets workspace state.
+       * @param {DragEvent} e
+       */
       _finishReorder(e) {
         const ripple = this.__reorderInfo.dragElement.shadowRoot.querySelector('paper-ripple');
         ripple.removeRipple(ripple.ripples[0]);
@@ -147,7 +162,10 @@
         this._resetReorderState();
         this._resetReorderStyles(e);
       }
-
+      /**
+       * Moves a tab to corresponding position when drag finishes.
+       * @return {Number|undefined} Position where the request has been moved to.
+       */
       _rearrangeReorder() {
         const fromIdx = this.__reorderInfo.dragIndex;
         let toIdx;
@@ -158,13 +176,18 @@
         }
         return toIdx;
       }
-
+      /**
+       * Resets tabs selection styles and drag target visibility when reorder finishes.
+       * @param {DragEvent} e
+       */
       _resetReorderStyles(e) {
         e.currentTarget.style.visibility = 'visible';
         this.$.tabs.style.setProperty('--paper-tabs-selection-bar-color', this.__tabsSelectionColor);
         this.$.tabs.style.setProperty('--paper-tabs-selection-bar_-_border-color', this.__tabsSelectionColor2);
       }
-
+      /**
+       * Resets styles of paper-tabs that has been moved during reorder action.
+       */
       _resetReorderChildren() {
         const children = this.$.tabs.querySelectorAll('paper-tab');
         for (let i = 0, len = children.length; i < len; i++) {
@@ -182,7 +205,9 @@
       _computeDraggableValue(draggableEnabled) {
         return draggableEnabled ? 'true' : 'false';
       }
-
+      /**
+       * Resets state of the reorder info object.
+       */
       _resetReorderState() {
         this.__reorderInfo = {type: 'start', moves: []};
       }
@@ -208,7 +233,11 @@
           this._newTabDragover(e);
         }
       }
-
+      /**
+       * Handles `dragover` event when in reoedering model.
+       * It updates tabs position and sets variables later used to compute position.
+       * @param {DragEvent} e
+       */
       _reorderDragover(e) {
         if (this.__reorderInfo.type !== 'track') {
           return;
@@ -231,7 +260,10 @@
         this._updateChildrenReorder(start, end, draggedIndex, overIndex);
         this.__reorderInfo.overIndex = model.index;
       }
-
+      /**
+       * Computes the delat from previous move.
+       * @return {Number} When negative it is moving left and moving right othewise.
+       */
       _getReorderDdx() {
         let secondlast = this.__reorderInfo.moves[this.__reorderInfo.moves.length - 2];
         let lastmove = this.__reorderInfo.moves[this.__reorderInfo.moves.length - 1];
@@ -241,13 +273,22 @@
         }
         return ddx;
       }
-
+      /**
+       * Adds (x,y) coordinates of the current move. It is later use to compute
+       * the delta.
+       * @param {DragEvent} e
+       */
       _updateReorderMoves(e) {
         this.__reorderInfo.moves.push({x: e.clientX, y: e.clientY});
-        this.__reorderInfo.x = e.clientX;
-        this.__reorderInfo.y = e.clientY;
       }
-
+      /**
+       * Updates position of the children in `paper-tab` container while tracking
+       * an item.
+       * @param {Number} start Change start index.
+       * @param {Number} end Change end index.
+       * @param {Number} draggedIndex Index of the tab being dragged.
+       * @param {Number} overIndex Index of the tab being under the pointer.
+       */
       _updateChildrenReorder(start, end, draggedIndex, overIndex) {
         const children = this.$.tabs.querySelectorAll('paper-tab');
         for (let i = start; i <= end; i++) {
@@ -310,7 +351,13 @@
           this._dropProject(e, order);
         }
       }
-
+      /**
+       * Adds a request to the workspace.
+       * It reads request data from the event and depending on keys configuration
+       * either add request to the workspace or repace existing requests.
+       * @param {DragEvent} e Original event.
+       * @param {Number} order Position where to put the requests from project
+       */
       _dropRequest(e, order) {
         const data = e.dataTransfer.getData('arc/request-object');
         const request = JSON.parse(data);
@@ -321,7 +368,13 @@
           this.appendRequestAt(order, request);
         }
       }
-
+      /**
+       * Adds project to the dowspace.
+       * It reads project data from the event and depending on keys configuration
+       * either add requests to the workspace or repace existing requests.
+       * @param {DragEvent} e Original event.
+       * @param {Number} order Position where to put the requests from project
+       */
       _dropProject(e, order) {
         const data = e.dataTransfer.getData('arc/project-object');
         const project = JSON.parse(data);
@@ -332,7 +385,10 @@
           this.appendByProject(project, order);
         }
       }
-
+      /**
+       * Computes index of the drop.
+       * @return {Number} Index where to drop the object.
+       */
       _computeDropOrder() {
         const dropRef = this.__dropPointerReference;
         let order;
@@ -412,6 +468,10 @@
           }
         }
       }
+      /**
+       * Action to handle dragover event when not in reorder mode.
+       * @param {DragEvent} e
+       */
       _newTabDragover(e) {
         const path = e.path || e.composedPath();
         const item = path.find((node) => node.nodeName === 'PAPER-TAB');

@@ -505,7 +505,12 @@
       }
       return result;
     }
-
+    /**
+     * Computes name for a tab.
+     * @param {?String} name Request name
+     * @param {?String} url Request URL
+     * @return {String} Tab name which is (in order) name, url, or "New request".
+     */
     _computeTabName(name, url) {
       if (name) {
         return name;
