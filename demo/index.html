@@ -47,6 +47,8 @@
     <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
     <link rel="import" href="../../paper-styles/shadow.html">
     <link rel="import" href="../../saved-menu/saved-menu.html">
+    <link rel="import" href="../../projects-menu/projects-menu.html">
+    <link rel="import" href="../../history-menu/history-menu.html">
     <link rel="import" href="../../paper-toast/paper-toast.html">
     <link rel="import" href="../../saved-request-editor/saved-request-editor.html">
     <link rel="import" href="../../saved-request-detail/saved-request-detail.html">
@@ -59,6 +61,8 @@
     <link rel="import" href="../../paper-item/paper-item.html">
     <link rel="import" href="../../paper-listbox/paper-listbox.html">
     <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+    <link rel="import" href="../../paper-tabs/paper-tabs.html">
+    <link rel="import" href="../../paper-tabs/paper-tab.html">
     <link rel="import" href="../../jexl/jexl.html">
     <link rel="import" href="../arc-request-workspace.html">
     <style>
@@ -101,6 +105,8 @@
         background-color: #fff;
       }
 
+      projects-menu,
+      history-menu,
       saved-menu {
         overflow: auto;
         width: 256px;
@@ -152,16 +158,28 @@
       <template is="dom-bind">
         <div class="app">
           <nav>
-            <div class="search">
-              <paper-input label="Search" class="search" no-label-float value="{{q}}" on-keydown="_searchKeydown">
-                <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
-              </paper-input>
-            </div>
-            <saved-menu on-navigate="_selectRequest"></saved-menu>
+            <paper-tabs selected="{{selectedMenu}}">
+              <paper-tab>History</paper-tab>
+              <paper-tab>Saved</paper-tab>
+              <paper-tab>Projects</paper-tab>
+            </paper-tabs>
+            <iron-pages selected="[[selectedMenu]]">
+              <history-menu id="historyMenu" on-navigate="_selectRequest" draggable-enabled list-type="[[listType]]"></history-menu>
+              <div>
+                <div class="search">
+                  <paper-input label="Search" class="search" no-label-float value="{{q}}" on-keydown="_searchKeydown">
+                    <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
+                  </paper-input>
+                </div>
+                <saved-menu on-navigate="_selectRequest" draggable-enabled></saved-menu>
+              </div>
+              <projects-menu id="projectsMenu" on-navigate="_selectRequest" draggable-enabled list-type="[[listType]]"></projects-menu>
+            </iron-pages>
+
           </nav>
           <section class="main">
             <div class="centered card">
-              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]"></arc-request-workspace>
+              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]" draggable-enabled></arc-request-workspace>
             </div>
 
             <div class="centered card">
@@ -207,6 +225,7 @@
         'oauth-authorization/oauth-popup.html');
       app.oauth2RedirectUri = redirectUrl;
       app.projectReplace = false;
+      app.selectedMenu = 0;
       app.init = function() {
         app.refreshProjects();
       };
@@ -381,7 +400,11 @@
       };
       app._selectRequest = function(e) {
         const workspace = document.querySelector('arc-request-workspace');
-        workspace.addRequestById('saved', e.detail.id);
+        const {base, type, id} = e.detail;
+        if (base === 'project') {
+          return;
+        }
+        workspace.addRequestById(type, id);
       };
       //
       // Google drive export flow

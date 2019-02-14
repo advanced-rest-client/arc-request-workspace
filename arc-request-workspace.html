@@ -179,11 +179,25 @@
       color: var(--warning-contrast-color, #fff);
       @apply --error-toast;
     }
+
+    .drop-pointer {
+      position: absolute;
+      left: 4px;
+      color: #757575;
+      width: 20px;
+      height: 24px;
+      font-size: 20px;
+      top: 36px;
+    }
+
+    .drop-pointer::before {
+      content: "⇧";
+    }
     </style>
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable disable-drag class="tabs" id="tabs">
         <template is="dom-repeat" items="[[activeRequests]]" id="tabsRepeater">
-          <paper-tab on-track="_handleTrack">
+          <paper-tab draggable="[[_computeDraggableValue(draggableEnabled)]]" on-dragstart="_dragStart" on-dragend="_dragEnd">
             <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
             <iron-icon class="close-icon" icon="arc:close" data-index$="[[index]]" on-click="_closeRequest"></iron-icon>
           </paper-tab>
@@ -491,7 +505,12 @@
       }
       return result;
     }
-
+    /**
+     * Computes name for a tab.
+     * @param {?String} name Request name
+     * @param {?String} url Request URL
+     * @return {String} Tab name which is (in order) name, url, or "New request".
+     */
     _computeTabName(name, url) {
       if (name) {
         return name;
@@ -544,6 +563,29 @@
         }
       }
       return index;
+    }
+    /**
+     * Adds a request at specific position moving the request at the position to the right.
+     * If the position is out of `activeRequests` bounds
+     * @param {Number} index The position of the tab where to put the request
+     * @param {Object} request Request object to put.
+     * @param {?Object} opts Add request options:
+     * - noAutoSelect {Boolean} - Won't attempt to select added request
+     */
+    appendRequestAt(index, request, opts) {
+      opts = opts || {};
+      if (!request._id) {
+        request._id = this.$.uuid.generate();
+      }
+      if (index >= this.activeRequests.length) {
+        this.push('activeRequests', request);
+      } else {
+        this.splice('activeRequests', index, 0, request);
+      }
+      this.__addPanel(request);
+      if (!opts.noAutoSelect) {
+        this.selected = index;
+      }
     }
     /**
      * Adds an empty request to the workspace.
@@ -949,9 +991,10 @@
     /**
      * Adds requests by a project.
      * @param {String|Object} project Project id or project object
+     * @param {?Number} index Position where to start adding requests from the project.
      * @return {Promise}
      */
-    appendByProject(project) {
+    appendByProject(project, index) {
       if (!project) {
         throw new Error('Expecting argument.');
       }
@@ -988,11 +1031,21 @@
       return e.detail.result
       .then((data) => {
         let lastIndex;
+        let hasIndex = typeof index === 'number';
+        if (hasIndex && index >= this.activeRequests.length) {
+          hasIndex = false;
+        }
+        const opts = {
+          skipPositionCheck: true,
+          noAutoSelect: true
+        };
         for (let i = 0, len = data.length; i < len; i++) {
-          lastIndex = this.appendRequest(data[i], {
-            skipPositionCheck: true,
-            noAutoSelect: true
-          });
+          if (hasIndex) {
+            lastIndex = index + i;
+            this.appendRequestAt(lastIndex, data[i], opts);
+          } else {
+            lastIndex = this.appendRequest(data[i], opts);
+          }
         }
         this._setRestoring(false);
         this.selected = lastIndex;
