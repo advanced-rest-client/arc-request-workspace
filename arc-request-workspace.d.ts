@@ -211,7 +211,15 @@ declare namespace UiElements {
      * @returns Index of empty request or `-1`.
      */
     _getEmptyPosition(): Number|null;
-    _computeTabName(name: any, url: any): any;
+
+    /**
+     * Computes name for a tab.
+     *
+     * @param name Request name
+     * @param url Request URL
+     * @returns Tab name which is (in order) name, url, or "New request".
+     */
+    _computeTabName(name: String|null, url: String|null): String|null;
 
     /**
      * Appends request to the list of `activeRequests` and selects it.
@@ -227,6 +235,17 @@ declare namespace UiElements {
      * @returns Index of newly created request.
      */
     appendRequest(request: object|null, opts: object|null): Number|null;
+
+    /**
+     * Adds a request at specific position moving the request at the position to the right.
+     * If the position is out of `activeRequests` bounds
+     *
+     * @param index The position of the tab where to put the request
+     * @param request Request object to put.
+     * @param opts Add request options:
+     * - noAutoSelect {Boolean} - Won't attempt to select added request
+     */
+    appendRequestAt(index: Number|null, request: object|null, opts: object|null): void;
 
     /**
      * Adds an empty request to the workspace.
@@ -386,8 +405,9 @@ declare namespace UiElements {
      * Adds requests by a project.
      *
      * @param project Project id or project object
+     * @param index Position where to start adding requests from the project.
      */
-    appendByProject(project: String|object|null): Promise<any>|null;
+    appendByProject(project: String|object|null, index: Number|null): Promise<any>|null;
 
     /**
      * Replace current workspace data by a project.
