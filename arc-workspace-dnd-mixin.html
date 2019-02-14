@@ -145,8 +145,7 @@
        * @param {DragEvent} e
        */
       _finishReorder(e) {
-        const ripple = this.__reorderInfo.dragElement.shadowRoot.querySelector('paper-ripple');
-        ripple.removeRipple(ripple.ripples[0]);
+        this._removeRipples(this.__reorderInfo.dragElement);
         const toIdx = this._rearrangeReorder();
         this._resetReorderChildren();
         if (toIdx || toIdx === 0) {
@@ -156,13 +155,26 @@
         this._resetReorderStyles(e);
       }
       /**
+       * Removes ripple effect from paper-tab element
+       * @param {Element} paperTab Instance of `paper-tab`.
+       */
+      _removeRipples(paperTab) {
+        const ripple = paperTab.shadowRoot.querySelector('paper-ripple');
+        if (!ripple) {
+          return;
+        }
+        for (let i = ripple.ripples.length - 1; i >= 0; i--) {
+          ripple.removeRipple(ripple.ripples[i]);
+        }
+      }
+      /**
        * Moves a tab to corresponding position when drag finishes.
        * @return {Number|undefined} Position where the request has been moved to.
        */
       _rearrangeReorder() {
         const fromIdx = this.__reorderInfo.dragIndex;
         let toIdx;
-        if (fromIdx >= 0 && this.__reorderInfo.overModel) {
+        if (fromIdx >= 0 && this.__reorderInfo.overIndex >= 0) {
           toIdx = this.__reorderInfo.overIndex;
           const item = this.splice('activeRequests', fromIdx, 1)[0];
           this.splice('activeRequests', toIdx, 0, item);
@@ -284,6 +296,7 @@
        */
       _updateChildrenReorder(start, end, draggedIndex, overIndex) {
         const children = this.$.tabs.querySelectorAll('paper-tab');
+        const dragElement = children[draggedIndex];
         for (let i = start; i <= end; i++) {
           const el = children[i];
           if (i !== draggedIndex) {
@@ -294,7 +307,7 @@
               dir = 1;
             }
             el.classList.add('moving');
-            const offset = dir * this.__reorderInfo.dragElement.offsetWidth;
+            const offset = dir * dragElement.offsetWidth;
             el.style.transform = `translate3d(${offset}px, 0px, 0px)`;
           }
         }
@@ -336,28 +349,27 @@
         }
         e.preventDefault();
         this._removeDropPointer();
-        const order = this._computeDropOrder();
-        this.__dropPointerReference = undefined;
         if (isRequest) {
-          this._dropRequest(e, order);
+          this._dropRequest(e);
         } else {
-          this._dropProject(e, order);
+          this._dropProject(e);
         }
+        this.__dropPointerReference = undefined;
       }
       /**
        * Adds a request to the workspace.
        * It reads request data from the event and depending on keys configuration
        * either add request to the workspace or repace existing requests.
        * @param {DragEvent} e Original event.
-       * @param {Number} order Position where to put the requests from project
        */
-      _dropRequest(e, order) {
+      _dropRequest(e) {
         const data = e.dataTransfer.getData('arc/request-object');
         const request = JSON.parse(data);
         if (e.ctrlKey || e.metaKey) {
           this.clearWorkspace(true);
           this.appendRequest(request);
         } else {
+          const order = this._computeDropOrder();
           this.appendRequestAt(order, request);
         }
       }
@@ -366,15 +378,15 @@
        * It reads project data from the event and depending on keys configuration
        * either add requests to the workspace or repace existing requests.
        * @param {DragEvent} e Original event.
-       * @param {Number} order Position where to put the requests from project
        */
-      _dropProject(e, order) {
+      _dropProject(e) {
         const data = e.dataTransfer.getData('arc/project-object');
         const project = JSON.parse(data);
         if (e.ctrlKey || e.metaKey) {
           this.clearWorkspace(true);
           this.appendByProject(project);
         } else {
+          const order = this._computeDropOrder();
           this.appendByProject(project, order);
         }
       }

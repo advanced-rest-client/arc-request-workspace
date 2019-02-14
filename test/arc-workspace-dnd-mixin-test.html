@@ -8,6 +8,7 @@
   <script src="../../web-component-tester/browser.js"></script>
   <link rel="import" href="../arc-request-workspace.html">
   <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
+  <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
   <style>
   html {
     --paper-tabs-selection-bar-color: red;
@@ -427,6 +428,539 @@
         element.__dropPointerReference = 'test';
         dispatch(element);
         assert.isUndefined(element.__dropPointerReference);
+      });
+    });
+
+    suite('_removeRipples()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+      });
+
+      test('Does nothing when passed element does not have paper-ripple', () => {
+        const node = document.createElement('iron-icon');
+        document.body.appendChild(node);
+        element._removeRipples(node);
+        document.body.removeChild(node);
+        // no errors, coverage
+      });
+
+      test('Removes ripples from a tab', (done) => {
+        addRequests(element, 1);
+        flush(() => {
+          const node = element.shadowRoot.querySelector('.tabs paper-tab');
+          MockInteractions.tap(node);
+          setTimeout(() => {
+            element._removeRipples(node);
+            const ripple = node.shadowRoot.querySelector('paper-ripple');
+            assert.lengthOf(ripple.ripples, 0);
+            done();
+          });
+        });
+      });
+    });
+
+    suite('_finishReorder()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+        element._removeRipples = () => {};
+        element._rearrangeReorder = () => {};
+        element._resetReorderChildren = () => {};
+        element._resetReorderState = () => {};
+        element._resetReorderStyles = () => {};
+      });
+
+      function createEvent() {
+        const e = new Event('dragend');
+        e.dataTransfer = new MockedDataTransfer();
+        return e;
+      }
+
+      test('Calls _removeRipples() with an argument', () => {
+        const node = document.createElement('div');
+        element.__reorderInfo.dragElement = node;
+        const spy = sinon.spy(element, '_removeRipples');
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isTrue(spy.args[0][0] === node);
+      });
+
+      test('Calls _rearrangeReorder()', () => {
+        const spy = sinon.spy(element, '_rearrangeReorder');
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls _resetReorderChildren()', () => {
+        const spy = sinon.spy(element, '_resetReorderChildren');
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls _resetReorderState()', () => {
+        const spy = sinon.spy(element, '_resetReorderState');
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isTrue(spy.called);
+      });
+
+      test('Calls _resetReorderStyles() with an argument', () => {
+        const spy = sinon.spy(element, '_resetReorderStyles');
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isTrue(spy.args[0][0] === e);
+      });
+
+      test('Skips selection when no movement', () => {
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.isUndefined(element.selected);
+      });
+
+      test('Sets selection when _rearrangeReorder() returns a value', () => {
+        element._rearrangeReorder = () => 2;
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.equal(element.selected, 2);
+      });
+
+      test('Sets selection when _rearrangeReorder() returns 0', () => {
+        element._rearrangeReorder = () => 0;
+        const e = createEvent();
+        element._finishReorder(e);
+        assert.equal(element.selected, 0);
+      });
+    });
+
+    suite('_rearrangeReorder()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+      });
+
+      test('Returns undefined when no dragIndex', () => {
+        const result = element._rearrangeReorder();
+        assert.isUndefined(result);
+      });
+
+      test('Returns undefined when no overIndex', () => {
+        element.__reorderInfo.dragIndex = 1;
+        const result = element._rearrangeReorder();
+        assert.isUndefined(result);
+      });
+
+      test('Rearranges the array', () => {
+        element.activeRequests = DataGenerator.generateRequests({
+          requestsSize: 3
+        });
+        const id1 = element.activeRequests[0]._id;
+        const id2 = element.activeRequests[1]._id;
+        const id3 = element.activeRequests[2]._id;
+        element.__reorderInfo.dragIndex = 2;
+        element.__reorderInfo.overIndex = 0;
+        element._rearrangeReorder();
+        assert.equal(element.activeRequests[0]._id, id3);
+        assert.equal(element.activeRequests[1]._id, id1);
+        assert.equal(element.activeRequests[2]._id, id2);
+      });
+
+      test('Returns insert position', () => {
+        element.activeRequests = DataGenerator.generateRequests({
+          requestsSize: 3
+        });
+        element.__reorderInfo.dragIndex = 2;
+        element.__reorderInfo.overIndex = 1;
+        const result = element._rearrangeReorder();
+        assert.equal(result, 1);
+      });
+    });
+
+    suite('_resetReorderStyles()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        element.__tabsSelectionColor = 'red';
+        element.__tabsSelectionColor2 = 'yellow';
+        flush(() => done());
+      });
+
+      function createEvent() {
+        const e = {
+          currentTarget: document.createElement('div')
+        };
+        return e;
+      }
+
+      test('Sets current target visibility', () => {
+        const e = createEvent();
+        element._resetReorderStyles(e);
+        assert.equal(e.currentTarget.style.visibility, 'visible');
+      });
+
+      test('Resets --paper-tabs-selection-bar-color variable', () => {
+        const e = createEvent();
+        element._resetReorderStyles(e);
+        const style = getComputedStyle(element.$.tabs);
+        const result = style.getPropertyValue('--paper-tabs-selection-bar-color').trim();
+        assert.equal(result, 'red');
+      });
+
+      test('Resets --paper-tabs-selection-bar_-_border-color variable', () => {
+        const e = createEvent();
+        element._resetReorderStyles(e);
+        const style = getComputedStyle(element.$.tabs);
+        const result = style.getPropertyValue('--paper-tabs-selection-bar_-_border-color').trim();
+        assert.equal(result, 'yellow');
+      });
+    });
+
+    suite('_resetReorderChildren()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 1);
+        flush(() => done());
+      });
+
+      test('Removes "transform" style', () => {
+        const node = element.$.tabs.querySelector('paper-tab');
+        node.style.transform = 'translate3d(100px, 0px, 0px)';
+        element._resetReorderChildren();
+        assert.equal(node.style.transform, '');
+      });
+
+      test('Removes "moving" class', () => {
+        const node = element.$.tabs.querySelector('paper-tab');
+        node.classList.add('moving');
+        element._resetReorderChildren();
+        assert.isFalse(node.classList.contains('moving'));
+      });
+    });
+
+    suite('_dropRequest()', () => {
+      let element;
+      let request;
+      setup(function() {
+        element = fixture('Draggable');
+        element.clearWorkspace = () => {};
+        element.appendRequest = () => {};
+        element.appendRequestAt = () => {};
+        element._computeDropOrder = () => 2;
+        request = {
+          _id: 'test-id'
+        };
+      });
+
+      function createEvent() {
+        const e = new Event('dragend');
+        e.dataTransfer = new MockedDataTransfer();
+        e.dataTransfer.setData('arc/request-object', JSON.stringify(request));
+        e.ctrlKey = false;
+        e.metaKey = false;
+        return e;
+      }
+
+      test('Calls appendRequestAt() with arguments', () => {
+        const e = createEvent();
+        const spy = sinon.spy(element, 'appendRequestAt');
+        element._dropRequest(e);
+        // this implies calling `_computeDropOrder`
+        assert.equal(spy.args[0][0], 2);
+        assert.deepEqual(spy.args[0][1], request);
+      });
+
+      test('Calls clearWorkspace() with ctrl key', () => {
+        const e = createEvent();
+        e.ctrlKey = true;
+        const spy = sinon.spy(element, 'clearWorkspace');
+        element._dropRequest(e);
+        assert.isTrue(spy.args[0][0]);
+      });
+
+      test('Calls appendRequest() with ctrl key', () => {
+        const e = createEvent();
+        e.ctrlKey = true;
+        const spy = sinon.spy(element, 'appendRequest');
+        element._dropRequest(e);
+        assert.deepEqual(spy.args[0][0], request);
+      });
+    });
+
+    suite('_dropProject()', () => {
+      let element;
+      let project;
+      setup(function() {
+        element = fixture('Draggable');
+        element.clearWorkspace = () => {};
+        element.appendByProject = () => {};
+        element._computeDropOrder = () => 3;
+        project = {
+          _id: 'test-id'
+        };
+      });
+
+      function createEvent() {
+        const e = new Event('dragend');
+        e.dataTransfer = new MockedDataTransfer();
+        e.dataTransfer.setData('arc/project-object', JSON.stringify(project));
+        e.ctrlKey = false;
+        e.metaKey = false;
+        return e;
+      }
+
+      test('Calls appendByProject() with arguments', () => {
+        const e = createEvent();
+        const spy = sinon.spy(element, 'appendByProject');
+        element._dropProject(e);
+        // this implies calling `_computeDropOrder`
+        assert.deepEqual(spy.args[0][0], project);
+        assert.equal(spy.args[0][1], 3);
+      });
+
+      test('Calls clearWorkspace() with ctrl key', () => {
+        const e = createEvent();
+        e.ctrlKey = true;
+        const spy = sinon.spy(element, 'clearWorkspace');
+        element._dropProject(e);
+        assert.isTrue(spy.args[0][0]);
+      });
+
+      test('Calls appendByProject() with ctrl key', () => {
+        const e = createEvent();
+        e.ctrlKey = true;
+        const spy = sinon.spy(element, 'appendByProject');
+        element._dropProject(e);
+        assert.deepEqual(spy.args[0][0], project);
+        assert.isUndefined(spy.args[0][1]);
+      });
+    });
+
+    suite('_computeDropOrder()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 1);
+        flush(() => done());
+      });
+
+      test('Returns requests size when no pointer reference', () => {
+        const result = element._computeDropOrder();
+        assert.equal(result, 1);
+      });
+
+      test('Returns requests size when reference is dom-repeat', () => {
+        const node = element.shadowRoot.querySelector('dom-repeat');
+        element.__dropPointerReference = node;
+        const result = element._computeDropOrder();
+        assert.equal(result, 1);
+      });
+
+      test('Returns reference item position', () => {
+        const node = element.shadowRoot.querySelector('.tabs paper-tab');
+        element.__dropPointerReference = node;
+        const result = element._computeDropOrder();
+        assert.equal(result, 0);
+      });
+    });
+
+    suite('_blockEditors()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 1);
+        flush(() => done());
+      });
+
+      test('Sets readonly on the editors', () => {
+        element._blockEditors();
+        const node = element.shadowRoot.querySelector('request-panel');
+        assert.isTrue(node.readonly);
+      });
+    });
+
+    suite('_unblockEditors()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 1);
+        flush(() => done());
+      });
+
+      test('Reets readonly on the editors', (done) => {
+        const node = element.shadowRoot.querySelector('request-panel');
+        node.readonly = true;
+        element._unblockEditors();
+        Polymer.RenderStatus.afterNextRender(element, () => {
+          assert.isFalse(node.readonly);
+          done();
+        });
+      });
+    });
+
+    suite('_createDropPointer()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 2);
+        flush(() => done());
+      });
+
+      test('Adds pointer to the DOM', () => {
+        const node = element.shadowRoot.querySelector('.tabs paper-tab');
+        element._createDropPointer(node);
+        const pointer = element.shadowRoot.querySelector('.drop-pointer');
+        assert.ok(pointer);
+      });
+
+      test('Pointer has left position', () => {
+        const node = element.shadowRoot.querySelector('.tabs paper-tab');
+        element._createDropPointer(node);
+        const pointer = element.shadowRoot.querySelector('.drop-pointer');
+        assert.equal(pointer.style.left, '46px');
+      });
+
+      test('Adds pointer when ref is dom-repeat', () => {
+        const node = element.shadowRoot.querySelector('dom-repeat');
+        element._createDropPointer(node);
+        const pointer = element.shadowRoot.querySelector('.drop-pointer');
+        assert.typeOf(pointer.style.left, 'string');
+        assert.notEqual(pointer.style.left, '46px');
+      });
+    });
+
+    suite('_removeDropPointer()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+      });
+
+      test('Does nothing when __dropPointer not set', () => {
+        element._removeDropPointer();
+        // no error
+      });
+
+      test('Removes pointer from the DOM', () => {
+        const elm = document.createElement('div');
+        elm.id = 'test-elm';
+        element.shadowRoot.appendChild(elm);
+        element.__dropPointer = elm;
+        element._removeDropPointer();
+        const node = element.shadowRoot.querySelector('#test-elm');
+        assert.equal(node, null);
+      });
+    });
+
+    suite('_dropHandler()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+        element._dropRequest = () => {};
+        element._dropProject = () => {};
+      });
+
+      function createEvent(type) {
+        const e = {
+          dataTransfer: new MockedDataTransfer(),
+          defaultPrevented: false,
+          preventDefault: () => {
+            e.defaultPrevented = true;
+          }
+        };
+        if (type) {
+          e.dataTransfer.setData(type, 'test');
+        }
+        return e;
+      }
+
+      test('Does nothing when draggableEnabled not set', () => {
+        element.draggableEnabled = false;
+        const e = createEvent('arc/request-object');
+        element._dropHandler(e);
+        assert.isFalse(e.defaultPrevented);
+      });
+
+      test('Does nothing when reorder mode', () => {
+        element.__reorderInfo.type = 'track';
+        const e = createEvent('arc/request-object');
+        element._dropHandler(e);
+        assert.isFalse(e.defaultPrevented);
+      });
+
+      test('Does nothing when unsupported type', () => {
+        element.__reorderInfo.type = 'track';
+        const e = createEvent('arc/test');
+        element._dropHandler(e);
+        assert.isFalse(e.defaultPrevented);
+      });
+
+      test('Cancels the event', () => {
+        const e = createEvent('arc/request-object');
+        element._dropHandler(e);
+        assert.isTrue(e.defaultPrevented);
+      });
+    });
+
+    suite('_getReorderDdx()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+        element.__reorderInfo.moves.push({x: 1, y: 2});
+      });
+
+      test('Returns 0 when no second move', () => {
+        const result = element._getReorderDdx();
+        assert.equal(result, 0);
+      });
+
+      test('Returns difference between last and previous moves', () => {
+        element.__reorderInfo.moves.push({x: 3, y: 4});
+        const result = element._getReorderDdx();
+        assert.equal(result, 2);
+      });
+    });
+
+    suite('_updateReorderMoves()', () => {
+      let element;
+      setup(function() {
+        element = fixture('Draggable');
+      });
+
+      test('Adds x and y position from the event', () => {
+        element._updateReorderMoves({
+          clientX: 1,
+          clientY: 2
+        });
+        assert.lengthOf(element.__reorderInfo.moves, 1);
+        const move = element.__reorderInfo.moves[0];
+        assert.deepEqual(move, {x: 1, y: 2});
+      });
+    });
+
+    suite('_updateChildrenReorder()', () => {
+      let element;
+      setup(function(done) {
+        element = fixture('Draggable');
+        addRequests(element, 3);
+        flush(() => done());
+      });
+
+      test('Adds moving class on children except for dragged item', () => {
+        element._updateChildrenReorder(0, 2, 1, 0);
+        const children = element.$.tabs.querySelectorAll('paper-tab');
+        assert.isTrue(children[0].classList.contains('moving'));
+        assert.isFalse(children[1].classList.contains('moving'));
+        assert.isTrue(children[2].classList.contains('moving'));
+      });
+
+      test('Adds transform style on children except for dragged item', () => {
+        element._updateChildrenReorder(0, 2, 1, 0);
+        const children = element.$.tabs.querySelectorAll('paper-tab');
+        assert.notEqual(children[0].style.transform.indexOf('translate3d'), -1);
+        assert.equal(children[1].style.transform.indexOf('translate3d'), -1);
+        assert.notEqual(children[2].style.transform.indexOf('translate3d'), -1);
       });
     });
   });
