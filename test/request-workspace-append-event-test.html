@@ -7,7 +7,7 @@
   <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
   <link rel="import" href="../arc-request-workspace.html">
-  <link rel="import" href="../../app-pouchdb/pouchdb.html">
+  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
 </head>
 <body>
   <test-fixture id="Basic">
@@ -16,7 +16,13 @@
     </template>
   </test-fixture>
 
+  <test-fixture id="NoAuto">
+    <template>
+      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
+    </template>
+  </test-fixture>
   <script>
+  /* global DataGenerator */
   suite('request-workspace-append event', () => {
     let element;
     setup((done) => {
@@ -30,26 +36,113 @@
       });
     });
 
-    function fire(request) {
+    function fire(detail) {
       document.body.dispatchEvent(new CustomEvent('request-workspace-append', {
         bubbles: true,
-        detail: {
-          request
-        }
+        detail
       }));
     }
 
     test('Appends request to the list of requests', () => {
       const url = 'https://test.com';
       fire({
-        method: 'POST',
-        url
+        kind: 'ARC#Request',
+        request: {
+          method: 'POST',
+          url
+        }
       });
       assert.lengthOf(element.activeRequests, 1);
       assert.equal(element.activeRequests[0].url, url);
     });
+
+    test('Calls appendImportRequests() for project data', () => {
+      const saved = DataGenerator.generateSavedRequestData({
+        requestsSize: 3
+      });
+      const detail = {
+        kind: 'ARC#ProjectExport',
+        projects: saved.projects,
+        requests: saved.requests
+      };
+      const spy = sinon.spy(element, 'appendImportRequests');
+      fire(detail);
+      assert.deepEqual(spy.args[0][0], detail);
+    });
+
+    test('Calls appendImportRequests() for saved data', () => {
+      const saved = DataGenerator.generateSavedRequestData({
+        requestsSize: 3
+      });
+      const detail = {
+        kind: 'ARC#SavedExport',
+        requests: saved.requests
+      };
+      const spy = sinon.spy(element, 'appendImportRequests');
+      fire(detail);
+      assert.deepEqual(spy.args[0][0], detail);
+    });
+
+    test('Calls appendImportRequests() for history data', () => {
+      const history = DataGenerator.generateHistoryRequestsData({
+        requestsSize: 3
+      });
+      const detail = {
+        kind: 'ARC#HistoryExport',
+        history
+      };
+      const spy = sinon.spy(element, 'appendImportRequests');
+      fire(detail);
+      assert.deepEqual(spy.args[0][0], detail);
+    });
   });
 
+  suite('appendImportRequests()', () => {
+    let element;
+    setup(() => {
+      element = fixture('NoAuto');
+    });
+
+    test('Appends Project export data', () => {
+      const saved = DataGenerator.generateSavedRequestData({
+        requestsSize: 3
+      });
+      const detail = {
+        kind: 'ARC#ProjectExport',
+        projects: saved.projects,
+        requests: saved.requests
+      };
+      element.appendImportRequests(detail);
+      assert.lengthOf(element.activeRequests, 3, 'Request are added');
+      assert.equal(element.selected, 2, 'Selection is set');
+    });
+
+    test('Appends Saved export data', () => {
+      const saved = DataGenerator.generateSavedRequestData({
+        requestsSize: 4
+      });
+      const detail = {
+        kind: 'ARC#SavedExport',
+        requests: saved.requests
+      };
+      element.appendImportRequests(detail);
+      assert.lengthOf(element.activeRequests, 4, 'Request are added');
+      assert.equal(element.selected, 3, 'Selection is set');
+    });
+
+    test('Appends History export data', () => {
+      const history = DataGenerator.generateHistoryRequestsData({
+        requestsSize: 3
+      });
+      const detail = {
+        kind: 'ARC#HistoryExport',
+        history
+      };
+      element.appendImportRequests(detail);
+      assert.lengthOf(element.activeRequests, 3, 'Request are added');
+      assert.equal(element.selected, 2, 'Selection is set');
+    });
+  });
   </script>
 </body>
 </html>

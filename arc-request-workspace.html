@@ -1250,13 +1250,50 @@
       }
     }
     /**
+     * Appends Project/Saved/History export data directly to workspace.
+     * @param {Object} detail Arc import object with normalized import structure.
+     */
+    appendImportRequests(detail) {
+      let requests;
+      switch (detail.kind) {
+        case 'ARC#ProjectExport':
+        case 'ARC#SavedExport':
+          requests = detail.requests;
+          break;
+        case 'ARC#HistoryExport':
+          requests = detail.history;
+          break;
+      }
+      if (!requests) {
+        return;
+      }
+      let index;
+      requests.forEach((item) => {
+        index = this.appendRequest(item, {
+          noAutoSelect: true
+        });
+      });
+      this.selected = index;
+    }
+
+    /**
      * Handler for `request-workspace-append` custom event. Appends request
      * to the worspace.
      * @param {CustomEvent} e A `request` property on detail object is expected.
      */
     _appendRequestHandler(e) {
-      const {request} = e.detail;
-      this.appendRequest(request);
+      switch (e.detail.kind) {
+        case 'ARC#ProjectExport':
+        case 'ARC#SavedExport':
+        case 'ARC#HistoryExport':
+          this.appendImportRequests(e.detail);
+          break;
+        case 'ARC#Request':
+          this.appendRequest(e.detail.request);
+          break;
+        default:
+          console.warn('Unknown request-workspace-append event konfiguration.');
+      }
     }
     /**
      * Adds workspace configuration to the request object.
