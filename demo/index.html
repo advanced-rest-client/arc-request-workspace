@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
     <title>api-request-editor demo</title>
@@ -22,49 +20,71 @@
       location.href = red;
     }
     </script>
-    <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-    <link rel="import" href="../../shadycss/apply-shim.html">
-    <link rel="import" href="../../polymer/lib/elements/custom-style.html">
-    <link rel="import" href="../../polymer/lib/elements/dom-bind.html">
-    <link rel="import" href="../../app-pouchdb/pouchdb.html">
-    <link rel="import" href="../../arc-models/project-model.html">
-    <link rel="import" href="../../arc-models/request-model.html">
-    <link rel="import" href="../../arc-models/variables-model.html">
-    <link rel="import" href="../../neon-animation/web-animations.html">
-    <link rel="import" href="../../variables-evaluator/variables-evaluator.html">
-    <link rel="import" href="../../variables-manager/variables-manager.html">
-    <link rel="import" href="../../variables-editor/variables-editor.html">
-    <link rel="import" href="../../arc-models/url-history-model.html">
-    <link rel="import" href="../../arc-models/url-indexer.html">
-    <link rel="import" href="../../request-hooks-logic/request-hooks-logic.html">
-    <link rel="import" href="../../arc-request-logic/arc-request-logic.html">
-    <link rel="import" href="../../oauth-authorization/oauth2-authorization.html">
-    <link rel="import" href="../../oauth-authorization/oauth1-authorization.html">
-    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
-    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
-    <link rel="import" href="../../arc-electron-default-theme/arc-electron-default-theme.html">
-    <link rel="import" href="../../paper-styles/shadow.html">
-    <link rel="import" href="../../saved-menu/saved-menu.html">
-    <link rel="import" href="../../projects-menu/projects-menu.html">
-    <link rel="import" href="../../history-menu/history-menu.html">
-    <link rel="import" href="../../paper-toast/paper-toast.html">
-    <link rel="import" href="../../saved-request-editor/saved-request-editor.html">
-    <link rel="import" href="../../saved-request-detail/saved-request-detail.html">
-    <link rel="import" href="../../bottom-sheet/bottom-sheet.html">
-    <link rel="import" href="../../http-code-snippets/http-code-snippets.html">
-    <link rel="import" href="../../paper-input/paper-input.html">
-    <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
-    <link rel="import" href="../../arc-icons/arc-icons.html">
-    <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
-    <link rel="import" href="../../paper-item/paper-item.html">
-    <link rel="import" href="../../paper-listbox/paper-listbox.html">
-    <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
-    <link rel="import" href="../../paper-tabs/paper-tabs.html">
-    <link rel="import" href="../../paper-tabs/paper-tab.html">
-    <link rel="import" href="../../jexl/jexl.html">
-    <link rel="import" href="../arc-request-workspace.html">
+    <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../../web-animations-js/web-animations-next.min.js"></script>
+
+    <script type="module" src="../../../@webcomponents/shadycss/entrypoints/apply-shim.js"></script>
+    <script type="module" src="../../../@polymer/polymer/lib/elements/custom-style.js"></script>
+    <script type="module" src="../../../@polymer/polymer/lib/elements/dom-bind.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-models/project-model.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-models/request-model.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-models/variables-model.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/variables-evaluator/variables-evaluator.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/variables-manager/variables-manager.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/variables-editor/variables-editor.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-models/url-history-model.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-models/url-indexer.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/request-hooks-logic/request-hooks-logic.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-request-logic/arc-request-logic.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/oauth-authorization/oauth2-authorization.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/oauth-authorization/oauth1-authorization.js"></script>
+    <script type="module" src="../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js"></script>
+    <script type="module" src="../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js"></script>
+    <script type="module" src="../../../@polymer/iron-demo-helpers/demo-snippet.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-electron-default-theme/arc-electron-default-theme.js"></script>
+    <script type="module" src="../../../@polymer/paper-styles/shadow.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/saved-menu/saved-menu.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/projects-menu/projects-menu.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/history-menu/history-menu.js"></script>
+    <script type="module" src="../../../@polymer/paper-toast/paper-toast.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/saved-request-editor/saved-request-editor.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/saved-request-detail/saved-request-detail.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/bottom-sheet/bottom-sheet.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/http-code-snippets/http-code-snippets.js"></script>
+    <script type="module" src="../../../@polymer/paper-input/paper-input.js"></script>
+    <script type="module" src="../../../@polymer/paper-icon-button/paper-icon-button.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-icons/arc-icons.js"></script>
+    <script type="module" src="../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js"></script>
+    <script type="module" src="../../../@polymer/paper-item/paper-item.js"></script>
+    <script type="module" src="../../../@polymer/paper-listbox/paper-listbox.js"></script>
+    <script type="module" src="../../../@polymer/paper-checkbox/paper-checkbox.js"></script>
+    <script type="module" src="../../../@polymer/paper-tabs/paper-tabs.js"></script>
+    <script type="module" src="../../../@polymer/paper-tabs/paper-tab.js"></script>
+    <script type="module" src="../arc-request-workspace.js"></script>
+
+    <script src="../dev-lib/jexl.min.js"></script>
+
+    <!-- CodeMirror + modes loader -->
+    <script src="../../../codemirror/lib/codemirror.js"></script>
+    <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+    <script src="../../../codemirror/mode/meta.js"></script>
+    <!--Default set of parsers, add as many as you need -->
+    <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+    <script src="../../../codemirror/mode/xml/xml.js"></script>
+    <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+    <!-- JSON linter -->
+    <script src="../../../jsonlint/lib/jsonlint.js"></script>
+    <script src="../../../codemirror/addon/lint/lint.js"></script>
+    <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+    <!-- Headers hint support -->
+    <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+    <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+    <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+
+    <script>
+    CodeMirror.modeURL = '../../../codemirror/mode/%N/%N.js';
+    </script>
+
     <style>
     body,
     html {
@@ -74,6 +94,7 @@
       padding: 0;
     }
     </style>
+
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
       h1 {
@@ -148,7 +169,7 @@
     <project-model></project-model>
     <request-model></request-model>
     <url-indexer></url-indexer>
-    <variables-evaluator id="eval" no-before-request></variables-evaluator>
+    <variables-evaluator id="eval" no-before-request=""></variables-evaluator>
     <oauth2-authorization></oauth2-authorization>
     <oauth1-authorization></oauth1-authorization>
     <arc-request-logic></arc-request-logic>
@@ -164,22 +185,22 @@
               <paper-tab>Projects</paper-tab>
             </paper-tabs>
             <iron-pages selected="[[selectedMenu]]">
-              <history-menu id="historyMenu" on-navigate="_selectRequest" draggable-enabled list-type="[[listType]]"></history-menu>
+              <history-menu id="historyMenu" on-navigate="_selectRequest" draggable-enabled="" list-type="[[listType]]"></history-menu>
               <div>
                 <div class="search">
-                  <paper-input label="Search" class="search" no-label-float value="{{q}}" on-keydown="_searchKeydown">
+                  <paper-input label="Search" class="search" no-label-float="" value="{{q}}" on-keydown="_searchKeydown">
                     <paper-icon-button icon="arc:search" slot="suffix" on-click="_search"></paper-icon-button>
                   </paper-input>
                 </div>
-                <saved-menu on-navigate="_selectRequest" draggable-enabled></saved-menu>
+                <saved-menu on-navigate="_selectRequest" draggable-enabled=""></saved-menu>
               </div>
-              <projects-menu id="projectsMenu" on-navigate="_selectRequest" draggable-enabled list-type="[[listType]]"></projects-menu>
+              <projects-menu id="projectsMenu" on-navigate="_selectRequest" draggable-enabled="" list-type="[[listType]]"></projects-menu>
             </iron-pages>
 
           </nav>
           <section class="main">
             <div class="centered card">
-              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]" draggable-enabled></arc-request-workspace>
+              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]" draggable-enabled=""></arc-request-workspace>
             </div>
 
             <div class="centered card">
@@ -218,8 +239,9 @@
     </dom-bind>
     <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
     <paper-toast id="clearToast" text="The request data has been removed"></paper-toast>
-    <script>
-    /* global DataGenerator, chance */
+    <script type="module">
+    import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
+    /* global chance */
     (function(app) {
       const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
         'oauth-authorization/oauth-popup.html');
@@ -500,6 +522,6 @@
       window.addEventListener('export-google-drive', app._exportDriveHandler);
       window.addEventListener('WebComponentsReady', app.init);
     })(document.getElementById('demo'));
-  </script>
-  </body>
+    </script>
+</body>
 </html>

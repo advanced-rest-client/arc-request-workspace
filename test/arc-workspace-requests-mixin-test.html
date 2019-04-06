@@ -4,13 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
   <title>ArcWorkspaceRequestsMixin test</title>
-  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="../../app-pouchdb/pouchdb.html">
-  <link rel="import" href="../../arc-models/project-model.html">
-  <link rel="import" href="../../arc-models/request-model.html">
-  <link rel="import" href="../../arc-models/variables-model.html">
-  <link rel="import" href="../arc-request-workspace.html">
+
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../../../mocha/mocha.js"></script>
+  <script src="../../../chai/chai.js"></script>
+  <script src="../../../wct-mocha/wct-mocha.js"></script>
+
+  <!-- CodeMirror + modes loader -->
+  <script src="../../../codemirror/lib/codemirror.js"></script>
+  <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+  <script src="../../../codemirror/mode/meta.js"></script>
+  <!--Default set of parsers, add as many as you need -->
+  <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+  <script src="../../../codemirror/mode/xml/xml.js"></script>
+  <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <!-- JSON linter -->
+  <script src="../../../jsonlint/lib/jsonlint.js"></script>
+  <script src="../../../codemirror/addon/lint/lint.js"></script>
+  <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+  <!-- Headers hint support -->
+  <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
 </head>
 <body>
   <project-model></project-model>
@@ -23,7 +39,14 @@
     </template>
   </test-fixture>
 
-  <script>
+  <script type="module">
+  import {afterNextRender} from '../../../@polymer/polymer/lib/utils/render-status.js';
+  import '../../arc-models/project-model.js';
+  import '../../arc-models/request-model.js';
+  import '../../arc-models/variables-model.js';
+  import '../arc-request-workspace.js';
+  import sinon from '../../../sinon/pkg/sinon-esm.js';
+
   suite('ArcWorkspaceRequestsMixin', () => {
     function stateRestoreHandler(e) {
       e.preventDefault();
@@ -221,7 +244,7 @@
         });
         const panel = element.__getPanelById('test-id');
         assert.ok(panel);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -231,7 +254,7 @@
         element.__addPanel({
           _id: 'test-id'
         });
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });
@@ -242,7 +265,7 @@
         element.__addPanel({
           _id: 'test-id'
         });
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });
@@ -253,7 +276,7 @@
         element.__addPanel({
           _id: 'test-id'
         });
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });

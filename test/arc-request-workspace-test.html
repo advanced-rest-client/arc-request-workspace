@@ -4,14 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
   <title>arc-request-workspace test</title>
-  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="../arc-request-workspace.html">
-  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
-  <link rel="import" href="../../arc-models/project-model.html">
-  <link rel="import" href="../../arc-models/request-model.html">
-  <link rel="import" href="../../arc-models/variables-model.html">
-  <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
+
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../../../mocha/mocha.js"></script>
+  <script src="../../../chai/chai.js"></script>
+  <script src="../../../wct-mocha/wct-mocha.js"></script>
+
+  <!-- CodeMirror + modes loader -->
+  <script src="../../../codemirror/lib/codemirror.js"></script>
+  <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+  <script src="../../../codemirror/mode/meta.js"></script>
+  <!--Default set of parsers, add as many as you need -->
+  <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+  <script src="../../../codemirror/mode/xml/xml.js"></script>
+  <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <!-- JSON linter -->
+  <script src="../../../jsonlint/lib/jsonlint.js"></script>
+  <script src="../../../codemirror/addon/lint/lint.js"></script>
+  <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+  <!-- Headers hint support -->
+  <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+  
 </head>
 <body>
   <project-model></project-model>
@@ -30,8 +46,16 @@
     </template>
   </test-fixture>
 
-  <script>
-  /* global DataGenerator, MockInteractions */
+  <script type="module">
+  import '../arc-request-workspace.js';
+  import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
+  import * as MockInteractions from '../../../@polymer/iron-test-helpers/mock-interactions.js';
+  import {afterNextRender} from '../../../@polymer/polymer/lib/utils/render-status.js';
+  import '../../arc-models/project-model.js';
+  import '../../arc-models/request-model.js';
+  import '../../arc-models/variables-model.js';
+  import sinon from '../../../sinon/pkg/sinon-esm.js';
+
   function wrapStateReadEvent(element) {
     element.addEventListener('workspace-state-read', function f(e) {
       element.removeEventListener('workspace-state-read', f);
@@ -374,7 +398,7 @@
       element.removeRequest(0);
       const spy = sinon.spy(element, 'addEmptyRequest');
       element.removeRequest(0);
-      Polymer.RenderStatus.afterNextRender(element, () => {
+      afterNextRender(element, () => {
         assert.isTrue(spy.called);
         done();
       });
@@ -1355,7 +1379,7 @@
     test('Will not call addEmptyRequest() when argument is true', (done) => {
       const spy = sinon.spy(element, 'addEmptyRequest');
       element.clearWorkspace(true);
-      Polymer.RenderStatus.afterNextRender(element, () => {
+      afterNextRender(element, () => {
         assert.isFalse(spy.called);
         done();
       });
@@ -1364,7 +1388,7 @@
     test('Calls addEmptyRequest() when no argument', (done) => {
       const spy = sinon.spy(element, 'addEmptyRequest');
       element.clearWorkspace();
-      Polymer.RenderStatus.afterNextRender(element, () => {
+      afterNextRender(element, () => {
         assert.isTrue(spy.called);
         done();
       });

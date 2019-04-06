@@ -5,36 +5,18 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   arc-request-workspace.html
+ *   arc-request-workspace.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-/// <reference path="../polymer/types/polymer-element.d.ts" />
-/// <reference path="../polymer/types/lib/elements/dom-repeat.d.ts" />
-/// <reference path="../polymer/types/lib/utils/render-status.d.ts" />
-/// <reference path="../polymer/types/lib/mixins/gesture-event-listeners.d.ts" />
-/// <reference path="../paper-tabs/paper-tabs.d.ts" />
-/// <reference path="../paper-tabs/paper-tab.d.ts" />
-/// <reference path="../iron-icon/iron-icon.d.ts" />
-/// <reference path="../arc-icons/arc-icons.d.ts" />
-/// <reference path="../paper-item/paper-icon-item.d.ts" />
-/// <reference path="../paper-icon-button/paper-icon-button.d.ts" />
-/// <reference path="../request-panel/request-panel.d.ts" />
-/// <reference path="../paper-progress/paper-progress.d.ts" />
-/// <reference path="../uuid-generator/uuid-generator.d.ts" />
-/// <reference path="../paper-styles/shadow.d.ts" />
-/// <reference path="../saved-request-editor/saved-request-editor.d.ts" />
-/// <reference path="../saved-request-detail/saved-request-detail.d.ts" />
-/// <reference path="../http-code-snippets/http-code-snippets.d.ts" />
-/// <reference path="../bottom-sheet/bottom-sheet.d.ts" />
-/// <reference path="../arc-file-drop-mixin/arc-file-drop-mixin.d.ts" />
-/// <reference path="../paper-toast/paper-toast.d.ts" />
-/// <reference path="arc-workspace-requests-mixin.d.ts" />
-/// <reference path="arc-workspace-dnd-mixin.d.ts" />
-/// <reference path="arc-workspace-state-mixin.d.ts" />
+import {ArcWorkspaceRequestsMixin} from './arc-workspace-requests-mixin.js';
+
+import {ArcWorkspaceDndMixin} from './arc-workspace-dnd-mixin.js';
+
+import {ArcWorkspaceStateMixin} from './arc-workspace-state-mixin.js';
 
 declare namespace UiElements {
 
@@ -75,10 +57,10 @@ declare namespace UiElements {
    * `--bottom-sheet-max-width` | Bottom sheet max width | `700px`
    */
   class ArcRequestWorkspace extends
-    ArcComponents.ArcWorkspaceRequestsMixin(
-    ArcComponents.ArcWorkspaceDndMixin(
-    ArcComponents.ArcWorkspaceStateMixin(
-    ArcComponents.ArcFileDropMixin(
+    ArcWorkspaceRequestsMixin(
+    ArcWorkspaceDndMixin(
+    ArcWorkspaceStateMixin(
+    ArcFileDropMixin(
     Object)))) {
 
     /**
@@ -496,6 +478,13 @@ declare namespace UiElements {
     abortAll(): void;
 
     /**
+     * Appends Project/Saved/History export data directly to workspace.
+     *
+     * @param detail Arc import object with normalized import structure.
+     */
+    appendImportRequests(detail: object|null): void;
+
+    /**
      * Handler for `request-workspace-append` custom event. Appends request
      * to the worspace.
      *
@@ -533,6 +522,9 @@ declare namespace UiElements {
   }
 }
 
-interface HTMLElementTagNameMap {
-  "arc-request-workspace": UiElements.ArcRequestWorkspace;
+declare global {
+
+  interface HTMLElementTagNameMap {
+    "arc-request-workspace": UiElements.ArcRequestWorkspace;
+  }
 }

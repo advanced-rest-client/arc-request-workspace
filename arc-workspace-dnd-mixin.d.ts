@@ -5,227 +5,228 @@
  *   https://github.com/Polymer/tools/tree/master/packages/gen-typescript-declarations
  *
  * To modify these typings, edit the source file(s):
- *   arc-workspace-dnd-mixin.html
+ *   arc-workspace-dnd-mixin.js
  */
 
 
 // tslint:disable:variable-name Describing an API that's defined elsewhere.
 // tslint:disable:no-any describes the API as best we are able today
 
-declare namespace ArcComponents {
+export {ArcWorkspaceDndMixin};
 
+
+/**
+ * This mixin is to reduce amount of code in `arc-request-workspace` element
+ * and to separate drag and drop for tabs logic.
+ */
+declare function ArcWorkspaceDndMixin<T extends new (...args: any[]) => {}>(base: T): T & ArcWorkspaceDndMixinConstructor;
+
+interface ArcWorkspaceDndMixinConstructor {
+  new(...args: any[]): ArcWorkspaceDndMixin;
+}
+
+export {ArcWorkspaceDndMixinConstructor};
+
+interface ArcWorkspaceDndMixin {
 
   /**
-   * This mixin is to reduce amount of code in `arc-request-workspace` element
-   * and to separate drag and drop for tabs logic.
+   * Adds draggable property to the request list item element.
+   * The `dataTransfer` object has `arc/request-object` mime type with
+   * serialized JSON with request model.
    */
-  function ArcWorkspaceDndMixin<T extends new (...args: any[]) => {}>(base: T): T & ArcWorkspaceDndMixinConstructor;
+  draggableEnabled: boolean|null|undefined;
+  connectedCallback(): void;
+  disconnectedCallback(): void;
+  _draggableChanged(value: any): void;
+  _addDndEvents(): void;
+  _removeDndEvents(): void;
 
-  interface ArcWorkspaceDndMixinConstructor {
-    new(...args: any[]): ArcWorkspaceDndMixin;
-  }
+  /**
+   * Handler for the `dragstart` event added to the list item when `draggableEnabled`
+   * is set to true.
+   * This function sets request data on the `dataTransfer` object with `arc/request-object`
+   * mime type. The request data is a serialized JSON with request model.
+   */
+  _dragStart(e: Event|null): void;
 
-  interface ArcWorkspaceDndMixin {
+  /**
+   * Memorizes and removes tabs selection colors. It can be restored by calling `_resetReorderStyles()`.
+   *
+   * @param target Dragged element.
+   */
+  _removeTabSelectionColor(target: Element|null): void;
 
-    /**
-     * Adds draggable property to the request list item element.
-     * The `dataTransfer` object has `arc/request-object` mime type with
-     * serialized JSON with request model.
-     */
-    draggableEnabled: boolean|null|undefined;
-    connectedCallback(): void;
-    disconnectedCallback(): void;
-    _draggableChanged(value: any): void;
-    _addDndEvents(): void;
-    _removeDndEvents(): void;
+  /**
+   * Starts tabs reordering action.
+   */
+  _startReorderDrag(e: DragEvent|null): void;
 
-    /**
-     * Handler for the `dragstart` event added to the list item when `draggableEnabled`
-     * is set to true.
-     * This function sets request data on the `dataTransfer` object with `arc/request-object`
-     * mime type. The request data is a serialized JSON with request model.
-     */
-    _dragStart(e: Event|null): void;
+  /**
+   * Handler for the dragend event. It only performs an action when reordering
+   * is active.
+   */
+  _dragEnd(e: DragEvent|null): void;
 
-    /**
-     * Memorizes and removes tabs selection colors. It can be restored by calling `_resetReorderStyles()`.
-     *
-     * @param target Dragged element.
-     */
-    _removeTabSelectionColor(target: Element|null): void;
+  /**
+   * Reorders tabs and resets workspace state.
+   */
+  _finishReorder(e: DragEvent|null): void;
 
-    /**
-     * Starts tabs reordering action.
-     */
-    _startReorderDrag(e: DragEvent|null): void;
+  /**
+   * Removes ripple effect from paper-tab element
+   *
+   * @param paperTab Instance of `paper-tab`.
+   */
+  _removeRipples(paperTab: Element|null): void;
 
-    /**
-     * Handler for the dragend event. It only performs an action when reordering
-     * is active.
-     */
-    _dragEnd(e: DragEvent|null): void;
+  /**
+   * Moves a tab to corresponding position when drag finishes.
+   *
+   * @returns Position where the request has been moved to.
+   */
+  _rearrangeReorder(): Number|null|undefined;
 
-    /**
-     * Reorders tabs and resets workspace state.
-     */
-    _finishReorder(e: DragEvent|null): void;
+  /**
+   * Resets tabs selection styles and drag target visibility when reorder finishes.
+   */
+  _resetReorderStyles(e: DragEvent|null): void;
 
-    /**
-     * Removes ripple effect from paper-tab element
-     *
-     * @param paperTab Instance of `paper-tab`.
-     */
-    _removeRipples(paperTab: Element|null): void;
+  /**
+   * Resets styles of paper-tabs that has been moved during reorder action.
+   */
+  _resetReorderChildren(): void;
 
-    /**
-     * Moves a tab to corresponding position when drag finishes.
-     *
-     * @returns Position where the request has been moved to.
-     */
-    _rearrangeReorder(): Number|null|undefined;
+  /**
+   * Computes value for the `draggable` property of the list item.
+   * When `draggableEnabled` is set it returns true which is one of the
+   * conditions to enable drag and drop on an element.
+   *
+   * @param draggableEnabled Current value of `draggableEnabled`
+   * @returns `true` or `false` (as string) depending on the argument.
+   */
+  _computeDraggableValue(draggableEnabled: Boolean|null): String|null;
 
-    /**
-     * Resets tabs selection styles and drag target visibility when reorder finishes.
-     */
-    _resetReorderStyles(e: DragEvent|null): void;
+  /**
+   * Resets state of the reorder info object.
+   */
+  _resetReorderState(): void;
 
-    /**
-     * Resets styles of paper-tabs that has been moved during reorder action.
-     */
-    _resetReorderChildren(): void;
+  /**
+   * Handler for `dragover` event on this element. If the dagged item is compatible
+   * it renders drop message.
+   */
+  _dragoverHandler(e: DragEvent|null): void;
 
-    /**
-     * Computes value for the `draggable` property of the list item.
-     * When `draggableEnabled` is set it returns true which is one of the
-     * conditions to enable drag and drop on an element.
-     *
-     * @param draggableEnabled Current value of `draggableEnabled`
-     * @returns `true` or `false` (as string) depending on the argument.
-     */
-    _computeDraggableValue(draggableEnabled: Boolean|null): String|null;
+  /**
+   * Handles `dragover` event when in reoedering model.
+   * It updates tabs position and sets variables later used to compute position.
+   */
+  _reorderDragover(e: DragEvent|null): void;
 
-    /**
-     * Resets state of the reorder info object.
-     */
-    _resetReorderState(): void;
+  /**
+   * Computes the delat from previous move.
+   *
+   * @returns When negative it is moving left and moving right othewise.
+   */
+  _getReorderDdx(): Number|null;
 
-    /**
-     * Handler for `dragover` event on this element. If the dagged item is compatible
-     * it renders drop message.
-     */
-    _dragoverHandler(e: DragEvent|null): void;
+  /**
+   * Adds (x,y) coordinates of the current move. It is later use to compute
+   * the delta.
+   */
+  _updateReorderMoves(e: DragEvent|null): void;
 
-    /**
-     * Handles `dragover` event when in reoedering model.
-     * It updates tabs position and sets variables later used to compute position.
-     */
-    _reorderDragover(e: DragEvent|null): void;
+  /**
+   * Updates position of the children in `paper-tab` container while tracking
+   * an item.
+   *
+   * @param start Change start index.
+   * @param end Change end index.
+   * @param draggedIndex Index of the tab being dragged.
+   * @param overIndex Index of the tab being under the pointer.
+   */
+  _updateChildrenReorder(start: Number|null, end: Number|null, draggedIndex: Number|null, overIndex: Number|null): void;
 
-    /**
-     * Computes the delat from previous move.
-     *
-     * @returns When negative it is moving left and moving right othewise.
-     */
-    _getReorderDdx(): Number|null;
+  /**
+   * Handler for `dragleave` event on this element. If the dagged item is compatible
+   * it hides drop message.
+   */
+  _dragleaveHandler(e: DragEvent|null): void;
 
-    /**
-     * Adds (x,y) coordinates of the current move. It is later use to compute
-     * the delta.
-     */
-    _updateReorderMoves(e: DragEvent|null): void;
+  /**
+   * Handler for `drag` event on this element. If the dagged item is compatible
+   * it adds request to saved requests.
+   */
+  _dropHandler(e: DragEvent|null): void;
 
-    /**
-     * Updates position of the children in `paper-tab` container while tracking
-     * an item.
-     *
-     * @param start Change start index.
-     * @param end Change end index.
-     * @param draggedIndex Index of the tab being dragged.
-     * @param overIndex Index of the tab being under the pointer.
-     */
-    _updateChildrenReorder(start: Number|null, end: Number|null, draggedIndex: Number|null, overIndex: Number|null): void;
+  /**
+   * Adds a request to the workspace.
+   * It reads request data from the event and depending on keys configuration
+   * either add request to the workspace or repace existing requests.
+   *
+   * @param e Original event.
+   */
+  _dropRequest(e: DragEvent|null): void;
 
-    /**
-     * Handler for `dragleave` event on this element. If the dagged item is compatible
-     * it hides drop message.
-     */
-    _dragleaveHandler(e: DragEvent|null): void;
+  /**
+   * Adds project to the dowspace.
+   * It reads project data from the event and depending on keys configuration
+   * either add requests to the workspace or repace existing requests.
+   *
+   * @param e Original event.
+   */
+  _dropProject(e: DragEvent|null): void;
 
-    /**
-     * Handler for `drag` event on this element. If the dagged item is compatible
-     * it adds request to saved requests.
-     */
-    _dropHandler(e: DragEvent|null): void;
+  /**
+   * Computes index of the drop.
+   *
+   * @returns Index where to drop the object.
+   */
+  _computeDropOrder(): Number|null;
 
-    /**
-     * Adds a request to the workspace.
-     * It reads request data from the event and depending on keys configuration
-     * either add request to the workspace or repace existing requests.
-     *
-     * @param e Original event.
-     */
-    _dropRequest(e: DragEvent|null): void;
+  /**
+   * Sets `readonly` state on all editors
+   */
+  _blockEditors(): void;
 
-    /**
-     * Adds project to the dowspace.
-     * It reads project data from the event and depending on keys configuration
-     * either add requests to the workspace or repace existing requests.
-     *
-     * @param e Original event.
-     */
-    _dropProject(e: DragEvent|null): void;
+  /**
+   * Removes `readonly` state from all editors
+   */
+  _unblockEditors(): void;
 
-    /**
-     * Computes index of the drop.
-     *
-     * @returns Index where to drop the object.
-     */
-    _computeDropOrder(): Number|null;
+  /**
+   * Gets the top level item from the DOM repeater that has been marked as a
+   * draggable item.
+   * The event can originate from child elements which shouldn't be dragged.
+   *
+   * @param e The track event
+   * @returns An element that is container for draggable items. Undefined if couldn't
+   * find.
+   */
+  _getReorderedItem(e: Event|null): HTMLElement|null;
 
-    /**
-     * Sets `readonly` state on all editors
-     */
-    _blockEditors(): void;
+  /**
+   * Scrolls tabs right or left depending on dragged element position.
+   *
+   * @param ddx delta from last tracked position
+   * @param x Current pointer's x position
+   */
+  _updateTabPosition(ddx: Number|null, x: Number|null): void;
 
-    /**
-     * Removes `readonly` state from all editors
-     */
-    _unblockEditors(): void;
+  /**
+   * Action to handle dragover event when not in reorder mode.
+   */
+  _newTabDragover(e: DragEvent|null): void;
 
-    /**
-     * Gets the top level item from the DOM repeater that has been marked as a
-     * draggable item.
-     * The event can originate from child elements which shouldn't be dragged.
-     *
-     * @param e The track event
-     * @returns An element that is container for draggable items. Undefined if couldn't
-     * find.
-     */
-    _getReorderedItem(e: Event|null): HTMLElement|null;
+  /**
+   * Removes drop pointer from shadow root.
+   */
+  _removeDropPointer(): void;
 
-    /**
-     * Scrolls tabs right or left depending on dragged element position.
-     *
-     * @param ddx delta from last tracked position
-     * @param x Current pointer's x position
-     */
-    _updateTabPosition(ddx: Number|null, x: Number|null): void;
-
-    /**
-     * Action to handle dragover event when not in reorder mode.
-     */
-    _newTabDragover(e: DragEvent|null): void;
-
-    /**
-     * Removes drop pointer from shadow root.
-     */
-    _removeDropPointer(): void;
-
-    /**
-     * Removes drop pointer to shadow root.
-     *
-     * @param ref A list item to be used as a reference point.
-     */
-    _createDropPointer(ref: Element|null): void;
-  }
+  /**
+   * Removes drop pointer to shadow root.
+   *
+   * @param ref A list item to be used as a reference point.
+   */
+  _createDropPointer(ref: Element|null): void;
 }

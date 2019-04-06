@@ -4,11 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
   <title>ArcWorkspaceDndMixin test</title>
-  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="../arc-request-workspace.html">
-  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
-  <link rel="import" href="../../iron-test-helpers/mock-interactions.html">
+
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../../../mocha/mocha.js"></script>
+  <script src="../../../chai/chai.js"></script>
+  <script src="../../../wct-mocha/wct-mocha.js"></script>
+
+  <!-- CodeMirror + modes loader -->
+  <script src="../../../codemirror/lib/codemirror.js"></script>
+  <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+  <script src="../../../codemirror/mode/meta.js"></script>
+  <!--Default set of parsers, add as many as you need -->
+  <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+  <script src="../../../codemirror/mode/xml/xml.js"></script>
+  <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <!-- JSON linter -->
+  <script src="../../../jsonlint/lib/jsonlint.js"></script>
+  <script src="../../../codemirror/addon/lint/lint.js"></script>
+  <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+  <!-- Headers hint support -->
+  <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+  
   <style>
   html {
     --paper-tabs-selection-bar-color: red;
@@ -23,8 +42,13 @@
     </template>
   </test-fixture>
 
-  <script>
-  /* global DataGenerator, MockInteractions */
+  <script type="module">
+  import '../arc-request-workspace.js';
+  import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
+  import * as MockInteractions from '../../../@polymer/iron-test-helpers/mock-interactions.js';
+  import {afterNextRender} from '../../../@polymer/polymer/lib/utils/render-status.js';
+  import sinon from '../../../sinon/pkg/sinon-esm.js';
+
   suite('ArcWorkspaceDndMixin', () => {
     function stateRestoreHandler(e) {
       e.preventDefault();
@@ -95,7 +119,7 @@
         const spy = sinon.spy(element, '_dragStart');
         dispatch(element);
         assert.isTrue(spy.called);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -105,7 +129,7 @@
         dispatch(element);
         const data = spy.args[0][0].dataTransfer.getData('arc/request-object');
         assert.typeOf(data, 'string');
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -116,7 +140,7 @@
         dispatch(element);
         const data = spy.args[0][0].dataTransfer.getData('arc/history-request');
         assert.equal(data, element.activeRequests[0]._id);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -127,7 +151,7 @@
         dispatch(element);
         const data = spy.args[0][0].dataTransfer.getData('arc/saved-request');
         assert.equal(data, element.activeRequests[0]._id);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -137,7 +161,7 @@
         dispatch(element);
         const data = spy.args[0][0].dataTransfer.getData('arc-source/requests-workspace');
         assert.equal(data, element.activeRequests[0]._id);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -147,7 +171,7 @@
         const spy = sinon.spy(element, '_dragStart');
         dispatch(element);
         assert.isUndefined(spy.args[0][0].dropEffect);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -156,7 +180,7 @@
         const spy = sinon.spy(element, '_dragStart');
         dispatch(element);
         assert.equal(spy.args[0][0].dataTransfer.effectAllowed, 'copyMove');
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           done();
         });
       });
@@ -164,7 +188,7 @@
       test('Calls _startReorderDrag()', (done) => {
         const spy = sinon.spy(element, '_startReorderDrag');
         dispatch(element);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });
@@ -173,7 +197,7 @@
       test('Calls _removeTabSelectionColor()', (done) => {
         const spy = sinon.spy(element, '_removeTabSelectionColor');
         dispatch(element);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });
@@ -241,7 +265,7 @@
 
       test('Sets __reorderInfo object properties', (done) => {
         dispatch(element);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.equal(element.__reorderInfo.type, 'track', 'Type is set');
           assert.ok(element.__reorderInfo.dragElement, 'dragElement is set');
           assert.ok(element.__reorderInfo.dragModel, 'dragModel is set');
@@ -253,7 +277,7 @@
       test('Blocks the editors', (done) => {
         const spy = sinon.spy(element, '_blockEditors');
         dispatch(element);
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isTrue(spy.called);
           done();
         });
@@ -793,7 +817,7 @@
         const node = element.shadowRoot.querySelector('request-panel');
         node.readonly = true;
         element._unblockEditors();
-        Polymer.RenderStatus.afterNextRender(element, () => {
+        afterNextRender(element, () => {
           assert.isFalse(node.readonly);
           done();
         });
