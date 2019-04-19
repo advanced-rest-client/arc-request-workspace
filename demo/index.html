@@ -39,7 +39,6 @@
     <script type="module" src="../../../@advanced-rest-client/oauth-authorization/oauth2-authorization.js"></script>
     <script type="module" src="../../../@advanced-rest-client/oauth-authorization/oauth1-authorization.js"></script>
     <script type="module" src="../../../@polymer/paper-dropdown-menu/paper-dropdown-menu.js"></script>
-    <script type="module" src="../../../@polymer/iron-demo-helpers/demo-pages-shared-styles.js"></script>
     <script type="module" src="../../../@polymer/iron-demo-helpers/demo-snippet.js"></script>
     <script type="module" src="../../../@advanced-rest-client/arc-electron-default-theme/arc-electron-default-theme.js"></script>
     <script type="module" src="../../../@polymer/paper-styles/shadow.js"></script>
@@ -96,7 +95,7 @@
     </style>
 
     <custom-style>
-      <style is="custom-style" include="demo-pages-shared-styles">
+      <style is="custom-style">
       h1 {
         @apply --paper-font-headline;
       }
@@ -206,6 +205,7 @@
             <div class="centered card">
               <paper-button on-click="generateData">Generate 100 saved items</paper-button>
               <paper-button on-click="clearData">Clear datastore</paper-button>
+              <paper-button on-click="openWebUrlInput">Open web URL input</paper-button>
             </div>
 
             <div class="centered card">
@@ -239,6 +239,7 @@
     </dom-bind>
     <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
     <paper-toast id="clearToast" text="The request data has been removed"></paper-toast>
+    <paper-toast id="webUrlToast" text="Open web URL requested via event"></paper-toast>
     <script type="module">
     import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
     /* global chance */
@@ -348,12 +349,20 @@
               variables = JSON.parse(variablesStr);
             } catch (_) {}
           }
+          const webSessionStr = localStorage.getItem('workspace.webSession');
+          let webSession;
+          if (webSessionStr) {
+            try {
+              webSession = JSON.parse(webSessionStr);
+            } catch (_) {}
+          }
           const result = {
             selected,
             environment,
             requests,
             config,
-            variables
+            variables,
+            webSession
           };
           if (config) {
             if (config.requestTimeout) {
@@ -377,7 +386,7 @@
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        const {environment, selected, requests, config, variables} = e.detail.value;
+        const {environment, selected, requests, config, variables, webSession} = e.detail.value;
         console.info('Storing workspace data', e.detail.value);
         if (requests) {
           const requestsStr = JSON.stringify(requests);
@@ -393,6 +402,10 @@
         if (variables) {
           const variablesStr = JSON.stringify(variables);
           localStorage.setItem('workspace.variables', variablesStr);
+        }
+        if (webSession) {
+          const webSessionStr = JSON.stringify(webSession);
+          localStorage.setItem('workspace.webSession', webSessionStr);
         }
         localStorage.setItem('workspace.selected', selected);
       };
@@ -513,6 +526,15 @@
         const workspace = document.querySelector('arc-request-workspace');
         workspace.followRedirects = app.followRedirects;
       };
+
+      app.openWebUrlInput = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace.openWebUrlInput();
+      };
+
+      app._openWebUrlHandler = () => {
+        document.getElementById('webUrlToast').opened = true;
+      };
       window.addEventListener('transport-request', app.send);
       window.addEventListener('workspace-state-read', app._restoreHandler);
       window.addEventListener('workspace-state-store', app._storeHandler);
@@ -520,6 +542,7 @@
       window.addEventListener('request-details', app._requestDetailsHandler);
       window.addEventListener('request-code-snippets', app._renderCodeSnippets);
       window.addEventListener('export-google-drive', app._exportDriveHandler);
+      window.addEventListener('open-web-url', app._openWebUrlHandler);
       window.addEventListener('WebComponentsReady', app.init);
     })(document.getElementById('demo'));
     </script>

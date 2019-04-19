@@ -15,6 +15,7 @@ import '../../@advanced-rest-client/saved-request-editor/saved-request-editor.js
 import '../../@advanced-rest-client/saved-request-detail/saved-request-detail.js';
 import '../../@advanced-rest-client/http-code-snippets/http-code-snippets.js';
 import '../../@advanced-rest-client/bottom-sheet/bottom-sheet.js';
+import '../../@advanced-rest-client/web-url-input/web-url-input.js';
 import {ArcFileDropMixin} from '../../@advanced-rest-client/arc-file-drop-mixin/arc-file-drop-mixin.js';
 import '../../@polymer/paper-toast/paper-toast.js';
 import {ArcWorkspaceRequestsMixin} from './arc-workspace-requests-mixin.js';
@@ -280,7 +281,9 @@ class ArcRequestWorkspace extends
 
     <paper-toast id="noExport" class="error-toast" text="Export module not found. Please, report an issue."></paper-toast>
     <paper-toast id="driveSaved" text="Requests saved on Google Drive."></paper-toast>
-    <paper-toast id="errorToast" class="error-toast"></paper-toast>`;
+    <paper-toast id="errorToast" class="error-toast"></paper-toast>
+
+    <web-url-input id="webUrlInput" purpose="web-session" value="{{webSessionUrl}}"></web-url-input>`;
   }
 
   static get is() {
@@ -407,7 +410,12 @@ class ArcRequestWorkspace extends
        * When not set or `false` it renders warning dialog.
        * @type {Boolean}
        */
-      ignoreContentOnGet: {type: Boolean, observer: '_ignoreContentOnGetChanged'}
+      ignoreContentOnGet: {type: Boolean, observer: '_ignoreContentOnGetChanged'},
+      /**
+       * An URL to be present in the session URL input when opened.
+       * The input can be opened by calling `openWebUrlInput()`
+       */
+      webSessionUrl: {type: String, observer: '_workspaceConfigChanged'}
     };
   }
 
@@ -1372,10 +1380,22 @@ class ArcRequestWorkspace extends
 
   _oauthUriChanged(value) {
     this.__updatePanelsProperty('oauth2RedirectUri', value);
+    // this._workspaceConfigChanged();
   }
 
   _ignoreContentOnGetChanged(value) {
     this.__updatePanelsProperty('ignoreContentOnGet', value);
+    // this._workspaceConfigChanged();
+  }
+  /**
+   * Opens the input for opening web app to start a web session.
+   *
+   * The input, when accepted, dispatches `open-web-url` custom event which is
+   * not handled by this element. The application should handle this event
+   * and open browser window or other mean to start a web session.
+   */
+  openWebUrlInput() {
+    this.$.webUrlInput.opened = true;
   }
 }
 window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);

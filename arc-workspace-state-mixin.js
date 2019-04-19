@@ -73,6 +73,7 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       this._restoreEnvironment(state.environment);
       this._restoreVariables(state.variables);
       this._restoreConfiguration(state.config);
+      this._restoreWebSessionConfiguration(state.webSession);
     }
     /**
      * Restores requests from the state object.
@@ -159,6 +160,20 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       }
     }
     /**
+     * Restores web session configuration.
+     * Currently web session URL for session url input field is supported.
+     *
+     * @param {?Object} config Web session configuration
+     */
+    _restoreWebSessionConfiguration(config) {
+      if (!config) {
+        return;
+      }
+      if (config.webSessionUrl && typeof config.webSessionUrl === 'string') {
+        this.webSessionUrl = config.webSessionUrl;
+      }
+    }
+    /**
      * Forces current selection and resets restoration flags after next
      * render.
      */
@@ -180,7 +195,8 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
         environment: this.environment || 'default',
         selected: this.selected || 0,
         requests: this.activeRequests || [],
-        config: this.serializeConfig()
+        config: this.serializeConfig(),
+        webSession: this.serializeWebSession()
       };
       if (this.variables) {
         result.variables = this.variables;
@@ -207,6 +223,18 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       }
       if (typeof this.workspaceReadOnly === 'boolean') {
         result.workspaceReadOnly = this.workspaceReadOnly;
+      }
+      return result;
+    }
+    /**
+     * Serializes workspace's web session configuration.
+     * @return {Object}
+     */
+    serializeWebSession() {
+      const result = {};
+      const url = this.webSessionUrl;
+      if (url && typeof url === 'string') {
+        result.webSessionUrl = url;
       }
       return result;
     }

@@ -27,7 +27,7 @@
   <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
   <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
   <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
-  
+
 </head>
 <body>
   <project-model></project-model>
@@ -1885,6 +1885,19 @@
     test('Removes the request', () => {
       element.closeActiveTab();
       assert.deepEqual(element.activeRequests, []);
+    });
+  });
+
+  suite('openWebUrlInput()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      flush(() => done());
+    });
+
+    test('Opens the dialog', () => {
+      element.openWebUrlInput();
+      assert.isTrue(element.$.webUrlInput.opened);
     });
   });
   </script>

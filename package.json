@@ -71,6 +71,7 @@
     "@advanced-rest-client/saved-request-detail": "^3.0.0-preview.1",
     "@advanced-rest-client/saved-request-editor": "^3.0.0-preview.1",
     "@advanced-rest-client/uuid-generator": "^3.0.0-preview.2",
+    "@advanced-rest-client/web-url-input": "^3.0.0-preview.2",
     "@polymer/iron-icon": "^3.0.0",
     "@polymer/paper-icon-button": "^3.0.0",
     "@polymer/paper-item": "^3.0.0",

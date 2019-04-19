@@ -297,6 +297,30 @@
       });
     });
 
+    suite('_restoreWebSessionConfiguration()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Does nothing when values are not set', () => {
+        element._restoreWebSessionConfiguration();
+        assert.isUndefined(element.webSessionUrl);
+      });
+
+      test('Set webSessionUrl property', () => {
+        const config = {webSessionUrl: 'https://'};
+        element._restoreWebSessionConfiguration(config);
+        assert.equal(element.webSessionUrl, 'https://');
+      });
+
+      test('Ignores unknown type for webSessionUrl', () => {
+        const config = {webSessionUrl: true};
+        element._restoreWebSessionConfiguration(config);
+        assert.isUndefined(element.webSessionUrl);
+      });
+    });
+
     suite('_afterRestore()', () => {
       let element;
       setup(() => {
@@ -400,6 +424,16 @@
         });
         assert.isTrue(spy.called);
         assert.deepEqual(spy.args[0][0], config);
+      });
+
+      test('Calls _restoreWebSessionConfiguration()', () => {
+        const webSession = {webSessionUrl: 'https://'};
+        const spy = sinon.spy(element, '_restoreWebSessionConfiguration');
+        element._restore({
+          webSession
+        });
+        assert.isTrue(spy.called);
+        assert.deepEqual(spy.args[0][0], webSession);
       });
     });
 
@@ -578,6 +612,30 @@
       });
     });
 
+    suite('serializeWebSession()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Returns object', () => {
+        const result = element.serializeWebSession();
+        assert.typeOf(result, 'object');
+      });
+
+      test('Sets webSessionUrl when a string', () => {
+        element.webSessionUrl = 'https://';
+        const result = element.serializeWebSession();
+        assert.equal(result.webSessionUrl, 'https://');
+      });
+
+      test('Skips webSessionUrl when not a string', () => {
+        element.webSessionUrl = true;
+        const result = element.serializeWebSession();
+        assert.isUndefined(result.webSessionUrl);
+      });
+    });
+
     suite('serializeWorkspace()', () => {
       let element;
       setup(() => {
@@ -644,6 +702,18 @@
         element.variables = vars;
         const result = element.serializeWorkspace();
         assert.deepEqual(result.variables, vars);
+      });
+
+      test('Calls serializeWebSession()', () => {
+        const spy = sinon.spy(element, 'serializeWebSession');
+        element.serializeWorkspace();
+        assert.isTrue(spy.called);
+      });
+
+      test('Sets webSession', () => {
+        element.webSessionUrl = 'https://';
+        const result = element.serializeWorkspace();
+        assert.deepEqual(result.webSession, {webSessionUrl: 'https://'});
       });
     });
 
@@ -837,6 +907,12 @@
       test('Called when "sentMessageLimit" changes', () => {
         const spy = sinon.spy(element, '_notifyStoreWorkspace');
         element.sentMessageLimit = 100;
+        assert.isTrue(spy.called);
+      });
+
+      test('Called when "webSessionUrl" changes', () => {
+        const spy = sinon.spy(element, '_notifyStoreWorkspace');
+        element.webSessionUrl = 'https://';
         assert.isTrue(spy.called);
       });
     });
