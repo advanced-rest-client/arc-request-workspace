@@ -18,7 +18,7 @@
   "devDependencies": {
     "@advanced-rest-client/arc-data-generator": "^3.0.0-preview.1",
     "@advanced-rest-client/arc-electron-default-theme": "^3.0.0-preview.2",
-    "@advanced-rest-client/arc-models": "^3.0.0-preview.3",
+    "@advanced-rest-client/arc-models": "^3.0.0-preview.4",
     "@advanced-rest-client/arc-request-logic": "^3.0.0-preview.1",
     "@advanced-rest-client/history-menu": "^3.0.0-preview.1",
     "@advanced-rest-client/oauth-authorization": "^3.0.0-preview.3",
@@ -42,8 +42,8 @@
     "fs-extra": "^7.0.1",
     "jexl": "^2.1.1",
     "mocha": "^5.2.0",
-    "sinon": "^7.2.3",
-    "uglify-js": "^3.5.4",
+    "sinon": "^7.3.2",
+    "uglify-js": "^3.5.5",
     "wct-mocha": "^1.0.0",
     "web-animations-js": "^2.3.1"
   },
