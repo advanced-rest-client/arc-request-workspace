@@ -73,7 +73,6 @@ class ArcRequestWorkspace extends
     :host {
       display: block;
       position: relative;
-      @apply --arc-request-workspace;
     }
 
     [hidden] {
@@ -88,7 +87,7 @@ class ArcRequestWorkspace extends
 
     .tabs-row paper-tabs {
       --paper-tabs-content: {
-        @apply --arc-font-common-base;
+        font-family: var(--arc-font-family);
         height: 100%;
         border-bottom: 0 solid transparent;
         font-style: normal;
@@ -158,17 +157,24 @@ class ArcRequestWorkspace extends
 
     .context-menu-icon {
       color: var(--request-editor-context-menu-icon-color, var(--primary-color));
-      @apply --request-editor-context-menu-icon;
     }
 
     .menu-item {
-      @apply --paper-item;
+      font-size: var(--paper-item-font-size);
+      padding: var(--paper-item-padding);
       color: var(--context-menu-item-color);
       background-color: var(--context-menu-item-background-color);
+
+      border: none;
+      outline: none;
+      width: 100%;
+      text-align: left;
     }
 
     .menu-item:hover {
-      @apply --paper-item-hover;
+      padding: var(--paper-item-hover-padding);
+      border-left: var(--paper-item-hover-border-left);
+      border-right: var(--paper-item-hover-border-right);
       color: var(--context-menu-item-color-hover);
       background-color: var(--context-menu-item-background-color-hover);
     }
@@ -211,10 +217,14 @@ class ArcRequestWorkspace extends
     }
 
     :host([dragging]) .drop-target {
-      display: block;
-      @apply --layout-fit;
-      @apply --layout-vertical;
-      @apply --layout-center;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       z-index: 100;
       background-color: #fff;
       border: 4px var(--drop-file-importer-header-background-color, var(--primary-color)) solid;
@@ -223,7 +233,6 @@ class ArcRequestWorkspace extends
     .error-toast {
       background-color: var(--warning-primary-color, #FF7043);
       color: var(--warning-contrast-color, #fff);
-      @apply --error-toast;
     }
 
     .drop-pointer {
