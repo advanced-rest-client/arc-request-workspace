@@ -403,7 +403,22 @@ class ArcRequestWorkspace extends
        * If can be also set by dispatching `oauth2-redirect-url-changed`
        * with `value` property on the `detail` object.
        */
-      oauth2RedirectUri: {type: String, observer: '_oauthUriChanged'},
+      oauth2RedirectUri: {type: String},
+      /**
+       * Variable set from workspace configuration. The same as `oauth2RedirectUri`
+       * but it takes precedence over it.
+       * @type {String}
+       */
+      _workspaceOauth2RedirectUri: {type: String, observer: '_workspaceConfigChanged'},
+      /**
+       * Computed final value of oauth2 redirect URI passed to the request panel.
+       * @type {String}
+       */
+      _oauth2RedirectUri: {
+        type: String,
+        computed: '_computeOauth2RedirectUri(oauth2RedirectUri, _workspaceOauth2RedirectUri)',
+        observer: '_oauthUriChanged'
+      },
       /**
        * When set it will ignore all `content-*` headers when the request method
        * is either `GET` or `HEAD`. This is passed to the request panel.
@@ -1380,7 +1395,10 @@ class ArcRequestWorkspace extends
 
   _oauthUriChanged(value) {
     this.__updatePanelsProperty('oauth2RedirectUri', value);
-    // this._workspaceConfigChanged();
+  }
+
+  _computeOauth2RedirectUri(oauth2RedirectUri, workspaceOauth2RedirectUri) {
+    return workspaceOauth2RedirectUri || oauth2RedirectUri;
   }
 
   _ignoreContentOnGetChanged(value) {

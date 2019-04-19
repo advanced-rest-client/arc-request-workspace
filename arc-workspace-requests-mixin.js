@@ -103,7 +103,7 @@ export const ArcWorkspaceRequestsMixin = dedupingMixin((base) => {
      */
     __setPanelConfiguration(panel) {
       panel.narrow = this.narrow;
-      panel.oauth2RedirectUri = this.oauth2RedirectUri;
+      panel.oauth2RedirectUri = this._oauth2RedirectUri;
       panel.ignoreContentOnGet = this.ignoreContentOnGet;
     }
     /**

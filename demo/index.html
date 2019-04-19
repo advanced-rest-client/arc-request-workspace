@@ -232,6 +232,7 @@
               <paper-input label="Sent message preview bytes limit" value="{{sentMessageLimit}}" type="number" step="1" min="0" on-change="_sentMessageLimitChanged"></paper-input>
               <paper-toggle-button checked="{{validateCertificates}}" on-change="_validateCertificatesChanged">Validate certificates</paper-toggle-button>
               <paper-toggle-button checked="{{followRedirects}}" on-change="_followRedirectsChanged">Follow redirects</paper-toggle-button>
+              <paper-input label="OAuth2 redirect URI" value="{{oauth2RedirectUri}}" type="url" on-change="_setOauth2RedirectUri"></paper-input>
             </div>
           </section>
         </div>
@@ -244,9 +245,9 @@
     import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
     /* global chance */
     (function(app) {
-      const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
-        'oauth-authorization/oauth-popup.html');
-      app.oauth2RedirectUri = redirectUrl;
+      // const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
+      //   'oauth-authorization/oauth-popup.html');
+      // app.oauth2RedirectUri = redirectUrl;
       app.projectReplace = false;
       app.selectedMenu = 0;
       app.init = function() {
@@ -356,13 +357,21 @@
               webSession = JSON.parse(webSessionStr);
             } catch (_) {}
           }
+          const authStr = localStorage.getItem('workspace.auth');
+          let auth;
+          if (authStr) {
+            try {
+              auth = JSON.parse(authStr);
+            } catch (_) {}
+          }
           const result = {
             selected,
             environment,
             requests,
             config,
             variables,
-            webSession
+            webSession,
+            auth
           };
           if (config) {
             if (config.requestTimeout) {
@@ -386,7 +395,7 @@
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        const {environment, selected, requests, config, variables, webSession} = e.detail.value;
+        const {environment, selected, requests, config, variables, webSession, auth} = e.detail.value;
         console.info('Storing workspace data', e.detail.value);
         if (requests) {
           const requestsStr = JSON.stringify(requests);
@@ -406,6 +415,10 @@
         if (webSession) {
           const webSessionStr = JSON.stringify(webSession);
           localStorage.setItem('workspace.webSession', webSessionStr);
+        }
+        if (auth) {
+          const authStr = JSON.stringify(auth);
+          localStorage.setItem('workspace.auth', authStr);
         }
         localStorage.setItem('workspace.selected', selected);
       };
@@ -517,6 +530,10 @@
       app._sentMessageLimitChanged = () => {
         const workspace = document.querySelector('arc-request-workspace');
         workspace.sentMessageLimit = Number(app.sentMessageLimit);
+      };
+      app._setOauth2RedirectUri = () => {
+        const workspace = document.querySelector('arc-request-workspace');
+        workspace._workspaceOauth2RedirectUri = app.oauth2RedirectUri;
       };
       app._validateCertificatesChanged = () => {
         const workspace = document.querySelector('arc-request-workspace');

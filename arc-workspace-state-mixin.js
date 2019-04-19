@@ -74,6 +74,7 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       this._restoreVariables(state.variables);
       this._restoreConfiguration(state.config);
       this._restoreWebSessionConfiguration(state.webSession);
+      this._restoreAuthConfiguration(state.auth);
     }
     /**
      * Restores requests from the state object.
@@ -174,6 +175,19 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       }
     }
     /**
+     * Restores various authorization configuration.
+     *
+     * @param {?Object} config Authorization configuration for workspace.
+     */
+    _restoreAuthConfiguration(config) {
+      if (!config) {
+        return;
+      }
+      if (config.oauth2RedirectUri && typeof config.oauth2RedirectUri === 'string') {
+        this._workspaceOauth2RedirectUri = config.oauth2RedirectUri;
+      }
+    }
+    /**
      * Forces current selection and resets restoration flags after next
      * render.
      */
@@ -196,7 +210,8 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
         selected: this.selected || 0,
         requests: this.activeRequests || [],
         config: this.serializeConfig(),
-        webSession: this.serializeWebSession()
+        webSession: this.serializeWebSession(),
+        auth: this.serializeAuthorization()
       };
       if (this.variables) {
         result.variables = this.variables;
@@ -235,6 +250,18 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       const url = this.webSessionUrl;
       if (url && typeof url === 'string') {
         result.webSessionUrl = url;
+      }
+      return result;
+    }
+    /**
+     * Serializes workspace's authorization configuration.
+     * @return {Object}
+     */
+    serializeAuthorization() {
+      const result = {};
+      const url = this._workspaceOauth2RedirectUri;
+      if (url && typeof url === 'string') {
+        result.oauth2RedirectUri = url;
       }
       return result;
     }

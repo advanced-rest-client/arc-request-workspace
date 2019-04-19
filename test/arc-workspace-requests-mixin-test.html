@@ -172,6 +172,13 @@
         assert.equal(panel.oauth2RedirectUri, 'http://auth.com');
       });
 
+      test('Sets oauth2RedirectUri property from _workspaceOauth2RedirectUri', () => {
+        element._workspaceOauth2RedirectUri = 'http://other.com';
+        const panel = element.__createPanelInstance();
+        element.__setPanelConfiguration(panel);
+        assert.equal(panel.oauth2RedirectUri, 'http://other.com');
+      });
+
       test('Sets ignoreContentOnGet propery', () => {
         const panel = element.__createPanelInstance();
         element.__setPanelConfiguration(panel);
