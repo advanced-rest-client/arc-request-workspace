@@ -11,7 +11,6 @@ import '../../@polymer/paper-icon-button/paper-icon-button.js';
 import '../../@advanced-rest-client/request-panel/request-panel.js';
 import '../../@polymer/paper-progress/paper-progress.js';
 import '../../@advanced-rest-client/uuid-generator/uuid-generator.js';
-import '../../@polymer/paper-styles/shadow.js';
 import '../../@advanced-rest-client/saved-request-editor/saved-request-editor.js';
 import '../../@advanced-rest-client/saved-request-detail/saved-request-detail.js';
 import '../../@advanced-rest-client/http-code-snippets/http-code-snippets.js';
@@ -192,7 +191,7 @@ class ArcRequestWorkspace extends
     .dragging {
       background-color: var(--arc-request-workspace-tab-dragging-background-color, #fff !important);
       z-index: 1;
-      @apply --shadow-elevation-2dp;
+      box-shadow: var(--box-shadow-2dp);
       --paper-tab-ink: transparent !important;
     }
 
