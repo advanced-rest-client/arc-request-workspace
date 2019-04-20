@@ -291,10 +291,6 @@ class ArcRequestWorkspace extends
   static get properties() {
     return {
       /**
-       * The OAuth2 redirect URI to pass to the authorization panel.
-       */
-      redirectUri: String,
-      /**
        * Index of selected request panel
        */
       selected: {

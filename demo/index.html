@@ -199,7 +199,7 @@
           </nav>
           <section class="main">
             <div class="centered card">
-              <arc-request-workspace redirect-uri="[[oauth2RedirectUri]]" draggable-enabled=""></arc-request-workspace>
+              <arc-request-workspace oauth2-redirect-uri="[[oauth2RedirectUri]]" draggable-enabled=""></arc-request-workspace>
             </div>
 
             <div class="centered card">
@@ -232,7 +232,7 @@
               <paper-input label="Sent message preview bytes limit" value="{{sentMessageLimit}}" type="number" step="1" min="0" on-change="_sentMessageLimitChanged"></paper-input>
               <paper-toggle-button checked="{{validateCertificates}}" on-change="_validateCertificatesChanged">Validate certificates</paper-toggle-button>
               <paper-toggle-button checked="{{followRedirects}}" on-change="_followRedirectsChanged">Follow redirects</paper-toggle-button>
-              <paper-input label="OAuth2 redirect URI" value="{{oauth2RedirectUri}}" type="url" on-change="_setOauth2RedirectUri"></paper-input>
+              <paper-input label="OAuth2 redirect URI" type="url" on-change="_setOauth2RedirectUri"></paper-input>
             </div>
           </section>
         </div>
