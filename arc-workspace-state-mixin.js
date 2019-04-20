@@ -159,6 +159,12 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       if (typeof config.workspaceReadOnly === 'boolean') {
         this.workspaceReadOnly = config.workspaceReadOnly;
       }
+      if (typeof config.variablesDisabled === 'boolean') {
+        this.variablesDisabled = config.variablesDisabled;
+      }
+      if (typeof config.nativeTransport === 'boolean') {
+        this.nativeTransport = config.nativeTransport;
+      }
     }
     /**
      * Restores web session configuration.
@@ -238,6 +244,12 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       }
       if (typeof this.workspaceReadOnly === 'boolean') {
         result.workspaceReadOnly = this.workspaceReadOnly;
+      }
+      if (typeof this.variablesDisabled === 'boolean') {
+        result.variablesDisabled = this.variablesDisabled;
+      }
+      if (typeof this.nativeTransport === 'boolean') {
+        result.nativeTransport = this.nativeTransport;
       }
       return result;
     }

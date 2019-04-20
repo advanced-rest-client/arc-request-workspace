@@ -622,7 +622,10 @@
       assert.equal(e.detail.config.sentMessageLimit, 5);
     });
 
-    ['followRedirects', 'validateCertificates'].forEach((prop) => {
+    [
+      'followRedirects', 'validateCertificates', 'variablesDisabled',
+      'nativeTransport'
+    ].forEach((prop) => {
       test(`Sets ${prop} when false`, () => {
         element[prop] = false;
         const e = fire(element);

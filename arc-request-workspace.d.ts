@@ -116,6 +116,18 @@ declare namespace UiElements {
     workspaceReadOnly: number|null|undefined;
 
     /**
+     * When set requests made from this workspace won't evaluate variables.
+     */
+    variablesDisabled: Boolean|null;
+
+    /**
+     * When set requests made from this workspace will be executed using
+     * Node's native HTTP(S) transport.
+     * Note, this option is only available for Electron app.
+     */
+    nativeTransport: Boolean|null;
+
+    /**
      * If set then workspace restoration process is in progress.
      */
     readonly restoring: boolean|null|undefined;

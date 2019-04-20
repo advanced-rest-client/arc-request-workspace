@@ -350,6 +350,18 @@ class ArcRequestWorkspace extends
        */
       workspaceReadOnly: {type: Number, observer: '_workspaceReadOnlyChanged'},
       /**
+       * When set requests made from this workspace won't evaluate variables.
+       * @type {Boolean}
+       */
+      variablesDisabled: {type: Boolean, observer: '_workspaceConfigChanged'},
+      /**
+       * When set requests made from this workspace will be executed using
+       * Node's native HTTP(S) transport.
+       * Note, this option is only available for Electron app.
+       * @type {Boolean}
+       */
+      nativeTransport: {type: Boolean, observer: '_workspaceConfigChanged'},
+      /**
        * If set then workspace restoration process is in progress.
        */
       restoring: {
@@ -1323,6 +1335,14 @@ class ArcRequestWorkspace extends
     if (typeof rConfig.sentMessageLimit !== 'number' &&
       typeof this.sentMessageLimit === 'number') {
       config.sentMessageLimit = this.sentMessageLimit;
+    }
+    if (typeof rConfig.variablesDisabled !== 'boolean' &&
+      typeof this.variablesDisabled === 'boolean') {
+      config.variablesDisabled = this.variablesDisabled;
+    }
+    if (typeof rConfig.nativeTransport !== 'boolean' &&
+      typeof this.nativeTransport === 'boolean') {
+      config.nativeTransport = this.nativeTransport;
     }
     const rVars = rConfig.variables;
     const hasVars = !!(rVars && rVars instanceof Array && rVars.length);

@@ -279,7 +279,10 @@
         assert.equal(element.sentMessageLimit, 20);
       });
 
-      ['validateCertificates', 'followRedirects', 'workspaceReadOnly']
+      [
+        'validateCertificates', 'followRedirects', 'workspaceReadOnly',
+        'variablesDisabled', 'nativeTransport'
+      ]
       .forEach((prop) => {
         test(`Set ${prop} when true`, () => {
           const config = {};
@@ -624,8 +627,10 @@
         assert.isUndefined(result.sentMessageLimit);
       });
 
-      ['followRedirects', 'validateCertificates', 'workspaceReadOnly']
-      .forEach((prop) => {
+      [
+        'followRedirects', 'validateCertificates', 'workspaceReadOnly',
+        'variablesDisabled', 'nativeTransport'
+      ].forEach((prop) => {
         test(`Sets ${prop} when false`, () => {
           element[prop] = false;
           const result = element.serializeConfig();
