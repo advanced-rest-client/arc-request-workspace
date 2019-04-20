@@ -37,7 +37,6 @@ import {ArcWorkspaceStateMixin} from './arc-workspace-state-mixin.js';
  *
  * Custom property | Description | Default
  * ----------------|-------------|----------
- * `--arc-request-workspace` | Mixin applied to this elment | `{}`
  * `--arc-request-workspace-tabs-backgroud-color` | | `rgba(0, 0, 0, 0.05)`
  * `--arc-request-workspace-tabs-border-color` | | `#e5e5e5`
  * `--arc-request-workspace-tabs-color` | | `rgba(0,0,0,0.87)`
