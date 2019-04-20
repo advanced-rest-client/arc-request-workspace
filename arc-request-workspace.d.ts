@@ -36,7 +36,6 @@ declare namespace UiElements {
    *
    * Custom property | Description | Default
    * ----------------|-------------|----------
-   * `--arc-request-workspace` | Mixin applied to this elment | `{}`
    * `--arc-request-workspace-tabs-backgroud-color` | | `rgba(0, 0, 0, 0.05)`
    * `--arc-request-workspace-tabs-border-color` | | `#e5e5e5`
    * `--arc-request-workspace-tabs-color` | | `rgba(0,0,0,0.87)`
@@ -62,11 +61,6 @@ declare namespace UiElements {
     ArcWorkspaceStateMixin(
     ArcFileDropMixin(
     Object)))) {
-
-    /**
-     * The OAuth2 redirect URI to pass to the authorization panel.
-     */
-    redirectUri: string|null|undefined;
 
     /**
      * Index of selected request panel
@@ -174,6 +168,30 @@ declare namespace UiElements {
      * with `value` property on the `detail` object.
      */
     oauth2RedirectUri: string|null|undefined;
+
+    /**
+     * Variable set from workspace configuration. The same as `oauth2RedirectUri`
+     * but it takes precedence over it.
+     */
+    _workspaceOauth2RedirectUri: String|null;
+
+    /**
+     * Computed final value of oauth2 redirect URI passed to the request panel.
+     */
+    readonly _oauth2RedirectUri: String|null;
+
+    /**
+     * When set it will ignore all `content-*` headers when the request method
+     * is either `GET` or `HEAD`. This is passed to the request panel.
+     * When not set or `false` it renders warning dialog.
+     */
+    ignoreContentOnGet: Boolean|null;
+
+    /**
+     * An URL to be present in the session URL input when opened.
+     * The input can be opened by calling `openWebUrlInput()`
+     */
+    webSessionUrl: string|null|undefined;
     connectedCallback(): void;
     disconnectedCallback(): void;
 
@@ -519,6 +537,17 @@ declare namespace UiElements {
     closeActiveTab(): void;
     _narrowChanged(value: any): void;
     _oauthUriChanged(value: any): void;
+    _computeOauth2RedirectUri(oauth2RedirectUri: any, workspaceOauth2RedirectUri: any): any;
+    _ignoreContentOnGetChanged(value: any): void;
+
+    /**
+     * Opens the input for opening web app to start a web session.
+     *
+     * The input, when accepted, dispatches `open-web-url` custom event which is
+     * not handled by this element. The application should handle this event
+     * and open browser window or other mean to start a web session.
+     */
+    openWebUrlInput(): void;
   }
 }
 

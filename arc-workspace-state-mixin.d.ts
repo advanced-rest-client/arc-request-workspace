@@ -97,6 +97,21 @@ interface ArcWorkspaceStateMixin {
   _restoreConfiguration(config: object|null): void;
 
   /**
+   * Restores web session configuration.
+   * Currently web session URL for session url input field is supported.
+   *
+   * @param config Web session configuration
+   */
+  _restoreWebSessionConfiguration(config: object|null): void;
+
+  /**
+   * Restores various authorization configuration.
+   *
+   * @param config Authorization configuration for workspace.
+   */
+  _restoreAuthConfiguration(config: object|null): void;
+
+  /**
    * Forces current selection and resets restoration flags after next
    * render.
    */
@@ -113,6 +128,16 @@ interface ArcWorkspaceStateMixin {
    * Serializes workspace configuration.
    */
   serializeConfig(): object|null;
+
+  /**
+   * Serializes workspace's web session configuration.
+   */
+  serializeWebSession(): object|null;
+
+  /**
+   * Serializes workspace's authorization configuration.
+   */
+  serializeAuthorization(): object|null;
 
   /**
    * Runs debouncer and after timeoout it calls `__dispatchStoreWorkspace()`
