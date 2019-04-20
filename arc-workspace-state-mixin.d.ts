@@ -54,6 +54,13 @@ interface ArcWorkspaceStateMixin {
   _restore(state: object|null): void;
 
   /**
+   * A function to restore workspace metadata like version or provider information.
+   *
+   * @param config Workspace definition object.
+   */
+  _restoreMeta(config: object|null): void;
+
+  /**
    * Restores requests from the state object.
    *
    * @param requests List of requests to restore. When not set

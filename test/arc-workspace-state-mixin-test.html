@@ -118,6 +118,43 @@
       });
     });
 
+    suite('_restoreMeta()', () => {
+      let element;
+      setup(() => {
+        element = fixture('Basic');
+      });
+
+      test('Sets version', () => {
+        const version = '0.1.0';
+        element._restoreMeta({version});
+        assert.equal(element.version, version);
+      });
+
+      test('Sets published', () => {
+        const published = '2019-04-20T17:56:36.726Z';
+        element._restoreMeta({published});
+        assert.equal(element.published, published);
+      });
+
+      test('Sets provider.url', () => {
+        const provider = {url: 'https://domain.com'};
+        element._restoreMeta({provider});
+        assert.equal(element.provider.url, provider.url);
+      });
+
+      test('Sets provider.name', () => {
+        const provider = {name: 'First Last'};
+        element._restoreMeta({provider});
+        assert.equal(element.provider.name, provider.name);
+      });
+
+      test('Sets provider.email', () => {
+        const provider = {email: 'test@domain.com'};
+        element._restoreMeta({provider});
+        assert.equal(element.provider.email, provider.email);
+      });
+    });
+
     suite('_restoreRequests()', () => {
       let element;
       setup(() => {
@@ -412,6 +449,16 @@
         });
         assert.isTrue(spy.called);
         assert.deepEqual(spy.args[0][0], requests);
+      });
+
+      test('Calls _restoreMeta()', () => {
+        const spy = sinon.spy(element, '_restoreMeta');
+        const cnf = {
+          version: '0.0.1'
+        };
+        element._restore(cnf);
+        assert.isTrue(spy.called);
+        assert.deepEqual(spy.args[0][0], cnf);
       });
 
       test('Calls _restoreSelected()', () => {

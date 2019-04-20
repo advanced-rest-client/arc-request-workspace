@@ -204,6 +204,33 @@ declare namespace UiElements {
      * The input can be opened by calling `openWebUrlInput()`
      */
     webSessionUrl: string|null|undefined;
+
+    /**
+     * Workspace file version.
+     * Has no meaning for the request processing but this information is rendered
+     * in request workspace details dialog.
+     */
+    version: String|null;
+
+    /**
+     * Workspace publication date as an ISO date string.
+     * Has no meaning for the request processing but this information is rendered
+     * in request workspace details dialog.
+     */
+    published: String|null;
+
+    /**
+     * Workspace publisher information.
+     *
+     * Supported properties:
+     * - url
+     * - name
+     * - email
+     *
+     * Has no meaning for the request processing but this information is rendered
+     * in request workspace details dialog.
+     */
+    provider: object|null;
     connectedCallback(): void;
     disconnectedCallback(): void;
 

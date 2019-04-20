@@ -68,6 +68,7 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
         this.addEmptyRequest();
         return;
       }
+      this._restoreMeta(state);
       this._restoreRequests(state.requests);
       this._restoreSelected(state.selected);
       this._restoreEnvironment(state.environment);
@@ -75,6 +76,32 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       this._restoreConfiguration(state.config);
       this._restoreWebSessionConfiguration(state.webSession);
       this._restoreAuthConfiguration(state.auth);
+    }
+    /**
+     * A function to restore workspace metadata like version or provider information.
+     * @param {Object} config Workspace definition object.
+     */
+    _restoreMeta(config) {
+      if (config.version && typeof config.version === 'string') {
+        this.version = config.version;
+      }
+      if (config.published && typeof config.published === 'string') {
+        this.published = config.published;
+      }
+      const provider = config.provider;
+      if (provider && typeof provider === 'object') {
+        const result = {};
+        if (provider.url && typeof provider.url === 'string') {
+          result.url = provider.url;
+        }
+        if (provider.name && typeof provider.name === 'string') {
+          result.name = provider.name;
+        }
+        if (provider.email && typeof provider.email === 'string') {
+          result.email = provider.email;
+        }
+        this.provider = result;
+      }
     }
     /**
      * Restores requests from the state object.

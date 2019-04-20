@@ -437,7 +437,34 @@ class ArcRequestWorkspace extends
        * An URL to be present in the session URL input when opened.
        * The input can be opened by calling `openWebUrlInput()`
        */
-      webSessionUrl: {type: String, observer: '_workspaceConfigChanged'}
+      webSessionUrl: {type: String, observer: '_workspaceConfigChanged'},
+      /**
+       * Workspace file version.
+       * Has no meaning for the request processing but this information is rendered
+       * in request workspace details dialog.
+       * @type {String}
+       */
+      version: String,
+      /**
+       * Workspace publication date as an ISO date string.
+       * Has no meaning for the request processing but this information is rendered
+       * in request workspace details dialog.
+       * @type {String}
+       */
+      published: String,
+      /**
+       * Workspace publisher information.
+       *
+       * Supported properties:
+       * - url
+       * - name
+       * - email
+       *
+       * Has no meaning for the request processing but this information is rendered
+       * in request workspace details dialog.
+       * @type {Object}
+       */
+      provider: Object
     };
   }
 
