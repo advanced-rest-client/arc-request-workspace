@@ -428,9 +428,9 @@
       wrapStateReadEvent(element);
     });
 
-    test('Dispatches "export-data" event', () => {
+    test('Dispatches "arc-data-export" event', () => {
       const spy = sinon.spy();
-      element.addEventListener('export-data', spy);
+      element.addEventListener('arc-data-export', spy);
       element._dispatchExportData();
       assert.isTrue(spy.called);
     });
@@ -462,24 +462,24 @@
       assert.typeOf(result.detail, 'object');
     });
 
-    test('Detail has type', () => {
+    test('Provider options are set', () => {
       const result = element._dispatchExportData();
-      assert.equal(result.detail.type, 'arc-export');
+      assert.deepEqual(result.detail.providerOptions, {});
     });
 
-    test('Detail has destination', () => {
-      const result = element._dispatchExportData('test');
-      assert.equal(result.detail.destination, 'test');
+    test('Options has kind', () => {
+      const result = element._dispatchExportData();
+      assert.equal(result.detail.options.kind, 'ARC#SavedExport');
     });
 
-    test('Detail has file', () => {
+    test('Options has file', () => {
       const result = element._dispatchExportData();
-      assert.equal(result.detail.file, 'arc-saved-export.json');
+      assert.equal(result.detail.options.file, 'arc-request.arc');
     });
 
-    test('Detail has kind', () => {
-      const result = element._dispatchExportData();
-      assert.equal(result.detail.kind, 'ARC#SavedExport');
+    test('Options has provider', () => {
+      const result = element._dispatchExportData('test', true);
+      assert.equal(result.detail.options.provider, 'test');
     });
 
     test('Detail has data with "requests"', () => {
@@ -498,13 +498,13 @@
     });
 
     test('Dispatches export event', () => {
-      element.addEventListener('export-data', function f(e) {
-        element.removeEventListener('export-data', f);
+      element.addEventListener('arc-data-export', function f(e) {
+        element.removeEventListener('arc-data-export', f);
         e.preventDefault();
         e.detail.result = Promise.resolve();
       });
       const spy = sinon.spy();
-      element.addEventListener('export-data', spy);
+      element.addEventListener('arc-data-export', spy);
       element._exportRequest(request, 'file');
       assert.isTrue(spy.called);
     });
@@ -519,8 +519,8 @@
     });
 
     test('Opens drive confirmation toast', (done) => {
-      element.addEventListener('export-data', function f(e) {
-        element.removeEventListener('export-data', f);
+      element.addEventListener('arc-data-export', function f(e) {
+        element.removeEventListener('arc-data-export', f);
         e.preventDefault();
         e.detail.result = Promise.resolve();
       });

@@ -903,15 +903,17 @@ class ArcRequestWorkspace extends
    * @return {CustomEvent}
    */
   _dispatchExportData(destination, requests) {
-    const e = new CustomEvent('export-data', {
+    const e = new CustomEvent('arc-data-export', {
       cancelable: true,
       composed: true,
       bubbles: true,
       detail: {
-        type: 'arc-export',
-        destination,
-        file: 'arc-saved-export.json',
-        kind: 'ARC#SavedExport',
+        options: {
+          file: 'arc-request.arc',
+          provider: destination,
+          kind: 'ARC#SavedExport'
+        },
+        providerOptions: {},
         data: {
           requests
         }
