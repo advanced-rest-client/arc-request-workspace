@@ -370,6 +370,7 @@
 
           const version = localStorage.getItem('workspace.version') || undefined;
           const published = localStorage.getItem('workspace.published') || undefined;
+          const description = localStorage.getItem('workspace.description') || undefined;
           let provider;
           const providerStr = localStorage.getItem('workspace.provider');
           if (providerStr) {
@@ -383,6 +384,7 @@
             version,
             published,
             provider,
+            description,
             selected,
             environment,
             requests,
@@ -414,7 +416,7 @@
       app._storeHandler = function(e) {
         e.preventDefault();
         const {environment, selected, requests, config, variables, webSession,
-          auth, version, published, provider} = e.detail.value;
+          auth, version, published, provider, description} = e.detail.value;
         console.info('Storing workspace data', e.detail.value);
         if (requests) {
           const requestsStr = JSON.stringify(requests);
@@ -444,6 +446,9 @@
         }
         if (published) {
           localStorage.setItem('workspace.published', published);
+        }
+        if (description) {
+          localStorage.setItem('workspace.description', description);
         }
         if (provider) {
           localStorage.setItem('workspace.provider', JSON.stringify(provider));
