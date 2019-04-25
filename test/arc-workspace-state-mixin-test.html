@@ -757,6 +757,52 @@
         assert.typeOf(result, 'object');
       });
 
+      test('Sets kind property', () => {
+        const result = element.serializeWorkspace();
+        assert.equal(result.kind, 'ARC#Workspace');
+      });
+
+      test('Sets version property', () => {
+        element.version = 'test-ver';
+        const result = element.serializeWorkspace();
+        assert.equal(result.version, 'test-ver');
+      });
+
+      test('Sets published property', () => {
+        const published = '2019-04-20T17:56:36.726Z';
+        element.published = published;
+        const result = element.serializeWorkspace();
+        assert.equal(result.published, published);
+      });
+
+      test('Sets provider property', () => {
+        const provider = {email: 'test@domain.com'};
+        element.provider = provider;
+        const result = element.serializeWorkspace();
+        assert.typeOf(result.provider, 'object');
+      });
+
+      test('Sets provider.email property', () => {
+        const provider = {email: 'test@domain.com'};
+        element.provider = provider;
+        const result = element.serializeWorkspace();
+        assert.equal(result.provider.email, provider.email);
+      });
+
+      test('Sets provider.url property', () => {
+        const provider = {url: 'https://domain.com'};
+        element.provider = provider;
+        const result = element.serializeWorkspace();
+        assert.equal(result.provider.url, provider.url);
+      });
+
+      test('Sets provider.name property', () => {
+        const provider = {name: 'Pawel Psztyc'};
+        element.provider = provider;
+        const result = element.serializeWorkspace();
+        assert.equal(result.provider.name, provider.name);
+      });
+
       test('Sets default environment', () => {
         const result = element.serializeWorkspace();
         assert.equal(result.environment, 'default');

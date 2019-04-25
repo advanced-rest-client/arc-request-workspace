@@ -239,6 +239,7 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
      */
     serializeWorkspace() {
       const result = {
+        kind: 'ARC#Workspace',
         environment: this.environment || 'default',
         selected: this.selected || 0,
         requests: this.activeRequests || [],
@@ -248,6 +249,18 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       };
       if (this.variables) {
         result.variables = this.variables;
+      }
+      const version = this.version;
+      if (version) {
+        result.version = version;
+      }
+      const published = this.published;
+      if (published) {
+        result.published = published;
+      }
+      const provider = this.serializeProvider();
+      if (provider) {
+        result.provider = provider;
       }
       return result;
     }
@@ -303,6 +316,31 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
         result.oauth2RedirectUri = url;
       }
       return result;
+    }
+    /**
+     * Serializes workspace's authorization configuration.
+     * @return {Object|undefined}
+     */
+    serializeProvider() {
+      const provider = this.provider;
+      if (!provider) {
+        return;
+      }
+      const result = {};
+      let hasResult = false;
+      if (provider.url && typeof provider.url === 'string') {
+        result.url = provider.url;
+        hasResult = true;
+      }
+      if (provider.name && typeof provider.name === 'string') {
+        result.name = provider.name;
+        hasResult = true;
+      }
+      if (provider.email && typeof provider.email === 'string') {
+        result.email = provider.email;
+        hasResult = true;
+      }
+      return hasResult ? result : undefined;
     }
     /**
      * Runs debouncer and after timeoout it calls `__dispatchStoreWorkspace()`

@@ -364,7 +364,22 @@
               auth = JSON.parse(authStr);
             } catch (_) {}
           }
+
+          const version = localStorage.getItem('workspace.version') || undefined;
+          const published = localStorage.getItem('workspace.published') || undefined;
+          let provider;
+          const providerStr = localStorage.getItem('workspace.provider');
+          if (providerStr) {
+            try {
+              provider = JSON.parse(providerStr);
+            } catch (_) {}
+          }
+
           const result = {
+            kind: 'ARC#Workspace',
+            version,
+            published,
+            provider,
             selected,
             environment,
             requests,
@@ -395,7 +410,8 @@
 
       app._storeHandler = function(e) {
         e.preventDefault();
-        const {environment, selected, requests, config, variables, webSession, auth} = e.detail.value;
+        const {environment, selected, requests, config, variables, webSession,
+          auth, version, published, provider} = e.detail.value;
         console.info('Storing workspace data', e.detail.value);
         if (requests) {
           const requestsStr = JSON.stringify(requests);
@@ -419,6 +435,15 @@
         if (auth) {
           const authStr = JSON.stringify(auth);
           localStorage.setItem('workspace.auth', authStr);
+        }
+        if (version) {
+          localStorage.setItem('workspace.version', version);
+        }
+        if (published) {
+          localStorage.setItem('workspace.published', published);
+        }
+        if (provider) {
+          localStorage.setItem('workspace.provider', JSON.stringify(provider));
         }
         localStorage.setItem('workspace.selected', selected);
       };
