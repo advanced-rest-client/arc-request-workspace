@@ -21,6 +21,8 @@ import '../../@polymer/paper-toast/paper-toast.js';
 import {ArcWorkspaceRequestsMixin} from './arc-workspace-requests-mixin.js';
 import {ArcWorkspaceDndMixin} from './arc-workspace-dnd-mixin.js';
 import {ArcWorkspaceStateMixin} from './arc-workspace-state-mixin.js';
+import './arc-workspace-detail.js';
+import './arc-workspace-editor.js';
 /**
  * `arc-request-workspace`
  *
@@ -42,8 +44,8 @@ import {ArcWorkspaceStateMixin} from './arc-workspace-state-mixin.js';
  * `--arc-request-workspace-tabs-color` | | `rgba(0,0,0,0.87)`
  * `--arc-request-workspace-tabs-selected-background-color` | | `#fff`
  * `--arc-request-workspace-tabs-close-color` | Color of tab close button | `rgba(0, 0, 0, 0.78)`
- * `--arc-request-workspace-tabs-close-color-hover` | Color of tab close button when hovered | `rgba(255, 255, 255, 0.54)`
- * `--arc-request-workspace-tabs-close-background-color-hover` | Background color of tab close button when hovered | `#FF8A65`
+ * `--arc-request-workspace-tabs-close-color-hover` | Color close button when hovered | `rgba(255, 255, 255, 0.54)`
+ * `--arc-request-workspace-tabs-close-background-color-hover` | Bg color of tab close button when hovered | `#FF8A65`
  * `--arc-request-workspace-tabs-add-color` | Color of the add tab button | `#616161`
  * `--arc-request-workspace-tabs-add-background-color` | Background color of the add tab button | ``
  * `--arc-request-workspace-tabs-add-color-hover` | Color of the add tab button when hovered | `#616161`
@@ -252,12 +254,23 @@ class ArcRequestWorkspace extends
     <div class="tabs-row">
       <paper-tabs selected="{{selected}}" scrollable="" disable-drag="" class="tabs" id="tabs">
         <template is="dom-repeat" items="[[activeRequests]]" id="tabsRepeater">
-          <paper-tab draggable="[[_computeDraggableValue(draggableEnabled)]]" on-dragstart="_dragStart" on-dragend="_dragEnd">
+          <paper-tab
+            draggable="[[_computeDraggableValue(draggableEnabled)]]"
+            on-dragstart="_dragStart"
+            on-dragend="_dragEnd">
             <span class="tab-name">[[_computeTabName(item.name, item.url)]]</span>
-            <iron-icon class="close-icon" icon="arc:close" data-index\$="[[index]]" on-click="_closeRequest"></iron-icon>
+            <iron-icon
+              class="close-icon"
+              icon="arc:close"
+              data-index\$="[[index]]"
+              on-click="_closeRequest"></iron-icon>
           </paper-tab>
         </template>
-        <paper-icon-button class="add-request-button" icon="arc:add" on-click="addEmptyRequest" title="Add new request editor"></paper-icon-button>
+        <paper-icon-button
+          class="add-request-button"
+          icon="arc:add"
+          on-click="addEmptyRequest"
+          title="Add new request editor"></paper-icon-button>
       </paper-tabs>
       <paper-progress indeterminate="" disabled="[[!restoring]]"></paper-progress>
     </div>
@@ -265,20 +278,40 @@ class ArcRequestWorkspace extends
     <uuid-generator id="uuid"></uuid-generator>
 
     <bottom-sheet opened="{{editorOpened}}" on-iron-overlay-opened="_resizeSheetContent">
-      <saved-request-editor id="requestEditor" on-cancel-request-edit="_cancelRequestEdit" on-save-request="_saveRequestEdit" no-auto-projects="[[noAutoProjects]]"></saved-request-editor>
+      <saved-request-editor
+        id="requestEditor"
+        on-cancel-request-edit="_cancelRequestEdit"
+        on-save-request="_saveRequestEdit"
+        no-auto-projects="[[noAutoProjects]]"></saved-request-editor>
     </bottom-sheet>
     <bottom-sheet opened="{{detailsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
-      <saved-request-detail id="requestDetails" on-delete-request="_deleteRequestDetails" on-edit-request="_editRequestDetails"></saved-request-detail>
+      <saved-request-detail
+        id="requestDetails"
+        on-delete-request="_deleteRequestDetails"
+        on-edit-request="_editRequestDetails"></saved-request-detail>
     </bottom-sheet>
     <bottom-sheet opened="{{snippetsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
-      <http-code-snippets url="[[snippetRequest.url]]" method="[[snippetRequest.method]]" headers="[[snippetRequest.headers]]" payload="[[snippetRequest.payload]]"></http-code-snippets>
+      <http-code-snippets
+        url="[[snippetRequest.url]]"
+        method="[[snippetRequest.method]]"
+        headers="[[snippetRequest.headers]]"
+        payload="[[snippetRequest.payload]]"></http-code-snippets>
+    </bottom-sheet>
+    <bottom-sheet opened="{{workspaceDetailsOpened}}" on-iron-overlay-opened="_resizeSheetContent">
+      <arc-workspace-detail id="workspaceDetails" on-edit-meta="openWorkspaceEditor"></arc-workspace-detail>
+    </bottom-sheet>
+    <bottom-sheet opened="{{workspaceEditorOpened}}" on-iron-overlay-opened="_resizeSheetContent">
+      <arc-workspace-editor id="workspaceEditor" on-cancel-edit="_cancelWorkspaceEdit"
+        on-save-workspace="_updateWorkspaceMeta"></arc-workspace-editor>
     </bottom-sheet>
 
     <section class="drop-target">
       <p class="drop-message">Drop import file here</p>
     </section>
 
-    <paper-toast id="noExport" class="error-toast" text="Export module not found. Please, report an issue."></paper-toast>
+    <paper-toast
+      id="noExport"
+      class="error-toast" text="Export module not found. Please, report an issue."></paper-toast>
     <paper-toast id="driveSaved" text="Requests saved on Google Drive."></paper-toast>
     <paper-toast id="errorToast" class="error-toast"></paper-toast>
 
@@ -385,6 +418,14 @@ class ArcRequestWorkspace extends
        */
       detailsOpened: Boolean,
       /**
+       * When set the workspace meta data viewer is opened.
+       */
+      workspaceDetailsOpened: Boolean,
+      /**
+       * When set the workspace meta data editor is opened.
+       */
+      workspaceEditorOpened: Boolean,
+      /**
        * When set the code snippets element is opened.
        */
       snippetsOpened: Boolean,
@@ -444,14 +485,18 @@ class ArcRequestWorkspace extends
        * in request workspace details dialog.
        * @type {String}
        */
-      version: String,
+      version: {type: String, observer: '_workspaceConfigChanged'},
       /**
        * Workspace publication date as an ISO date string.
        * Has no meaning for the request processing but this information is rendered
        * in request workspace details dialog.
        * @type {String}
        */
-      published: String,
+      published: {type: String, observer: '_workspaceConfigChanged'},
+      /**
+       * Workspace description.
+       */
+      description: {type: String, observer: '_workspaceConfigChanged'},
       /**
        * Workspace publisher information.
        *
@@ -464,7 +509,7 @@ class ArcRequestWorkspace extends
        * in request workspace details dialog.
        * @type {Object}
        */
-      provider: Object
+      provider: {type: Object, observer: '_workspaceConfigChanged'}
     };
   }
 
@@ -1188,7 +1233,7 @@ class ArcRequestWorkspace extends
    */
   _resizeSheetContent(e) {
     const panel = e.target.querySelector(
-        'saved-request-editor,saved-request-detail,http-code-snippets');
+        'saved-request-editor,saved-request-detail,http-code-snippets,arc-workspace-detail');
     if (panel && panel.notifyResize) {
       panel.notifyResize();
     }
@@ -1458,6 +1503,53 @@ class ArcRequestWorkspace extends
    */
   openWebUrlInput() {
     this.$.webUrlInput.opened = true;
+  }
+  /**
+   * Opens workspace metadata viewer.
+   */
+  openWorkspaceDetails() {
+    [
+      'published', 'version', 'provider', 'description'
+    ].forEach((prop) => {
+      this.$.workspaceDetails[prop] = this[prop];
+    });
+    this.workspaceDetailsOpened = true;
+  }
+  /**
+   * Opens workspace metadata editor.
+   */
+  openWorkspaceEditor() {
+    [
+      'published', 'version', 'description'
+    ].forEach((prop) => {
+      this.$.workspaceEditor[prop] = this[prop] || '';
+    });
+    let provider;
+    if (this.provider) {
+      provider = Object.assign({}, this.provider);
+    } else {
+      provider = {};
+    }
+    this.$.workspaceEditor.provider = provider;
+    this.workspaceEditorOpened = true;
+  }
+  /**
+   * Closes workspace metadata edit dialog due to user cancelation.
+   */
+  _cancelWorkspaceEdit() {
+    this.workspaceEditorOpened = false;
+  }
+  /**
+   * Updates properties from save workspace event.
+   * @param {CustomEvent} e
+   */
+  _updateWorkspaceMeta(e) {
+    const {version, published, description, provider} = e.detail;
+    this.version = version;
+    this.published = published;
+    this.description = description;
+    this.provider = provider;
+    this.workspaceEditorOpened = false;
   }
 }
 window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);

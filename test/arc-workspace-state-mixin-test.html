@@ -136,6 +136,12 @@
         assert.equal(element.published, published);
       });
 
+      test('Sets description', () => {
+        const description = 'Test description';
+        element._restoreMeta({description});
+        assert.equal(element.description, description);
+      });
+
       test('Sets provider.url', () => {
         const provider = {url: 'https://domain.com'};
         element._restoreMeta({provider});
@@ -773,6 +779,13 @@
         element.published = published;
         const result = element.serializeWorkspace();
         assert.equal(result.published, published);
+      });
+
+      test('Sets description property', () => {
+        const description = 'Test description';
+        element.description = description;
+        const result = element.serializeWorkspace();
+        assert.equal(result.description, description);
       });
 
       test('Sets provider property', () => {

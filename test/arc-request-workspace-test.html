@@ -1903,6 +1903,128 @@
       assert.isTrue(element.$.webUrlInput.opened);
     });
   });
+
+  suite('openWorkspaceDetails()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      flush(() => done());
+    });
+
+    test('Opens the viewer', () => {
+      element.openWorkspaceDetails();
+      assert.isTrue(element.workspaceDetailsOpened);
+    });
+
+    [
+      ['published', '2019-04-25T02:51:47.975Z'],
+      ['version', 'test-version'],
+      ['description', 'test-description']
+    ].forEach((item) => {
+      test(`Sets ${item[0]} property`, () => {
+        const prop = item[0];
+        element[prop] = item[1];
+        element.openWorkspaceDetails();
+        const node = element.shadowRoot.querySelector('arc-workspace-detail');
+        assert.equal(node[prop], item[1]);
+      });
+    });
+
+    test('Sets provider property', () => {
+      const value = {name: 'test'};
+      element.provider = value;
+      element.openWorkspaceDetails();
+      const node = element.shadowRoot.querySelector('arc-workspace-detail');
+      assert.deepEqual(node.provider, value);
+    });
+  });
+
+  suite('openWorkspaceEditor()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      flush(() => done());
+    });
+
+    test('Opens the editor', () => {
+      element.openWorkspaceEditor();
+      assert.isTrue(element.workspaceEditorOpened);
+    });
+
+    [
+      ['published', '2019-04-25T02:51:47.975Z'],
+      ['version', 'test-version'],
+      ['description', 'test-description']
+    ].forEach((item) => {
+      test(`Sets ${item[0]} property`, () => {
+        const prop = item[0];
+        element[prop] = item[1];
+        element.openWorkspaceEditor();
+        const node = element.shadowRoot.querySelector('arc-workspace-editor');
+        assert.equal(node[prop], item[1]);
+      });
+    });
+
+    test('Sets provider property', () => {
+      const value = {name: 'test'};
+      element.provider = value;
+      element.openWorkspaceEditor();
+      const node = element.shadowRoot.querySelector('arc-workspace-editor');
+      assert.deepEqual(node.provider, value);
+    });
+  });
+
+  suite('_cancelWorkspaceEdit()', () => {
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      flush(() => done());
+    });
+
+    test('Re-sets workspaceEditorOpened', () => {
+      element.workspaceEditorOpened = true;
+      element._cancelWorkspaceEdit();
+      assert.isFalse(element.workspaceEditorOpened);
+    });
+  });
+
+  suite('_updateWorkspaceMeta()', () => {
+    let detail;
+    let element;
+    setup((done) => {
+      element = fixture('NoAuto');
+      detail = {
+        version: 'test-version',
+        published: 'test-published',
+        description: 'test-description',
+        provider: {
+          name: 'test-name'
+        }
+      };
+      flush(() => done());
+    });
+
+
+    [
+      'published', 'version', 'description'
+    ].forEach((item) => {
+      test(`Sets ${item} property`, () => {
+        element._updateWorkspaceMeta({detail});
+        assert.equal(element[item], detail[item]);
+      });
+    });
+
+    test('Sets provider proeprty', () => {
+      element._updateWorkspaceMeta({detail});
+      assert.deepEqual(element.provider, detail.provider);
+    });
+
+    test('Sets version proeprty', () => {
+      element.workspaceEditorOpened = true;
+      element._updateWorkspaceMeta({detail});
+      assert.isFalse(element.workspaceEditorOpened);
+    });
+  });
   </script>
 </body>
 </html>

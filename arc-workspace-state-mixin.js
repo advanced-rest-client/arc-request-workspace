@@ -88,6 +88,9 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       if (config.published && typeof config.published === 'string') {
         this.published = config.published;
       }
+      if (config.description && typeof config.description === 'string') {
+        this.description = config.description;
+      }
       const provider = config.provider;
       if (provider && typeof provider === 'object') {
         const result = {};
@@ -257,6 +260,10 @@ export const ArcWorkspaceStateMixin = dedupingMixin((base) => {
       const published = this.published;
       if (published) {
         result.published = published;
+      }
+      const description = this.description;
+      if (description) {
+        result.description = description;
       }
       const provider = this.serializeProvider();
       if (provider) {
