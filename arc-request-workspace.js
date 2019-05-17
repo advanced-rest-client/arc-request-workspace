@@ -169,16 +169,16 @@ class ArcRequestWorkspace extends
 
       border: none;
       outline: none;
-      width: 100%;
       text-align: left;
+      cursor: pointer;
     }
 
     .menu-item:hover {
-      padding: var(--paper-item-hover-padding);
+      padding: var(--paper-item-hover-padding, var(--paper-item-padding));
       border-left: var(--paper-item-hover-border-left);
       border-right: var(--paper-item-hover-border-right);
-      color: var(--context-menu-item-color-hover);
-      background-color: var(--context-menu-item-background-color-hover);
+      color: var(--context-menu-item-color-hover, var(--context-menu-item-color));
+      background-color: var(--context-menu-item-background-color-hover, var(--context-menu-item-background-color));
     }
 
     .tabs {
