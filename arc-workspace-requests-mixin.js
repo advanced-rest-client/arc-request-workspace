@@ -33,8 +33,7 @@ export const ArcWorkspaceRequestsMixin = dedupingMixin((base) => {
       this._requestStoreHandler = this._requestStoreHandler.bind(this);
       this._renderRequestDetail = this._renderRequestDetail.bind(this);
       this._renderCodeSnippets = this._renderCodeSnippets.bind(this);
-      this._requestStoreFileHandler = this._requestStoreFileHandler.bind(this);
-      this._requestStoreDriveHandler = this._requestStoreDriveHandler.bind(this);
+      this._exportMenuHandler = this._exportMenuHandler.bind(this);
     }
 
     get requestTemplate() {
@@ -62,17 +61,28 @@ export const ArcWorkspaceRequestsMixin = dedupingMixin((base) => {
             title="Toggles code snippets view"></iron-icon>
           Code examples
         </paper-icon-item>
-        <paper-icon-item class="save-file-icon menu-item" slot="request-context-menu">
-          <iron-icon icon="arc:archive" class="context-menu-icon" slot="item-icon"></iron-icon>
-          Save to file
+
+        <paper-icon-item class="export-item menu-item" slot="request-context-menu">
+          <iron-icon
+            icon="arc:export-variant"
+            class="context-menu-icon"
+            slot="item-icon"
+            title="Opens export options dialog"></iron-icon>
+          Export request
         </paper-icon-item>
-        <paper-icon-item class="save-drive-icon menu-item" slot="request-context-menu">
-          <iron-icon icon="arc:drive-color" class="context-menu-icon" slot="item-icon"></iron-icon>
-          Save to Google Drive
-        </paper-icon-item>
+
         <slot name="request-context-menu" slot="request-context-menu"></slot>
       </request-panel>`;
     }
+
+    /* <paper-icon-item class="save-file-icon menu-item" slot="request-context-menu">
+      <iron-icon icon="arc:archive" class="context-menu-icon" slot="item-icon"></iron-icon>
+      Save to file
+    </paper-icon-item>
+    <paper-icon-item class="save-drive-icon menu-item" slot="request-context-menu">
+      <iron-icon icon="arc:drive-color" class="context-menu-icon" slot="item-icon"></iron-icon>
+      Save to Google Drive
+    </paper-icon-item> */
 
     __createPanelInstance() {
       const panelTemplate = this.requestTemplate;
@@ -120,8 +130,7 @@ export const ArcWorkspaceRequestsMixin = dedupingMixin((base) => {
       panel.querySelector('.save-icon').addEventListener('click', this._requestStoreHandler);
       panel.querySelector('.details-icon').addEventListener('click', this._renderRequestDetail);
       panel.querySelector('.code-icon').addEventListener('click', this._renderCodeSnippets);
-      panel.querySelector('.save-file-icon').addEventListener('click', this._requestStoreFileHandler);
-      panel.querySelector('.save-drive-icon').addEventListener('click', this._requestStoreDriveHandler);
+      panel.querySelector('.export-item').addEventListener('click', this._exportMenuHandler);
     }
     /**
      * Removes previously attached listeners from the panel
@@ -138,8 +147,7 @@ export const ArcWorkspaceRequestsMixin = dedupingMixin((base) => {
       panel.querySelector('.details-icon')
       .removeEventListener('click', this._renderRequestDetail);
       panel.querySelector('.code-icon').removeEventListener('click', this._renderCodeSnippets);
-      panel.querySelector('.save-file-icon').removeEventListener('click', this._requestStoreFileHandler);
-      panel.querySelector('.save-drive-icon').removeEventListener('click', this._requestStoreDriveHandler);
+      panel.querySelector('.export-item').removeEventListener('click', this._exportMenuHandler);
     }
     /**
      * Finds and returns panel by id in shadow DOM.

@@ -16,6 +16,7 @@ import '../../@advanced-rest-client/saved-request-detail/saved-request-detail.js
 import '../../@advanced-rest-client/http-code-snippets/http-code-snippets.js';
 import '../../@advanced-rest-client/bottom-sheet/bottom-sheet.js';
 import '../../@advanced-rest-client/web-url-input/web-url-input.js';
+import '../../@advanced-rest-client/export-options/export-options.js';
 import {ArcFileDropMixin} from '../../@advanced-rest-client/arc-file-drop-mixin/arc-file-drop-mixin.js';
 import '../../@polymer/paper-toast/paper-toast.js';
 import {ArcWorkspaceRequestsMixin} from './arc-workspace-requests-mixin.js';
@@ -307,6 +308,17 @@ class ArcRequestWorkspace extends
       <arc-workspace-editor id="workspaceEditor" on-cancel-edit="_cancelWorkspaceEdit"
         on-save-workspace="_updateWorkspaceMeta"></arc-workspace-editor>
     </bottom-sheet>
+    <bottom-sheet
+      id="exportOptionsContainer"
+      opened="{{_exportOptionsOpened}}"
+      on-iron-overlay-opened="_resizeSheetContent">
+      <export-options
+        file="{{_exportOptions.file}}"
+        provider="{{_exportOptions.provider}}"
+        provider-options="{{_exportOptions.providerOptions}}"
+        on-accept="_acceptExportOptions"
+        on-cancel="_cancelExportOptions"></export-options>
+    </bottom-sheet>
 
     <section class="drop-target">
       <p class="drop-message">Drop import file here</p>
@@ -512,7 +524,24 @@ class ArcRequestWorkspace extends
        * in request workspace details dialog.
        * @type {Object}
        */
-      provider: {type: Object, observer: '_workspaceConfigChanged'}
+      provider: {type: Object, observer: '_workspaceConfigChanged'},
+
+      /**
+       * Indicates that the export options panel is currently rendered.
+       */
+      _exportOptionsOpened: Boolean,
+      _exportOptions: {
+        type: Object,
+        value: function() {
+          return {
+            file: this._generateExportFileName(),
+            provider: 'file',
+            providerOptions: {
+              parents: ['My Drive']
+            }
+          };
+        }
+      }
     };
   }
 
@@ -895,48 +924,56 @@ class ArcRequestWorkspace extends
     this.snippetsOpened = true;
   }
   /**
-   * Handler for the store to file request menu item.
+   * Toggles export options panel.
    * @param {ClickEvent} e
    */
-  _requestStoreFileHandler(e) {
+  _exportMenuHandler(e) {
     e.preventDefault();
     e.stopPropagation();
     const request = this._getMenuRequest(e);
     if (!request) {
       return;
     }
-    this._exportRequest(request, 'file');
+    this._exportOptionsOpened = !this._exportOptionsOpened;
+    this._exportItem = request;
   }
-  /**
-   * Handler for the store to Drive request menu item.
-   * @param {ClickEvent} e
-   */
-  _requestStoreDriveHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const request = this._getMenuRequest(e);
+
+  _cancelExportOptions() {
+    this._exportOptionsOpened = false;
+    this._exportItem = undefined;
+  }
+
+  _acceptExportOptions(e) {
+    const request = this._exportItem;
     if (!request) {
       return;
     }
-    this._exportRequest(request, 'drive');
+    this._exportItem = undefined;
+    this._exportOptionsOpened = false;
+    const detail = e.detail;
+    return this._exportRequest(request, detail);
   }
   /**
-   * Runs export flow.
-   * @param {Object} request Request object to export.
-   * @param {String} destination Destination supported by the export component.
+   * Calls `_dispatchExportData()` with parameters.
+   *
+   * @param {Object} request A request to export
+   * @param {String} detail Export configuration
    * @return {Promise}
    */
-  _exportRequest(request, destination) {
-    const e = this._dispatchExportData(destination, [request]);
+  _exportRequest(request, detail) {
+    detail.options.kind = 'ARC#SavedExport';
+    const e = this._dispatchExportData(request, detail);
     if (!e.defaultPrevented) {
       this.$.noExport.opened = true;
       return;
     }
     return e.detail.result
     .then(() => {
-      if (destination === 'drive') {
+      if (detail.options.provider === 'drive') {
+        // TODO: Render link to the folder
         this.$.driveSaved.opened = true;
       }
+      this._exportItem = undefined;
     })
     .catch((cause) => {
       this.$.errorToast.text = cause.message;
@@ -945,30 +982,20 @@ class ArcRequestWorkspace extends
     });
   }
   /**
-   * Dispatches `export-data` event and returns it.
-   * @param {String} destination A place where export the data (file, drive)
-   * @param {Array<Object>|Boolean} requests
+   * Dispatches `arc-data-export` event and returns it.
+   * @param {Object} request The request to export.
+   * @param {Object} opts
    * @return {CustomEvent}
    */
-  _dispatchExportData(destination, requests) {
-    const e = new CustomEvent('arc-data-export', {
-      cancelable: true,
-      composed: true,
-      bubbles: true,
-      detail: {
-        options: {
-          file: 'arc-request.arc',
-          provider: destination,
-          kind: 'ARC#SavedExport'
-        },
-        providerOptions: {},
-        data: {
-          requests
-        }
-      }
+  _dispatchExportData(request, opts) {
+    const data = {
+      saved: [request]
+    };
+    return this._dispatch('arc-data-export', {
+      options: opts.options,
+      providerOptions: opts.providerOptions,
+      data
     });
-    this.dispatchEvent(e);
-    return e;
   }
   /**
    * Handler for non cancelable `request-object-changed` custom event.
@@ -1553,6 +1580,24 @@ class ArcRequestWorkspace extends
     this.description = description;
     this.provider = provider;
     this.workspaceEditorOpened = false;
+  }
+
+  /**
+   * Generates file name for the export options panel.
+   * @return {String}
+   */
+  _generateExportFileName() {
+    const d = new Date();
+    const year = d.getFullYear();
+    let month = d.getMonth() + 1;
+    let day = d.getDate();
+    if (month < 10) {
+      month = '0' + month;
+    }
+    if (day < 10) {
+      day = '0' + day;
+    }
+    return `arc-request-${year}-${month}-${day}.arc`;
   }
 }
 window.customElements.define(ArcRequestWorkspace.is, ArcRequestWorkspace);
