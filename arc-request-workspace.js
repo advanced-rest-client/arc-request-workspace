@@ -57,6 +57,7 @@ import './arc-workspace-editor.js';
  * `--context-menu-item-background-color-hover` | Background color of the context menu item when hovered | ``
  * `--bottom-sheet-width` | Bottom sheet width | `100%`
  * `--bottom-sheet-max-width` | Bottom sheet max width | `700px`
+ * `--bottom-sheet-max-height` | Bottom sheet max heigth | `calc(100vh - 68px)`
  *
  * @customElement
  * @polymer
@@ -212,6 +213,8 @@ class ArcRequestWorkspace extends
     bottom-sheet {
       width: var(--bottom-sheet-width, 100%);
       max-width: var(--bottom-sheet-max-width, 700px);
+      /* This subtracts application header (default for all ARC apps) */
+      max-height: var(--bottom-sheet-max-height, calc(100vh - 68px));
     }
 
     .drop-target {
