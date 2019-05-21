@@ -924,7 +924,7 @@ class ArcRequestWorkspace extends
     this.snippetsOpened = true;
   }
   /**
-   * Toggles export options panel.
+   * Open export dialog and sets `_exportItem` on the element.
    * @param {ClickEvent} e
    */
   _exportMenuHandler(e) {
@@ -934,7 +934,7 @@ class ArcRequestWorkspace extends
     if (!request) {
       return;
     }
-    this._exportOptionsOpened = !this._exportOptionsOpened;
+    this._exportOptionsOpened = true;
     this._exportItem = request;
   }
 
