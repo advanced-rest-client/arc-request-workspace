@@ -161,6 +161,11 @@
         margin-left: 12px;
         margin-right: 12px;
       }
+
+      pre {
+        display: block;
+        white-space: pre-wrap;
+      }
       </style>
     </custom-style>
   </head>
@@ -222,8 +227,6 @@
                   </template>
                 </paper-listbox>
               </paper-dropdown-menu>
-              <paper-checkbox checked="{{projectReplace}}">Replace requests in workspace</paper-checkbox>
-              <paper-button on-click="getProjectRequestsData">Open requests</paper-button>
             </div>
 
             <div class="vertical-section-container centered card">
@@ -256,15 +259,12 @@
     <script type="module">
     import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
     import {afterNextRender} from '../../../@polymer/polymer/lib/utils/render-status.js';
-    /* global chance */
     (function(app) {
       // const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
       //   'oauth-authorization/oauth-popup.html');
       // app.oauth2RedirectUri = redirectUrl;
-      app.projectReplace = false;
       app.selectedMenu = 0;
       app.init = function() {
-        app.refreshProjects();
       };
       app.createHeaders = function(data) {
         const headers = new Headers();
@@ -498,15 +498,6 @@
         workspace.addRequestById(type, id);
       };
       //
-      // Google drive export flow
-      //
-      app._exportDriveHandler = function(e) {
-        e.preventDefault();
-        e.detail.result = Promise.resolve({
-          id: chance.guid({version: 5})
-        });
-      };
-      //
       // Search saved
       //
       app._searchKeydown = function(e) {
@@ -533,39 +524,6 @@
           document.querySelector('saved-menu').requests = items;
         });
       };
-      app.refreshProjects = function() {
-        const e = new CustomEvent('project-model-query', {
-          cancelable: true,
-          bubbles: true,
-          detail: {}
-        });
-        document.body.dispatchEvent(e);
-        e.detail.result
-        .then((data) => {
-          console.log('Projects query result', data);
-          app.projects = data;
-        });
-      };
-      app.getProjectRequestsData = function() {
-        const project = app.projects[app.project];
-        if (!project) {
-          return;
-        }
-        const workspace = document.querySelector('arc-request-workspace');
-        if (app.projectReplace) {
-          workspace.replaceByProject(project);
-        } else {
-          workspace.appendByProject(project);
-        }
-      };
-      // Mocking of the data export component.
-      document.body.addEventListener('export-data', function(e) {
-        e.preventDefault();
-        e.detail.result = new Promise((resolve) => {
-          resolve();
-        });
-      });
-
       app._requestTimeoutChanged = () => {
         const workspace = document.querySelector('arc-request-workspace');
         workspace.requestTimeout = Number(app.requestTimeout);
@@ -613,7 +571,6 @@
       window.addEventListener('transport-request', app.send);
       window.addEventListener('workspace-state-read', app._restoreHandler);
       window.addEventListener('workspace-state-store', app._storeHandler);
-      window.addEventListener('export-google-drive', app._exportDriveHandler);
       window.addEventListener('open-web-url', app._openWebUrlHandler);
       window.addEventListener('file-data-save', app._fileExportHandler);
       window.addEventListener('google-drive-data-save', app._fileExportHandler);
