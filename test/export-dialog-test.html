@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>history-panel test</title>
+
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../../../mocha/mocha.js"></script>
+  <script src="../../../chai/chai.js"></script>
+  <script src="../../../wct-mocha/wct-mocha.js"></script>
+
+  <!-- CodeMirror + modes loader -->
+  <script src="../../../codemirror/lib/codemirror.js"></script>
+  <script src="../../../codemirror/addon/mode/loadmode.js"></script>
+  <script src="../../../codemirror/mode/meta.js"></script>
+  <!--Default set of parsers, add as many as you need -->
+  <script src="../../../codemirror/mode/javascript/javascript.js"></script>
+  <script src="../../../codemirror/mode/xml/xml.js"></script>
+  <script src="../../../codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <!-- JSON linter -->
+  <script src="../../../jsonlint/lib/jsonlint.js"></script>
+  <script src="../../../codemirror/addon/lint/lint.js"></script>
+  <script src="../../../codemirror/addon/lint/json-lint.js"></script>
+  <!-- Headers hint support -->
+  <script src="../../../@advanced-rest-client/code-mirror-hint/headers-addon.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/show-hint.js"></script>
+  <script src="../../../@advanced-rest-client/code-mirror-hint/hint-http-headers.js"></script>
+
+  <script src="../../../web-animations-js/web-animations-next.min.js"></script>
+</head>
+<body>
+  <project-model></project-model>
+  <request-model></request-model>
+  <variables-model></variables-model>
+
+  <test-fixture id="Basic">
+    <template>
+      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
+    </template>
+  </test-fixture>
+
+  <script type="module">
+  import '../arc-request-workspace.js';
+  import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
+  import * as MockInteractions from '../../../@polymer/iron-test-helpers/mock-interactions.js';
+  import '../../arc-models/project-model.js';
+  import '../../arc-models/request-model.js';
+  import '../../arc-models/variables-model.js';
+  import sinon from '../../../sinon/pkg/sinon-esm.js';
+  import {WorkspaceTestHelper} from './workspace-test-helper.js';
+
+  suite('_dispatchExportData()', () => {
+    let element;
+    let opts;
+    let request;
+    setup(() => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+      opts = {
+        options: {options: true},
+        providerOptions: {providerOptions: true}
+      };
+      request = {
+        id: 'test-id'
+      };
+    });
+
+    test('Calls _dispatch()', () => {
+      const spy = sinon.spy(element, '_dispatch');
+      element._dispatchExportData(request, opts);
+      assert.isTrue(spy.called);
+    });
+
+    test('Returns the event', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.typeOf(e, 'customevent');
+    });
+
+    test('Event has type', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.equal(e.type, 'arc-data-export');
+    });
+
+    test('Event has detail', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.typeOf(e.detail, 'object');
+    });
+
+    test('Detail has options', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.deepEqual(e.detail.options, opts.options);
+    });
+
+    test('Detail has providerOptions', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.deepEqual(e.detail.providerOptions, opts.providerOptions);
+    });
+
+    test('Detail has saved', () => {
+      const e = element._dispatchExportData(request, opts);
+      assert.deepEqual(e.detail.data.saved, [request]);
+    });
+  });
+
+  suite('_exportRequest()', () => {
+    let element;
+    let request;
+    let options;
+    setup(() => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+      request = DataGenerator.generateSavedItem();
+      options = {
+        options: {
+          provider: 'file'
+        },
+        providerOptions: {}
+      };
+    });
+
+    test('Dispatches export event', () => {
+      element.addEventListener('arc-data-export', function f(e) {
+        element.removeEventListener('arc-data-export', f);
+        e.preventDefault();
+        e.detail.result = Promise.resolve();
+      });
+      const spy = sinon.spy();
+      element.addEventListener('arc-data-export', spy);
+      element._exportRequest(request, options);
+      assert.isTrue(spy.called);
+    });
+
+    test('Opens error toast when export not found', (done) => {
+      flush(() => {
+        element._exportRequest(request, options);
+        const toast = element.shadowRoot.querySelector('#noExport');
+        assert.isTrue(toast.opened);
+        done();
+      });
+    });
+
+    test('Opens drive confirmation toast', (done) => {
+      element.addEventListener('arc-data-export', function f(e) {
+        element.removeEventListener('arc-data-export', f);
+        e.preventDefault();
+        e.detail.result = Promise.resolve();
+      });
+      options.options.provider = 'drive';
+      element._exportRequest(request, options);
+      flush(() => {
+        const toast = element.shadowRoot.querySelector('#driveSaved');
+        assert.isTrue(toast.opened);
+        done();
+      });
+    });
+  });
+
+  suite('_cancelExportOptions()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+      element._exportOptionsOpened = true;
+      element._exportItem = {};
+    });
+
+    test('Sets _exportOptionsOpened', () => {
+      element._cancelExportOptions();
+      assert.isFalse(element._exportOptionsOpened);
+    });
+
+    test('Sets _exportItem', () => {
+      element._cancelExportOptions();
+      assert.isUndefined(element._exportItem);
+    });
+  });
+
+  suite('_generateExportFileName()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+    });
+
+    test('Generates file name', () => {
+      const result = element._generateExportFileName();
+      assert.match(result, /^arc-request-[0-9]{4}-[0-9]{2}-[0-9]{2}.arc$/);
+    });
+  });
+
+  suite('Export item menu entry', () => {
+    let element;
+    let event;
+    setup((done) => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+      WorkspaceTestHelper.addRequests(element, 1);
+      element.selected = 0;
+      flush(() => done());
+      event = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      };
+    });
+
+    test('Opens export dialog', () => {
+      event.target = element.shadowRoot.querySelector('request-panel .export-item');
+      element._exportMenuHandler(event);
+      assert.isTrue(element._exportOptionsOpened);
+    });
+
+    test('Sets the request', () => {
+      event.target = element.shadowRoot.querySelector('request-panel .export-item');
+      element._exportMenuHandler(event);
+      assert.typeOf(element._exportItem, 'object');
+    });
+  });
+
+  suite('Export panel propertis', () => {
+    let element;
+    setup((done) => {
+      element = fixture('Basic');
+      WorkspaceTestHelper.wrapStateReadEvent(element);
+      flush(() => {
+        element._exportOptionsOpened = true;
+        done();
+      });
+    });
+
+    test('_exportOptions are set on the panel', () => {
+      assert.typeOf(element._exportOptions, 'object', 'Object is set');
+      assert.match(element._exportOptions.file,
+        /^arc-request-[0-9]{4}-[0-9]{2}-[0-9]{2}.arc$/, 'File name is set');
+      assert.equal(element._exportOptions.provider, 'file', 'Export provider is set');
+      assert.typeOf(element._exportOptions.providerOptions, 'object', 'provider options is set');
+      assert.deepEqual(element._exportOptions.providerOptions.parents, ['My Drive'], 'Default parent is set');
+    });
+
+    test('File property is set on export panel', () => {
+      const node = element.shadowRoot.querySelector('export-options');
+      assert.match(node.file,
+        /^arc-request-[0-9]{4}-[0-9]{2}-[0-9]{2}.arc$/);
+    });
+
+    test('Provider property is set on export panel', () => {
+      const node = element.shadowRoot.querySelector('export-options');
+      assert.equal(node.provider, 'file');
+    });
+
+    test('provider-options property is set on export panel', () => {
+      const node = element.shadowRoot.querySelector('export-options');
+      assert.deepEqual(node.providerOptions, {
+        parents: ['My Drive']
+      });
+    });
+  });
+  </script>
+</body>
+</html>

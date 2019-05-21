@@ -8,7 +8,7 @@
     "url": "git://github.com/advanced-rest-client/arc-request-workspace.git"
   },
   "name": "@advanced-rest-client/arc-request-workspace",
-  "version": "3.0.0-preview.6",
+  "version": "3.0.0-preview.7",
   "license": "Apache-2.0",
   "main": "arc-request-workspace.js",
   "authors": [
@@ -16,6 +16,7 @@
     "The Advanced REST client authors <arc@mulesoft.com>"
   ],
   "devDependencies": {
+    "@advanced-rest-client/arc-data-export": "^3.0.0-preview.2",
     "@advanced-rest-client/arc-data-generator": "^3.0.0-preview.1",
     "@advanced-rest-client/arc-electron-default-theme": "^3.0.0-preview.3",
     "@advanced-rest-client/arc-models": "^3.0.0-preview.4",
@@ -67,6 +68,7 @@
     "@advanced-rest-client/arc-icons": "^3.0.0-preview.2",
     "@advanced-rest-client/bottom-sheet": "^3.0.0-preview.1",
     "@advanced-rest-client/date-time": "^3.0.0-preview.1",
+    "@advanced-rest-client/export-options": "^3.0.0-preview.1",
     "@advanced-rest-client/http-code-snippets": "^3.0.0-preview.2",
     "@advanced-rest-client/request-panel": "^3.0.0-preview.2",
     "@advanced-rest-client/saved-request-detail": "^3.0.0-preview.1",

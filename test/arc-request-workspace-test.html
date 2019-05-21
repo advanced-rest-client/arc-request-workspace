@@ -55,31 +55,13 @@
   import '../../arc-models/request-model.js';
   import '../../arc-models/variables-model.js';
   import sinon from '../../../sinon/pkg/sinon-esm.js';
-
-  function wrapStateReadEvent(element) {
-    element.addEventListener('workspace-state-read', function f(e) {
-      element.removeEventListener('workspace-state-read', f);
-      e.preventDefault();
-      e.detail.result = Promise.resolve({});
-    });
-  }
-
-  function addRequests(element, size) {
-    const requests = DataGenerator.generateRequests({
-      requestsSize: size || 2
-    });
-    for (let i = 0; i < requests.length; i++) {
-      requests[i].name = 'Test request name #' + i;
-      element.__addPanel(requests[i]);
-    }
-    element.activeRequests = requests;
-  }
+  import {WorkspaceTestHelper} from './workspace-test-helper.js';
 
   suite('Basics', () => {
     let element;
     setup(() => {
       element = fixture('Basic');
-      wrapStateReadEvent(element);
+      WorkspaceTestHelper.wrapStateReadEvent(element);
     });
 
     test('selected is eventually set', (done) => {
@@ -273,7 +255,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       flush(() => done());
     });
 
@@ -316,7 +298,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       flush(() => done());
     });
 
@@ -347,7 +329,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       flush(() => done());
     });
 
@@ -409,7 +391,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -418,118 +400,6 @@
       const spy = sinon.spy(node, 'notifyResize');
       element.refreshTabs();
       assert.isTrue(spy.called);
-    });
-  });
-
-  suite('_dispatchExportData()', () => {
-    let element;
-    setup(() => {
-      element = fixture('Basic');
-      wrapStateReadEvent(element);
-    });
-
-    test('Dispatches "arc-data-export" event', () => {
-      const spy = sinon.spy();
-      element.addEventListener('arc-data-export', spy);
-      element._dispatchExportData();
-      assert.isTrue(spy.called);
-    });
-
-    test('Returns the event', () => {
-      const result = element._dispatchExportData();
-      assert.typeOf(result, 'customevent');
-    });
-
-    test('Event is cancelable', () => {
-      const result = element._dispatchExportData();
-      assert.isTrue(result.cancelable);
-    });
-
-    test('Event is composed', () => {
-      const result = element._dispatchExportData();
-      if (typeof result.composed !== undefined) {
-        assert.isTrue(result.composed);
-      }
-    });
-
-    test('Event bubbles', () => {
-      const result = element._dispatchExportData();
-      assert.isTrue(result.bubbles);
-    });
-
-    test('Event has detail object', () => {
-      const result = element._dispatchExportData();
-      assert.typeOf(result.detail, 'object');
-    });
-
-    test('Provider options are set', () => {
-      const result = element._dispatchExportData();
-      assert.deepEqual(result.detail.providerOptions, {});
-    });
-
-    test('Options has kind', () => {
-      const result = element._dispatchExportData();
-      assert.equal(result.detail.options.kind, 'ARC#SavedExport');
-    });
-
-    test('Options has file', () => {
-      const result = element._dispatchExportData();
-      assert.equal(result.detail.options.file, 'arc-request.arc');
-    });
-
-    test('Options has provider', () => {
-      const result = element._dispatchExportData('test', true);
-      assert.equal(result.detail.options.provider, 'test');
-    });
-
-    test('Detail has data with "requests"', () => {
-      const result = element._dispatchExportData('test', true);
-      assert.typeOf(result.detail.data, 'object');
-      assert.isTrue(result.detail.data.requests);
-    });
-  });
-
-  suite('_exportRequest()', () => {
-    let element;
-    let request;
-    setup(() => {
-      element = fixture('NoAuto');
-      request = DataGenerator.generateSavedItem();
-    });
-
-    test('Dispatches export event', () => {
-      element.addEventListener('arc-data-export', function f(e) {
-        element.removeEventListener('arc-data-export', f);
-        e.preventDefault();
-        e.detail.result = Promise.resolve();
-      });
-      const spy = sinon.spy();
-      element.addEventListener('arc-data-export', spy);
-      element._exportRequest(request, 'file');
-      assert.isTrue(spy.called);
-    });
-
-    test('Opens error toast when export not found', (done) => {
-      flush(() => {
-        element._exportRequest(request, 'file');
-        const toast = element.shadowRoot.querySelector('#noExport');
-        assert.isTrue(toast.opened);
-        done();
-      });
-    });
-
-    test('Opens drive confirmation toast', (done) => {
-      element.addEventListener('arc-data-export', function f(e) {
-        element.removeEventListener('arc-data-export', f);
-        e.preventDefault();
-        e.detail.result = Promise.resolve();
-      });
-      element._exportRequest(request, 'drive');
-      flush(() => {
-        const toast = element.shadowRoot.querySelector('#driveSaved');
-        assert.isTrue(toast.opened);
-        done();
-      });
     });
   });
 
@@ -712,7 +582,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
     });
 
     test('Returns -1 when no arguments', () => {
@@ -744,7 +614,7 @@
     });
 
     test('Returns request object', (done) => {
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => {
         const node = element.shadowRoot.querySelector('request-panel .save-icon');
         const result = element._getMenuRequest({
@@ -781,7 +651,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -840,7 +710,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -909,7 +779,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -974,133 +844,11 @@
     });
   });
 
-  suite('_requestStoreFileHandler()', () => {
-    let element;
-    setup((done) => {
-      element = fixture('NoAuto');
-      addRequests(element, 1);
-      flush(() => done());
-    });
-
-    test('Calls _exportRequest() with arguments', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
-      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(element, '_exportRequest');
-      element._requestStoreFileHandler(e);
-      assert.isTrue(spy.called);
-      assert.deepEqual(spy.args[0][0], element.activeRequests[0]);
-      assert.equal(spy.args[0][1], 'file');
-    });
-
-    test('Cancels the event', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(e, 'preventDefault');
-      element._requestStoreFileHandler(e);
-      assert.isTrue(spy.called);
-    });
-
-    test('Stops event propagation', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-file-icon');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(e, 'stopPropagation');
-      element._requestStoreFileHandler(e);
-      assert.isTrue(spy.called);
-    });
-
-    test('Does nothing when request is not found', () => {
-      const node = element.shadowRoot.querySelector('request-panel');
-      assert.isUndefined(node.parentElement.dataset.id);
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(element, '_exportRequest');
-      element._requestStoreFileHandler(e);
-      assert.isFalse(spy.called);
-    });
-  });
-
-  suite('_requestStoreDriveHandler()', () => {
-    let element;
-    setup((done) => {
-      element = fixture('NoAuto');
-      addRequests(element, 1);
-      flush(() => done());
-    });
-
-    test('Calls _exportRequest() with arguments', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
-      assert.typeOf(node.parentElement.dataset.id, 'string', 'Parent has data-id');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(element, '_exportRequest');
-      element._requestStoreDriveHandler(e);
-      assert.isTrue(spy.called);
-      assert.deepEqual(spy.args[0][0], element.activeRequests[0]);
-      assert.equal(spy.args[0][1], 'drive');
-    });
-
-    test('Cancels the event', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(e, 'preventDefault');
-      element._requestStoreDriveHandler(e);
-      assert.isTrue(spy.called);
-    });
-
-    test('Stops event propagation', () => {
-      const node = element.shadowRoot.querySelector('request-panel .save-drive-icon');
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(e, 'stopPropagation');
-      element._requestStoreDriveHandler(e);
-      assert.isTrue(spy.called);
-    });
-
-    test('Does nothing when request is not found', () => {
-      const node = element.shadowRoot.querySelector('request-panel');
-      assert.isUndefined(node.parentElement.dataset.id);
-      const e = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-        target: node
-      };
-      const spy = sinon.spy(element, '_exportRequest');
-      element._requestStoreDriveHandler(e);
-      assert.isFalse(spy.called);
-    });
-  });
-
   suite('_requestChangeHandler()', () => {
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -1151,7 +899,7 @@
     let element;
     setup((done) => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       flush(() => done());
     });
 
@@ -1316,7 +1064,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
     });
 
     function modelFactory(e) {
@@ -1353,7 +1101,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
     });
 
     test('Calls __removeAllPanels()', () => {
@@ -1491,7 +1239,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element, requests.length + 1);
+      WorkspaceTestHelper.addRequests(element, requests.length + 1);
     });
 
     test('Calls clearWorkspace()', () => {
@@ -1541,7 +1289,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element, requests.length + 1);
+      WorkspaceTestHelper.addRequests(element, requests.length + 1);
     });
 
     function fire(project, replace) {
@@ -1597,7 +1345,7 @@
     let requests;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       requests = DataGenerator.generateRequests({
         requestsSize: 3
       });
@@ -1649,7 +1397,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
     });
 
     test('Returns panel for selected', () => {
@@ -1675,7 +1423,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       element.selected = 0;
     });
 
@@ -1697,7 +1445,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       element.selected = 0;
     });
 
@@ -1719,7 +1467,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
       element.selected = 0;
     });
 
@@ -1741,7 +1489,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
     });
 
     test('Calls abort() on request panel', () => {
@@ -1767,7 +1515,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element);
+      WorkspaceTestHelper.addRequests(element);
     });
 
     test('Does nothing if index is incorrect', () => {
@@ -1874,7 +1622,7 @@
     let element;
     setup(() => {
       element = fixture('NoAuto');
-      addRequests(element, 1);
+      WorkspaceTestHelper.addRequests(element, 1);
       element.selected = 0;
     });
 

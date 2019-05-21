@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+  <title>arc-workspace-editor test</title>
+
+  <script src="../../../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../../@polymer/test-fixture/test-fixture.js"></script>
+  <script src="../../../mocha/mocha.js"></script>
+  <script src="../../../chai/chai.js"></script>
+  <script src="../../../wct-mocha/wct-mocha.js"></script>
+</head>
+<body>
+  <test-fixture id="Basic">
+    <template>
+      <arc-workspace-editor></arc-workspace-editor>
+    </template>
+  </test-fixture>
+
+  <script type="module">
+  import '../arc-workspace-editor.js';
+  import sinon from '../../../sinon/pkg/sinon-esm.js';
+
+  suite('_toggleOptions()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+    });
+
+    test('Sets providerInfoOpened', () => {
+      element._toggleOptions();
+      assert.isTrue(element.providerInfoOpened);
+    });
+
+    test('Re-sets providerInfoOpened', () => {
+      element.providerInfoOpened = true;
+      element._toggleOptions();
+      assert.isFalse(element.providerInfoOpened);
+    });
+  });
+
+  suite('_cancel()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+    });
+
+    test('Dispatches cancel-edit event', () => {
+      const spy = sinon.spy();
+      element.addEventListener('cancel-edit', spy);
+      element._cancel();
+      assert.isTrue(spy.called);
+    });
+  });
+
+  suite('_save()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+    });
+
+    test('Dispatches save-workspace event', () => {
+      const spy = sinon.spy();
+      element.addEventListener('save-workspace', spy);
+      element._save();
+      assert.isTrue(spy.called);
+    });
+
+    test('Event bubbles', () => {
+      const spy = sinon.spy();
+      element.addEventListener('save-workspace', spy);
+      element._save();
+      assert.isTrue(spy.args[0][0].bubbles);
+    });
+
+    test('Event is cancelable', () => {
+      const spy = sinon.spy();
+      element.addEventListener('save-workspace', spy);
+      element._save();
+      assert.isTrue(spy.args[0][0].cancelable);
+    });
+
+    test('Event has detail', () => {
+      const spy = sinon.spy();
+      element.addEventListener('save-workspace', spy);
+      element._save();
+      assert.typeOf(spy.args[0][0].detail, 'object');
+    });
+
+    test('Calls serializeForm()', () => {
+      const spy = sinon.spy(element, 'serializeForm');
+      element._save();
+      assert.isTrue(spy.called);
+    });
+  });
+
+  suite('serializeForm()', () => {
+    let element;
+    setup(() => {
+      element = fixture('Basic');
+    });
+
+    test('Returns object', () => {
+      const result = element.serializeForm();
+      assert.typeOf(result, 'object');
+    });
+
+    test('Sets version', () => {
+      const version = '1.0-test';
+      element.version = version;
+      const result = element.serializeForm();
+      assert.equal(result.version, version);
+    });
+
+    test('Sets published', () => {
+      const published = '2019-05-21T12:15';
+      element.published = published;
+      const result = element.serializeForm();
+      assert.equal(result.published, published);
+    });
+
+    test('Sets description', () => {
+      const description = 'Test description';
+      element.description = description;
+      const result = element.serializeForm();
+      assert.equal(result.description, description);
+    });
+
+    test('Do not set provider when no properties', () => {
+      const provider = {};
+      element.provider = provider;
+      const result = element.serializeForm();
+      assert.isUndefined(result.provider);
+    });
+
+    test('Sets provider.url', () => {
+      const provider = {url: 'https://test'};
+      element.provider = provider;
+      const result = element.serializeForm();
+      assert.deepEqual(result.provider, provider);
+    });
+
+    test('Sets provider.email', () => {
+      const provider = {email: 'test@domain.com'};
+      element.provider = provider;
+      const result = element.serializeForm();
+      assert.deepEqual(result.provider, provider);
+    });
+
+    test('Sets provider.name', () => {
+      const provider = {name: 'Pawel Psztyc'};
+      element.provider = provider;
+      const result = element.serializeForm();
+      assert.deepEqual(result.provider, provider);
+    });
+  });
+  </script>
+</body>
+</html>

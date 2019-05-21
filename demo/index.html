@@ -50,6 +50,7 @@
     <script type="module" src="../../../@advanced-rest-client/saved-request-detail/saved-request-detail.js"></script>
     <script type="module" src="../../../@advanced-rest-client/bottom-sheet/bottom-sheet.js"></script>
     <script type="module" src="../../../@advanced-rest-client/http-code-snippets/http-code-snippets.js"></script>
+    <script type="module" src="../../../@advanced-rest-client/arc-data-export/arc-data-export.js"></script>
     <script type="module" src="../../../@polymer/paper-input/paper-input.js"></script>
     <script type="module" src="../../../@polymer/paper-icon-button/paper-icon-button.js"></script>
     <script type="module" src="../../../@advanced-rest-client/arc-icons/arc-icons.js"></script>
@@ -160,6 +161,11 @@
         margin-left: 12px;
         margin-right: 12px;
       }
+
+      pre {
+        display: block;
+        white-space: pre-wrap;
+      }
       </style>
     </custom-style>
   </head>
@@ -175,6 +181,7 @@
     <oauth1-authorization></oauth1-authorization>
     <arc-request-logic></arc-request-logic>
     <request-hooks-logic></request-hooks-logic>
+    <arc-data-export app-version="demo-page"></arc-data-export>
 
     <dom-bind id="demo">
       <template is="dom-bind">
@@ -220,8 +227,6 @@
                   </template>
                 </paper-listbox>
               </paper-dropdown-menu>
-              <paper-checkbox checked="{{projectReplace}}">Replace requests in workspace</paper-checkbox>
-              <paper-button on-click="getProjectRequestsData">Open requests</paper-button>
             </div>
 
             <div class="vertical-section-container centered card">
@@ -239,6 +244,13 @@
             </div>
           </section>
         </div>
+
+        <bottom-sheet opened="{{exportSheetOpened}}">
+          <h3>Export demo</h3>
+          <p>This is a preview of the file. Normally export module would save this data to file / Drive.</p>
+          <p>File: [[exportFile]]</p>
+          <pre>[[exportData]]</pre>
+        </bottom-sheet>
       </template>
     </dom-bind>
     <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
@@ -246,15 +258,13 @@
     <paper-toast id="webUrlToast" text="Open web URL requested via event"></paper-toast>
     <script type="module">
     import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
-    /* global chance */
+    import {afterNextRender} from '../../../@polymer/polymer/lib/utils/render-status.js';
     (function(app) {
       // const redirectUrl = location.href.replace(/request-editor\/demo\/(index\.html)?/,
       //   'oauth-authorization/oauth-popup.html');
       // app.oauth2RedirectUri = redirectUrl;
-      app.projectReplace = false;
       app.selectedMenu = 0;
       app.init = function() {
-        app.refreshProjects();
       };
       app.createHeaders = function(data) {
         const headers = new Headers();
@@ -488,15 +498,6 @@
         workspace.addRequestById(type, id);
       };
       //
-      // Google drive export flow
-      //
-      app._exportDriveHandler = function(e) {
-        e.preventDefault();
-        e.detail.result = Promise.resolve({
-          id: chance.guid({version: 5})
-        });
-      };
-      //
       // Search saved
       //
       app._searchKeydown = function(e) {
@@ -523,39 +524,6 @@
           document.querySelector('saved-menu').requests = items;
         });
       };
-      app.refreshProjects = function() {
-        const e = new CustomEvent('project-model-query', {
-          cancelable: true,
-          bubbles: true,
-          detail: {}
-        });
-        document.body.dispatchEvent(e);
-        e.detail.result
-        .then((data) => {
-          console.log('Projects query result', data);
-          app.projects = data;
-        });
-      };
-      app.getProjectRequestsData = function() {
-        const project = app.projects[app.project];
-        if (!project) {
-          return;
-        }
-        const workspace = document.querySelector('arc-request-workspace');
-        if (app.projectReplace) {
-          workspace.replaceByProject(project);
-        } else {
-          workspace.appendByProject(project);
-        }
-      };
-      // Mocking of the data export component.
-      document.body.addEventListener('export-data', function(e) {
-        e.preventDefault();
-        e.detail.result = new Promise((resolve) => {
-          resolve();
-        });
-      });
-
       app._requestTimeoutChanged = () => {
         const workspace = document.querySelector('arc-request-workspace');
         workspace.requestTimeout = Number(app.requestTimeout);
@@ -590,14 +558,22 @@
         const workspace = document.querySelector('arc-request-workspace');
         workspace.openWorkspaceDetails();
       };
+
+      app._fileExportHandler = function(e) {
+        const {content, file} = e.detail;
+        afterNextRender(app, () => {
+          app.exportData = JSON.stringify(content, null, 2);
+          app.exportFile = file;
+          app.exportSheetOpened = true;
+        });
+        e.preventDefault();
+      };
       window.addEventListener('transport-request', app.send);
       window.addEventListener('workspace-state-read', app._restoreHandler);
       window.addEventListener('workspace-state-store', app._storeHandler);
-      window.addEventListener('request-save-state', app._saveRequestHandler);
-      window.addEventListener('request-details', app._requestDetailsHandler);
-      window.addEventListener('request-code-snippets', app._renderCodeSnippets);
-      window.addEventListener('export-google-drive', app._exportDriveHandler);
       window.addEventListener('open-web-url', app._openWebUrlHandler);
+      window.addEventListener('file-data-save', app._fileExportHandler);
+      window.addEventListener('google-drive-data-save', app._fileExportHandler);
       window.addEventListener('WebComponentsReady', app.init);
     })(document.getElementById('demo'));
     </script>
