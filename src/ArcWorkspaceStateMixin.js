@@ -31,7 +31,8 @@ export const ArcWorkspaceStateMixin = (base) =>  class extends base {
     this._restoring = true;
     const e = this._dispatchWorkspaceState();
     if (!e.defaultPrevented) {
-      return await this._restoreModelError();
+      this._restoreModelError();
+      return;
     }
     try {
       const data = await e.detail.result;
@@ -108,7 +109,7 @@ export const ArcWorkspaceStateMixin = (base) =>  class extends base {
       for (let i = 0, len = requests.length; i < len; i++) {
         const item = requests[i];
         if (!item._id) {
-          item._id = this.$.uuid.generate();
+          item._id = this.uuid.generate();
         }
         this.appendRequest(item);
       }

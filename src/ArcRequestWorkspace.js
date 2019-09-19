@@ -119,6 +119,10 @@ export class ArcRequestWorkspace extends
     return this._restoring;
   }
 
+  get initialized() {
+    return this._initialized;
+  }
+
   static get properties() {
     return {
       /**
@@ -186,7 +190,7 @@ export class ArcRequestWorkspace extends
       /**
        * If set then workspace restoration process is in progress.
        */
-      _restoring: { type: Boolean,  reflect: true },
+      _restoring: { type: Boolean, reflect: true, attribute: 'restoring' },
       /**
        * The component automatically ask to restore workspace when connected
        * to the DOM. This ensures to prohibit auto restore request.
@@ -208,10 +212,6 @@ export class ArcRequestWorkspace extends
        * When set the workspace meta data editor is opened.
        */
       workspaceEditorOpened: { type: Boolean },
-      /**
-       * A request object to be passed to the code snippets element.
-       */
-      snippetRequest: { type: Boolean },
       /**
        * Set when workspace state has been read.
        */
@@ -370,7 +370,7 @@ export class ArcRequestWorkspace extends
       }
       if (def.observer) {
         try {
-          this[def.observer](key, this[key], old);
+          this[def.observer](this[key], old);
         } catch (e) {
           // ..
         }
@@ -651,8 +651,6 @@ export class ArcRequestWorkspace extends
    * @param {CustomEvent} e
    */
   _requestStoreHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
     const request = this._getMenuRequest(e);
     if (!request) {
       return;
@@ -665,8 +663,6 @@ export class ArcRequestWorkspace extends
    * @param {CustomEvent} e
    */
   _renderRequestDetail(e) {
-    e.preventDefault();
-    e.stopPropagation();
     const request = this._getMenuRequest(e);
     if (!request) {
       return;
@@ -675,28 +671,10 @@ export class ArcRequestWorkspace extends
     this.detailsOpened = true;
   }
   /**
-   * Dispatches `request-code-snippets` event with `request` object on the
-   * detail.
-   *
-   * @param {CustomEvent} e
-   */
-  _renderCodeSnippets(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const request = this._getMenuRequest(e);
-    if (!request) {
-      return;
-    }
-    this.snippetRequest = request;
-    this.snippetsOpened = true;
-  }
-  /**
    * Open export dialog and sets `_exportItem` on the element.
    * @param {ClickEvent} e
    */
   _exportMenuHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
     const request = this._getMenuRequest(e);
     if (!request) {
       return;
@@ -778,6 +756,8 @@ export class ArcRequestWorkspace extends
       return;
     }
     this.activeRequests[index] = e.detail.request;
+    this.requestUpdate();
+    this._notifyStoreWorkspace();
   }
   /**
    * A handler for `request-object-deleted` custom event.
@@ -806,6 +786,7 @@ export class ArcRequestWorkspace extends
     this.activeRequests[index] = request;
     this.activeRequests[index].name = '';
     this.requestUpdate();
+    this._notifyStoreWorkspace();
   }
   /**
    * Adds request(s) by id.
@@ -1226,7 +1207,8 @@ export class ArcRequestWorkspace extends
    * @param {Number} index Selected tab
    */
   duplicateTab(index) {
-    const current = this.get('activeRequests.' + index);
+    const items = this.activeRequests || [];
+    const current = items[index];
     if (!current) {
       return;
     }
@@ -1272,7 +1254,8 @@ export class ArcRequestWorkspace extends
 
   _setOauthRedirect() {
     const { oauth2RedirectUri, _workspaceOauth2RedirectUri } = this;
-    return _workspaceOauth2RedirectUri || oauth2RedirectUri;
+    this._oauth2RedirectUri = _workspaceOauth2RedirectUri || oauth2RedirectUri;
+    this.__updatePanelsProperty('oauth2RedirectUri', this._oauth2RedirectUri);
   }
   /**
    * Opens the input for opening web app to start a web session.

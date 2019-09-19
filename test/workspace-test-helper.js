@@ -1,4 +1,4 @@
-import {DataGenerator} from '../../arc-data-generator/arc-data-generator.js';
+import { DataGenerator } from '@advanced-rest-client/arc-data-generator/arc-data-generator.js';
 
 export const WorkspaceTestHelper = {
   wrapStateReadEvent: (element) => {

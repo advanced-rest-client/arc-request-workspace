@@ -111,7 +111,7 @@ export class ArcWorkspaceEditor extends ArcResizableMixin(LitElement) {
   }
 
   _inputHandler(e) {
-    const { name, value } = e;
+    const { name, value } = e.target;
     if (name.indexOf('.') !== -1) {
       const [root, path] = name.split('.');
       this[root][path] = value;

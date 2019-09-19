@@ -280,6 +280,9 @@ class DemoPage extends ArcDemoPage {
     await DataGenerator.insertSavedRequestData({
       requestsSize: 100
     });
+    await DataGenerator.insertHistoryRequestData({
+      requestsSize: 100
+    });
     document.getElementById('genToast').opened = true;
     document.body.dispatchEvent(new CustomEvent('data-imported', {
       bubbles: true
@@ -287,7 +290,7 @@ class DemoPage extends ArcDemoPage {
   }
 
   async clearData() {
-    await DataGenerator.destroySavedRequestData();
+    await DataGenerator.destroyAll();
     document.getElementById('clearToast').opened = true;
     document.body.dispatchEvent(new CustomEvent('datastore-destroyed', {
       detail: {
@@ -350,11 +353,15 @@ class DemoPage extends ArcDemoPage {
   _fileExportHandler(e) {
     const { content, file } = e.detail;
     setTimeout(() => {
-      this.exportData = JSON.stringify(JSON.parse(content), null, 2);
+      const data = typeof content === 'string' ? JSON.parse(content) : content;
+      this.exportData = JSON.stringify(data, null, 2);
       this.exportFile = file;
       this.exportSheetOpened = true;
     });
     e.preventDefault();
+    e.detail.result = Promise.resolve({
+      id: 'test-drive-id'
+    });
   };
 
   _exportSheetHandler(e) {
@@ -403,7 +410,7 @@ class DemoPage extends ArcDemoPage {
           </anypoint-icon-button>
         </anypoint-input>
       </div>
-      <saved-menu @navigate="${this._selectRequest}" draggable-enabled=""></saved-menu>
+      <saved-menu @navigate="${this._selectRequest}" draggableenabled></saved-menu>
     </div>`;
   }
 
@@ -482,20 +489,22 @@ class DemoPage extends ArcDemoPage {
         </arc-interactive-demo>
       </section>
 
-      <div class="centered card">
-        <anypoint-button @click="${this.generateData}">Generate 100 saved items</anypoint-button>
-        <anypoint-button @click="${this.clearData}">Clear datastore</anypoint-button>
-        <anypoint-button @click="${this.openWebUrlInput}">Open web URL input</anypoint-button>
-        <anypoint-button @click="${this.openMeta}">Open details</anypoint-button>
-      </div>
+      <section class="documentation-section">
+        <div class="card">
+          <anypoint-button @click="${this.generateData}">Generate data</anypoint-button>
+          <anypoint-button @click="${this.clearData}">Clear datastore</anypoint-button>
+          <anypoint-button @click="${this.openWebUrlInput}">Open web URL input</anypoint-button>
+          <anypoint-button @click="${this.openMeta}">Open details</anypoint-button>
+        </div>
 
-      <div class="vertical-section-container centered card">
-        <h4>Demo: Variables editor</h4>
-        <variables-editor></variables-editor>
-      </div>
+        <div class="card">
+          <h4>Demo: Variables editor</h4>
+          <variables-editor></variables-editor>
+        </div>
 
-      ${this._configTemplate()}
-      ${this._exportTemplate()}
+        ${this._configTemplate()}
+        ${this._exportTemplate()}
+      </section>
 
 
       <paper-toast id="genToast" text="The request data has been generated"></paper-toast>
@@ -522,7 +531,7 @@ class DemoPage extends ArcDemoPage {
       validateCertificates,
       followRedirects
     } = this;
-    return html`<div class="vertical-section-container centered card">
+    return html`<div class="card">
       <h4>Workspace configuration</h4>
       <anypoint-input
         type="number"
@@ -550,7 +559,7 @@ class DemoPage extends ArcDemoPage {
         @change="${this._configSwitchHandler}"
       >
         Validate certificates
-      </anypoint-switch>=
+      </anypoint-switch>
       <anypoint-switch
         @name="followRedirects"
         .checked="${followRedirects}"
@@ -598,7 +607,7 @@ class DemoPage extends ArcDemoPage {
       <oauth1-authorization></oauth1-authorization>
       <arc-request-logic></arc-request-logic>
       <request-hooks-logic></request-hooks-logic>
-      <arc-data-export app-version="demo-page"></arc-data-export>
+      <arc-data-export appversion="demo-page"></arc-data-export>
 
       <h2>HTTP request editor</h2>
       ${this._demoTemplate()}

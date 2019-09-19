@@ -63,4 +63,8 @@ h2 {
   height: 24px;
   fill: currentColor;
 }
+
+anypoint-input {
+  width: auto;
+}
 `;

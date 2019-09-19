@@ -30,11 +30,13 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
     this.__editorMetaHandler = this.__editorMetaHandler.bind(this);
     this._requestStoreHandler = this._requestStoreHandler.bind(this);
     this._renderRequestDetail = this._renderRequestDetail.bind(this);
-    this._renderCodeSnippets = this._renderCodeSnippets.bind(this);
     this._exportMenuHandler = this._exportMenuHandler.bind(this);
   }
 
   get requestTemplate() {
+    const saveIcon = save.values[0].strings[0];
+    const infoIcon = infoOutline.values[0].strings[0];
+    const exportIcon = exportVariant.values[0].strings[0];
     return `
     <request-panel class="panel" boundevents>
       <anypoint-icon-item
@@ -44,7 +46,7 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
         tabindex="-1"
         slot="request-context-menu"
       >
-        <span slot="item-icon" class="icon">${save.getHTML()}</span>
+        <span slot="item-icon" class="icon context-menu-icon"><svg>${saveIcon}</svg></span>
         Save
       </anypoint-icon-item>
       <anypoint-icon-item
@@ -54,7 +56,7 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
         tabindex="-1"
         slot="request-context-menu"
       >
-        <span slot="item-icon" class="icon context-menu-icon">${infoOutline.getHTML()}</span>
+        <span slot="item-icon" class="icon context-menu-icon"><svg>${infoIcon}</svg></span>
         Details
       </anypoint-icon-item>
       <anypoint-icon-item
@@ -64,7 +66,7 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
         tabindex="-1"
         slot="request-context-menu"
       >
-        <span slot="item-icon" class="icon context-menu-icon">${exportVariant.getHTML()}</span>
+        <span slot="item-icon" class="icon context-menu-icon"><svg>${exportIcon}</svg></span>
         Export request
       </anypoint-icon-item>
       <slot name="request-context-menu" slot="request-context-menu"></slot>
@@ -72,6 +74,7 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
   }
 
   __createPanelInstance() {
+    // const tpl = this.requestTemplate.getTemplateElement();
     const txt = this.requestTemplate;
     const tpl = document.createElement('template');
     tpl.innerHTML = txt;

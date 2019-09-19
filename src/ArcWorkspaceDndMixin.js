@@ -413,12 +413,7 @@ export const ArcWorkspaceDndMixin = (base) => class extends base {
     const dropRef = this.__dropPointerReference;
     let order;
     if (dropRef) {
-      if (dropRef.nodeName === 'DOM-REPEAT') {
-        order = this.activeRequests.length;
-      } else {
-        const model = this.tabsElementRepeater.modelForElement(dropRef);
-        order = model.get('index');
-      }
+      order = Number(dropRef.dataset.index);
     } else {
       order = this.activeRequests.length;
     }
