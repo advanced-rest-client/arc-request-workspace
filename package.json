@@ -1,23 +1,19 @@
 {
   "name": "@advanced-rest-client/arc-request-workspace",
   "description": "A request workspace component for Advanced REST Client that creates a list of requests",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "license": "Apache-2.0",
-  "main": "arc-request-workspace.html",
+  "main": "arc-request-workspace.js",
+  "keywords": [
+    "advanced-rest-client",
+    "settings"
+  ],
   "authors": [
-    "Pawel Psztyc",
+    "Pawel Psztyc"
+  ],
+  "contributors": [
     "The Advanced REST client authors <arc@mulesoft.com>"
   ],
-  "devDependencies": {
-    "@polymer/gen-typescript-declarations": "^1.6.1"
-  },
-  "private": false,
-  "scripts": {
-    "lint": "polymer lint arc-request-workspace.html",
-    "test-sauce": "polymer test --plugin sauce --job-name \"arc-request-workspace:local-test\"",
-    "test": "polymer test --plugin local",
-    "update-types": "gen-typescript-declarations --deleteExisting --outDir ."
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/advanced-rest-client/arc-request-workspace.git"
@@ -25,5 +21,89 @@
   "bugs": {
     "url": "https://github.com/advanced-rest-client/arc-request-workspace/issues",
     "email": "arc@mulesoft.com"
+  },
+  "dependencies": {
+    "@advanced-rest-client/arc-file-drop-mixin": "^3.0.0",
+    "@advanced-rest-client/arc-icons": "^3.0.2",
+    "@advanced-rest-client/arc-marked": "^1.0.2",
+    "@advanced-rest-client/arc-resizable-mixin": "^1.0.0",
+    "@advanced-rest-client/bottom-sheet": "^3.0.0",
+    "@advanced-rest-client/date-time": "^3.0.0",
+    "@advanced-rest-client/export-options": "^3.0.0",
+    "@advanced-rest-client/markdown-styles": "^3.1.0",
+    "@advanced-rest-client/request-panel": "^3.0.1",
+    "@advanced-rest-client/saved-request-detail": "^3.0.0",
+    "@advanced-rest-client/saved-request-editor": "^3.0.2",
+    "@advanced-rest-client/uuid-generator": "^3.0.0",
+    "@advanced-rest-client/web-url-input": "^3.0.0",
+    "@anypoint-web-components/anypoint-button": "^1.0.10",
+    "@anypoint-web-components/anypoint-input": "^0.2.5",
+    "@anypoint-web-components/anypoint-item": "^1.0.4",
+    "@anypoint-web-components/anypoint-tabs": "^0.1.6",
+    "@polymer/iron-collapse": "^3.0.1",
+    "@polymer/paper-progress": "^3.0.0",
+    "@polymer/paper-toast": "^3.0.0",
+    "lit-element": "^2.2.1"
+  },
+  "devDependencies": {
+    "@advanced-rest-client/arc-data-export": "^3.0.0",
+    "@advanced-rest-client/arc-data-generator": "^3.0.0",
+    "@advanced-rest-client/arc-demo-helper": "^1.0.14",
+    "@advanced-rest-client/arc-menu": "^3.0.0",
+    "@advanced-rest-client/arc-models": "^3.0.0-preview.11",
+    "@advanced-rest-client/arc-request-logic": "^3.0.0",
+    "@advanced-rest-client/eslint-config": "^1.1.2",
+    "@advanced-rest-client/oauth-authorization": "^3.0.0",
+    "@advanced-rest-client/prettier-config": "^0.1.0",
+    "@advanced-rest-client/request-hooks-logic": "^3.0.0",
+    "@advanced-rest-client/testing-karma-sl": "^1.0.4",
+    "@advanced-rest-client/variables-editor": "^3.0.0",
+    "@advanced-rest-client/variables-evaluator": "^3.0.0",
+    "@advanced-rest-client/variables-manager": "^3.0.0",
+    "@anypoint-web-components/anypoint-checkbox": "^1.0.1",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@commitlint/cli": "^8.1.0",
+    "@commitlint/config-conventional": "^7.0.0",
+    "@open-wc/testing": "^2.3.3",
+    "@open-wc/testing-karma": "^3.1.29",
+    "@polymer/gen-typescript-declarations": "^1.6.2",
+    "@polymer/iron-media-query": "^3.0.0",
+    "@polymer/iron-test-helpers": "^3.0.1",
+    "babel-plugin-minify-mangle-names": "^0.5.0",
+    "browserify": "^16.2.3",
+    "chance": "^1.0.18",
+    "deepmerge": "^4.0.0",
+    "es-dev-server": "^1.17.2",
+    "fs-extra": "^7.0.1",
+    "husky": "^1.0.0",
+    "jexl": "^2.1.1",
+    "lint-staged": "^9.2.5",
+    "sinon": "^7.4.2",
+    "uglify-js": "^3.5.15",
+    "web-animations-js": "^2.3.1"
+  },
+  "scripts": {
+    "test": "karma start --coverage",
+    "update-types": "gen-typescript-declarations --deleteExisting --outDir .",
+    "start": "es-dev-server --app-index demo/index.html --node-resolve --open --watch",
+    "start:compatibility": "es-dev-server --app-index demo/index.html --compatibility all --node-resolve --open --watch",
+    "lint:eslint": "eslint --ext .js,.html .",
+    "format:eslint": "eslint --ext .js,.html . --fix",
+    "lint:prettier": "prettier \"**/*.js\" --list-different || (echo '↑↑ these files are not prettier formatted ↑↑' && exit 1)",
+    "format:prettier": "prettier \"**/*.js\" --write",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "test:watch": "karma start --auto-watch=true --single-run=false",
+    "test:legacy": "karma start --compatibility all --coverage",
+    "test:legacy:watch": "karma start --compatibility all --auto-watch=true --single-run=false",
+    "test:sl": "karma start karma.sl.config.js --compatibility all --coverage",
+    "prepare": "node dev-lib/prepare.js"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }

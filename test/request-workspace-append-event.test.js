@@ -1,39 +1,41 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
-  <title>arc-request-workspace test</title>
-  <script src="../../webcomponentsjs/webcomponents-loader.js"></script>
-  <script src="../../web-component-tester/browser.js"></script>
-  <link rel="import" href="../arc-request-workspace.html">
-  <link rel="import" href="../../arc-data-generator/arc-data-generator.html">
-</head>
-<body>
-  <test-fixture id="Basic">
-    <template>
-      <arc-request-workspace></arc-request-workspace>
-    </template>
-  </test-fixture>
+import { fixture, assert, html, aTimeout } from '@open-wc/testing';
+import * as sinon from 'sinon/pkg/sinon-esm.js';
+import { DataGenerator } from '@advanced-rest-client/arc-data-generator/arc-data-generator.js';
+import '@advanced-rest-client/arc-models/project-model.js';
+import '@advanced-rest-client/arc-models/request-model.js';
+import '@advanced-rest-client/arc-models/variables-model.js';
+import '../arc-request-workspace.js';
 
-  <test-fixture id="NoAuto">
-    <template>
-      <arc-request-workspace no-auto-projects no-auto-restore></arc-request-workspace>
-    </template>
-  </test-fixture>
-  <script>
-  /* global DataGenerator */
-  suite('request-workspace-append event', () => {
+describe('<arc-request-workspace>', function() {
+  async function basicFixture() {
+    const area = await fixture(html`
+    <div>
+      <project-model></project-model>
+      <request-model></request-model>
+      <variables-model></variables-model>
+      <arc-request-workspace></arc-request-workspace>
+    </div>
+    `);
+    return area.querySelector('arc-request-workspace');
+  }
+
+  async function noAutoFixture() {
+    const area = await fixture(html`
+    <div>
+      <project-model></project-model>
+      <request-model></request-model>
+      <variables-model></variables-model>
+      <arc-request-workspace noautoprojects noautorestore></arc-request-workspace>
+    </div>
+    `);
+    return area.querySelector('arc-request-workspace');
+  }
+
+  describe('request-workspace-append event', () => {
     let element;
-    setup((done) => {
-      element = fixture('Basic');
-      element.addEventListener('restoring-changed', function clb(e) {
-        if (e.detail.value) {
-          return;
-        }
-        element.removeEventListener('restoring-changed', clb);
-        done();
-      });
+    beforeEach(async () => {
+      element = await basicFixture()
+      await aTimeout(25);
     });
 
     function fire(detail) {
@@ -43,7 +45,7 @@
       }));
     }
 
-    test('Appends request to the list of requests', () => {
+    it('Appends request to the list of requests', () => {
       const url = 'https://test.com';
       fire({
         kind: 'ARC#Request',
@@ -56,7 +58,7 @@
       assert.equal(element.activeRequests[0].url, url);
     });
 
-    test('Calls appendImportRequests() for project data', () => {
+    it('Calls appendImportRequests() for project data', () => {
       const saved = DataGenerator.generateSavedRequestData({
         requestsSize: 3
       });
@@ -70,7 +72,7 @@
       assert.deepEqual(spy.args[0][0], detail);
     });
 
-    test('Calls appendImportRequests() for saved data', () => {
+    it('Calls appendImportRequests() for saved data', () => {
       const saved = DataGenerator.generateSavedRequestData({
         requestsSize: 3
       });
@@ -83,7 +85,7 @@
       assert.deepEqual(spy.args[0][0], detail);
     });
 
-    test('Calls appendImportRequests() for history data', () => {
+    it('Calls appendImportRequests() for history data', () => {
       const history = DataGenerator.generateHistoryRequestsData({
         requestsSize: 3
       });
@@ -97,13 +99,13 @@
     });
   });
 
-  suite('appendImportRequests()', () => {
+  describe('appendImportRequests()', () => {
     let element;
-    setup(() => {
-      element = fixture('NoAuto');
+    beforeEach(async () => {
+      element = await noAutoFixture();
     });
 
-    test('Appends Project export data', () => {
+    it('Appends Project export data', () => {
       const saved = DataGenerator.generateSavedRequestData({
         requestsSize: 3
       });
@@ -117,7 +119,7 @@
       assert.equal(element.selected, 2, 'Selection is set');
     });
 
-    test('Appends Saved export data', () => {
+    it('Appends Saved export data', () => {
       const saved = DataGenerator.generateSavedRequestData({
         requestsSize: 4
       });
@@ -130,7 +132,7 @@
       assert.equal(element.selected, 3, 'Selection is set');
     });
 
-    test('Appends History export data', () => {
+    it('Appends History export data', () => {
       const history = DataGenerator.generateHistoryRequestsData({
         requestsSize: 3
       });
@@ -143,6 +145,4 @@
       assert.equal(element.selected, 2, 'Selection is set');
     });
   });
-  </script>
-</body>
-</html>
+});
