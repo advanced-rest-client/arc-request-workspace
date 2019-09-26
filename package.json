@@ -31,7 +31,7 @@
     "@advanced-rest-client/date-time": "^3.0.0",
     "@advanced-rest-client/export-options": "^3.0.0",
     "@advanced-rest-client/markdown-styles": "^3.1.0",
-    "@advanced-rest-client/request-panel": "^3.0.1",
+    "@advanced-rest-client/request-panel": "^3.0.2",
     "@advanced-rest-client/saved-request-detail": "^3.0.0",
     "@advanced-rest-client/saved-request-editor": "^3.0.2",
     "@advanced-rest-client/uuid-generator": "^3.0.0",
@@ -78,7 +78,7 @@
     "fs-extra": "^7.0.1",
     "husky": "^1.0.0",
     "jexl": "^2.1.1",
-    "lint-staged": "^9.3.0",
+    "lint-staged": "^9.4.0",
     "sinon": "^7.5.0",
     "uglify-js": "^3.5.15",
     "web-animations-js": "^2.3.1"
