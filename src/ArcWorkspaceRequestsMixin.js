@@ -93,6 +93,7 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
   __setPanelRequestProperties(panel, request) {
     panel.dataset.id = request._id;
     panel.editorRequest = request;
+    panel.request = request;
     panel.editorState = request._state;
     panel.responseMeta = request._responseMeta;
     panel.response = request._response;
