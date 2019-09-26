@@ -350,6 +350,12 @@ describe('ArcWorkspaceRequestsMixin', function() {
       assert.isTrue(p2.hasAttribute('hidden'));
     });
 
+    it('Calls notifyResize() on the panel', () => {
+      const spy = sinon.spy(p1, 'notifyResize');
+      element.__selectPanel('p1');
+      assert.isTrue(spy.called);
+    });
+
     it('Selects already selected panel', () => {
       p1.removeAttribute('hidden');
       element.__selectPanel('p1');

@@ -253,6 +253,10 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
     if (panel.hasAttribute('hidden')) {
       panel.removeAttribute('hidden');
     }
+    // the panel may not be yet upgraded.
+    if (panel.notifyResize) {
+      panel.notifyResize();
+    }
   }
   /**
    * Updates request object on existing panel.
