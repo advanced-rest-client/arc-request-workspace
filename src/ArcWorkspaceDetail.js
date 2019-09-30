@@ -34,7 +34,7 @@ export class ArcWorkspaceDetail extends ArcResizableMixin(LitElement) {
     return html`
     <h2>Workspace details</h2>
     ${description ? html`
-    <arc-marked .markdown="${description}">
+    <arc-marked .markdown="${description}" sanitize>
       <div class="markdown-html markdown-body description"></div>
     </arc-marked>` : ''}
 
