@@ -234,3 +234,12 @@
 
 
 
+## 3.0.4 (2019-10-01)
+
+
+### Bug Fixes
+
+* adding request property restoration on request panel ([ef0473b](https://github.com/advanced-rest-client/arc-request-workspace/commit/ef0473b))
+
+
+
