@@ -105,9 +105,18 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
    * @param {Element} panel Request panel
    */
   __setPanelConfiguration(panel) {
-    panel.narrow = this.narrow;
-    panel.oauth2RedirectUri = this._oauth2RedirectUri;
-    panel.ignoreContentOnGet = this.ignoreContentOnGet;
+    const properties = this.constructor.properties;
+    Object.keys(properties).forEach((key) => {
+      const def = properties[key];
+      if (!def.panelProperty) {
+        return;
+      }
+      if (typeof def.panelProperty === 'boolean') {
+        panel[key] = this[key];
+      } else {
+        panel[def.panelProperty] = this[key];
+      }
+    });
   }
   /**
    * Adds event listeners to the panel
@@ -293,4 +302,4 @@ export const ArcWorkspaceRequestsMixin = (base) =>  class extends base {
       nodes[i][prop] = value;
     }
   }
-}
+};

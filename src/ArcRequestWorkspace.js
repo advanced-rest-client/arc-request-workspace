@@ -123,6 +123,13 @@ export class ArcRequestWorkspace extends
     return this._initialized;
   }
 
+  /*
+   * `store` {Boolean} - store value in the workspoace configuration file.
+   * `observer` {String} - function name to call when value changed
+   * `panelProperty` {String|Boolean} The value is passed to active and new panels.
+   * If the value is string it is a name of the property to use on the panel when
+   * setting changed value.
+   */
   static get properties() {
     return {
       /**
@@ -248,7 +255,8 @@ export class ArcRequestWorkspace extends
        */
       _oauth2RedirectUri: {
         type: String,
-        observer: '_oauthUriChanged'
+        observer: '_oauthUriChanged',
+        panelProperty: 'oauth2RedirectUri'
       },
       /**
        * When set it will ignore all `content-*` headers when the request method
@@ -324,7 +332,7 @@ export class ArcRequestWorkspace extends
       providerOptions: {
         parents: ['My Drive']
       }
-    }
+    };
   }
 
   connectedCallback() {
