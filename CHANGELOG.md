@@ -243,3 +243,17 @@
 
 
 
+## 3.0.5 (2019-10-09)
+
+
+### Bug Fixes
+
+* adding request property restoration on request panel ([ef0473b](https://github.com/advanced-rest-client/arc-request-workspace/commit/ef0473b))
+
+
+### Features
+
+* adding `withEncrypt` option ([c5b09cf](https://github.com/advanced-rest-client/arc-request-workspace/commit/c5b09cf))
+
+
+
