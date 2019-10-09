@@ -33,6 +33,18 @@ describe('<arc-request-workspace>', function() {
     return area.querySelector('arc-request-workspace');
   }
 
+  async function exportEncryptFixture() {
+    const area = await fixture(html`
+    <div>
+      <project-model></project-model>
+      <request-model></request-model>
+      <variables-model></variables-model>
+      <arc-request-workspace noautoprojects noautorestore withEncrypt></arc-request-workspace>
+    </div>
+    `);
+    return area.querySelector('arc-request-workspace');
+  }
+
   describe('Basics', () => {
     let element;
     beforeEach(async () => {
@@ -1595,6 +1607,14 @@ describe('<arc-request-workspace>', function() {
       element.workspaceEditorOpened = true;
       element._updateWorkspaceMeta({ detail });
       assert.isFalse(element.workspaceEditorOpened);
+    });
+  });
+
+  describe('Export encryption', () => {
+    it('Enables encryption option', async () => {
+      const element = await exportEncryptFixture();
+      const node = element.shadowRoot.querySelector('export-options');
+      assert.isTrue(node.withEncrypt);
     });
   });
 });

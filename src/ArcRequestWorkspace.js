@@ -310,6 +310,11 @@ export class ArcRequestWorkspace extends
        */
       outlined: { type: Boolean, panelProperty: true },
       /**
+       * When set is enables encryption options.
+       * Currently only in the export panel.
+       */
+      withEncrypt: { type: Boolean },
+      /**
        * Indicates that the export options panel is currently rendered.
        */
       _exportOptionsOpened: { type: Boolean },
@@ -1497,7 +1502,8 @@ export class ArcRequestWorkspace extends
       _exportOptionsOpened,
       _exportOptions,
       compatibility,
-      outlined
+      outlined,
+      withEncrypt
     } = this;
     return html`
     <bottom-sheet
@@ -1510,6 +1516,7 @@ export class ArcRequestWorkspace extends
       <export-options
         ?compatibility="${compatibility}"
         ?outlined="${outlined}"
+        ?withEncrypt="${withEncrypt}"
         .file="${_exportOptions.file}"
         .provider="${_exportOptions.provider}"
         .providerOptions="${_exportOptions.providerOptions}"
