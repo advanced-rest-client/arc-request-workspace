@@ -103,6 +103,10 @@ module.exports = (config) => {
           }
         }
       },
+
+      exclude: [
+       'dev-lib/*.js'
+     ],
     })
   );
   return config;
