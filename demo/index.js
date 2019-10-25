@@ -17,6 +17,7 @@ import '@polymer/iron-media-query/iron-media-query.js';
 import '@advanced-rest-client/arc-models/project-model.js';
 import '@advanced-rest-client/arc-models/request-model.js';
 import '@advanced-rest-client/arc-models/url-indexer.js';
+import '@advanced-rest-client/arc-models/client-certificate-model.js';
 import '@advanced-rest-client/request-hooks-logic/request-hooks-logic.js';
 import '@advanced-rest-client/arc-request-logic/arc-request-logic.js';
 import '@advanced-rest-client/arc-menu/saved-menu.js';
@@ -283,6 +284,7 @@ class DemoPage extends ArcDemoPage {
     await DataGenerator.insertHistoryRequestData({
       requestsSize: 100
     });
+    await DataGenerator.insertCertificatesData();
     document.getElementById('genToast').opened = true;
     document.body.dispatchEvent(new CustomEvent('data-imported', {
       bubbles: true
@@ -602,6 +604,7 @@ class DemoPage extends ArcDemoPage {
       <project-model></project-model>
       <request-model></request-model>
       <url-indexer></url-indexer>
+      <client-certificate-model></client-certificate-model>
       <variables-evaluator id="eval" no-before-request=""></variables-evaluator>
       <oauth2-authorization></oauth2-authorization>
       <oauth1-authorization></oauth1-authorization>
@@ -609,7 +612,7 @@ class DemoPage extends ArcDemoPage {
       <request-hooks-logic></request-hooks-logic>
       <arc-data-export appversion="demo-page"></arc-data-export>
 
-      <h2>HTTP request editor</h2>
+      <h2>Requests workspace</h2>
       ${this._demoTemplate()}
     `;
   }
