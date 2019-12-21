@@ -108,6 +108,7 @@ class DemoPage extends ArcDemoPage {
       isXhr: true,
       loadingTime: 0
     };
+
     const startTime = Date.now();
 
     try {
