@@ -24,6 +24,7 @@ import '@advanced-rest-client/arc-menu/saved-menu.js';
 import '@advanced-rest-client/arc-menu/projects-menu.js';
 import '@advanced-rest-client/arc-menu/history-menu.js';
 import '@advanced-rest-client/arc-data-export/arc-data-export.js';
+import '@advanced-rest-client/client-certificates-panel/client-certificates-panel.js';
 import '../arc-request-workspace.js';
 
 class DemoPage extends ArcDemoPage {
@@ -507,6 +508,7 @@ class DemoPage extends ArcDemoPage {
 
         ${this._configTemplate()}
         ${this._exportTemplate()}
+        ${this._ccPanelTemplate()}
       </section>
 
 
@@ -595,6 +597,13 @@ class DemoPage extends ArcDemoPage {
       <p>File: ${exportFile}</p>
       <pre>${exportData}</pre>
     </bottom-sheet>`;
+  }
+
+  _ccPanelTemplate() {
+    return html`<div class="card">
+      <h4>Client certificates</h4>
+      <client-certificates-panel></client-certificates-panel>
+    </div>`;
   }
 
   contentTemplate() {
