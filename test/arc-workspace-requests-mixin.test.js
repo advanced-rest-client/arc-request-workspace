@@ -1,5 +1,5 @@
 import { fixture, assert, html, nextFrame } from '@open-wc/testing';
-import * as sinon from 'sinon/pkg/sinon-esm.js';
+import * as sinon from 'sinon';
 import '@advanced-rest-client/arc-models/project-model.js';
 import '@advanced-rest-client/arc-models/request-model.js';
 import '@advanced-rest-client/arc-models/variables-model.js';
@@ -120,6 +120,7 @@ describe('ArcWorkspaceRequestsMixin', function() {
       element.narrow = true;
       element.oauth2RedirectUri = 'http://auth.com';
       element.ignoreContentOnGet = true;
+      element.clientCertificateImport = true;
       await nextFrame();
     });
 
@@ -147,6 +148,12 @@ describe('ArcWorkspaceRequestsMixin', function() {
       const panel = element.__createPanelInstance();
       element.__setPanelConfiguration(panel);
       assert.isTrue(panel.ignoreContentOnGet);
+    });
+
+    it('Sets clientCertificateImport propery', () => {
+      const panel = element.__createPanelInstance();
+      element.__setPanelConfiguration(panel);
+      assert.isTrue(panel.clientCertificateImport);
     });
   });
 
@@ -512,6 +519,13 @@ describe('ArcWorkspaceRequestsMixin', function() {
       await nextFrame();
       assert.isTrue(p1.ignoreContentOnGet);
       assert.isTrue(p2.ignoreContentOnGet);
+    });
+
+    it('Updates clientCertificateImport when workspace property change', async () => {
+      element.clientCertificateImport = true;
+      await nextFrame();
+      assert.isTrue(p1.clientCertificateImport);
+      assert.isTrue(p2.clientCertificateImport);
     });
   });
 });

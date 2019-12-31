@@ -266,6 +266,10 @@ export class ArcRequestWorkspace extends
        */
       ignoreContentOnGet: { type: Boolean, panelProperty: true },
       /**
+       * Enables "import" button in client certificate authorization panel
+       */
+      clientCertificateImport: { type: Boolean, panelProperty: true },
+      /**
        * An URL to be present in the session URL input when opened.
        * The input can be opened by calling `openWebUrlInput()`
        */
