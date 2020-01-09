@@ -582,3 +582,24 @@
  [b0e467a](https://github.com/advanced-rest-client/arc-request-workspace/commit/b0e467af3f29c324f92904ff59ccab95190b9f65) by Pawel Psztyc
 
 
+<a name="4.0.2"></a>
+## [4.0.2](https://github.com/advanced-rest-client/arc-request-workspace/compare/4.0.0...4.0.2) (2020-01-09)
+
+### Build
+
+* bumping version [a60e28e](https://github.com/advanced-rest-client/arc-request-workspace/commit/a60e28e888fab8c506dad077c1c9b8d086e30cc1) by Pawel Psztyc
+* bumping version [5d200f3](https://github.com/advanced-rest-client/arc-request-workspace/commit/5d200f39ce79d7bba7372f0de352081440ce076f) by Pawel Psztyc
+
+
+### Update
+
+* updating dependencies [97305a2](https://github.com/advanced-rest-client/arc-request-workspace/commit/97305a2a2a0b3ca51730ff311098083a90ceed73) by Pawel Psztyc
+* [ci skip] automated merge master->stage. syncing main branches [9e0490a](https://github.com/advanced-rest-client/arc-request-workspace/commit/9e0490a28b82e63b66824a29199ebe429ff5bf5e) by Ci agent
+* updating sinon version [a22f797](https://github.com/advanced-rest-client/arc-request-workspace/commit/a22f79704ed02c90d92456e10f71458745d19653) by Pawel Psztyc
+
+
+### Features
+
+* adding `clientCertificateImport` option [fd1855e](https://github.com/advanced-rest-client/arc-request-workspace/commit/fd1855e9a9c1044f2d49df32a789d03de67ad9b8) by Pawel Psztyc
+
+
