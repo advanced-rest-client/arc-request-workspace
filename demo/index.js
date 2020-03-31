@@ -1,5 +1,5 @@
 import { html } from 'lit-html';
-import { ArcDemoPage } from '@advanced-rest-client/arc-demo-helper/ArcDemoPage.js';
+import { DemoPage } from '@advanced-rest-client/arc-demo-helper';
 import { DataGenerator } from '@advanced-rest-client/arc-data-generator/arc-data-generator.js';
 import { search } from '@advanced-rest-client/arc-icons/ArcIcons.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
@@ -27,11 +27,10 @@ import '@advanced-rest-client/arc-data-export/arc-data-export.js';
 import '@advanced-rest-client/client-certificates-panel/client-certificates-panel.js';
 import '../arc-request-workspace.js';
 
-class DemoPage extends ArcDemoPage {
+class ComponentDemo extends DemoPage {
   constructor() {
     super();
     this.initObservableProperties([
-      'compatibility',
       'outlined',
       'readOnly',
       'narrow',
@@ -47,13 +46,10 @@ class DemoPage extends ArcDemoPage {
       'ignoreContentOnGet',
       'q'
     ]);
-    this._componentName = 'arc-request-workspace';
+    this.componentName = 'arc-request-workspace';
     this.demoStates = ['Filled', 'Outlined', 'Anypoint'];
     this.selectedMenu = 0;
 
-    this._demoStateHandler = this._demoStateHandler.bind(this);
-    this._toggleMainOption = this._toggleMainOption.bind(this);
-    this._narrowHandler = this._narrowHandler.bind(this);
     this._requestHandler = this._requestHandler.bind(this);
     this._selectRequest = this._selectRequest.bind(this);
     this._searchKeydown = this._searchKeydown.bind(this);
@@ -72,19 +68,10 @@ class DemoPage extends ArcDemoPage {
     window.addEventListener('google-drive-data-save', this._fileExportHandler.bind(this));
   }
 
-  _toggleMainOption(e) {
-    const { name, checked } = e.target;
-    this[name] = checked;
-  }
-
   _demoStateHandler(e) {
     const state = e.detail.value;
     this.outlined = state === 1;
     this.compatibility = state === 2;
-  }
-
-  _narrowHandler(e) {
-    this.narrow = e.detail.value;
   }
 
   _requestHandler(e) {
@@ -437,7 +424,7 @@ class DemoPage extends ArcDemoPage {
       <section class="documentation-section">
         <h3>Interactive demo</h3>
         <p>
-          This demo lets you preview the REST APIs menu element with various
+          This demo lets you preview the ARC request workspace element with various
           configuration options.
         </p>
 
@@ -628,6 +615,6 @@ class DemoPage extends ArcDemoPage {
   }
 }
 
-const instance = new DemoPage();
+const instance = new ComponentDemo();
 instance.render();
 window._demo = instance;
