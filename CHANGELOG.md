@@ -603,3 +603,26 @@
 * adding `clientCertificateImport` option [fd1855e](https://github.com/advanced-rest-client/arc-request-workspace/commit/fd1855e9a9c1044f2d49df32a789d03de67ad9b8) by Pawel Psztyc
 
 
+<a name="5.0.0"></a>
+# [5.0.0](https://github.com/advanced-rest-client/arc-request-workspace/compare/4.0.1...5.0.0) (2020-03-31)
+
+## Build
+
+* bumping version [a60e28e](https://github.com/advanced-rest-client/arc-request-workspace/commit/a60e28e888fab8c506dad077c1c9b8d086e30cc1) by Pawel Psztyc
+
+
+## Continuous integration
+
+* upgrading Travis config [fd4f40a](https://github.com/advanced-rest-client/arc-request-workspace/commit/fd4f40a1273dd101bf022bf88595e594fdaa4a0a) by Pawel
+
+
+## Update
+
+* upgrading major version [47eb20f](https://github.com/advanced-rest-client/arc-request-workspace/commit/47eb20f418cc43893155c01be0e514e428e5620e) by Pawel
+* upgrading demo page [fe85692](https://github.com/advanced-rest-client/arc-request-workspace/commit/fe85692762d369675b82f91715f12ce05076555e) by Pawel
+* upgrading dependencies [ce2a020](https://github.com/advanced-rest-client/arc-request-workspace/commit/ce2a02014cdc237a3c3e746deec1ed48ef203004) by Pawel
+* [ci skip] automated merge master->stage. syncing main branches [c051f81](https://github.com/advanced-rest-client/arc-request-workspace/commit/c051f81cef9ea809803082bf77b387d5d2e03807) by Ci agent
+* updating dependencies [97305a2](https://github.com/advanced-rest-client/arc-request-workspace/commit/97305a2a2a0b3ca51730ff311098083a90ceed73) by Pawel Psztyc
+* [ci skip] automated merge master->stage. syncing main branches [9e0490a](https://github.com/advanced-rest-client/arc-request-workspace/commit/9e0490a28b82e63b66824a29199ebe429ff5bf5e) by Ci agent
+
+
